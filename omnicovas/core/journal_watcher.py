@@ -46,7 +46,7 @@ JOURNAL_FILE_PREFIX = "Journal."
 JOURNAL_FILE_SUFFIX = ".log"
 
 
-class JournalEventHandler(FileSystemEventHandler):  # type: ignore[misc]
+class JournalEventHandler(FileSystemEventHandler):  # type: ignore[misc,unused-ignore]
     """
     watchdog event handler for Elite Dangerous journal files.
 
@@ -141,7 +141,7 @@ class JournalWatcher:
     ) -> None:
         self._dispatch_fn = dispatch_fn
         self._journal_path = journal_path or DEFAULT_JOURNAL_PATH
-        self._observer: Observer | None = None
+        self._observer: Any = None
         self._current_journal: Path | None = None
 
     def _find_current_journal(self) -> Path | None:
