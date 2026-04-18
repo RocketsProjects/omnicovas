@@ -215,3 +215,6 @@ src-tauri/target/
 
 # Rust
 Cargo.lock
+
+# Alembic development database
+alembic_dev.db

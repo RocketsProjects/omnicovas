@@ -20,6 +20,9 @@ classifiers = [
 ]
 dependencies = [
     "aiofiles>=25.1.0",
+    "aiosqlite>=0.22.1",
+    "alembic>=1.18.4",
+    "sqlalchemy>=2.0.49",
     "watchdog>=6.0.0",
 ]
 
@@ -36,6 +39,7 @@ packages = ["omnicovas"]
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+exclude = ["alembic/versions", "alembic/env.py"]
 
 [tool.ruff.lint]
 select = [
@@ -82,9 +86,19 @@ dev = [
     "pytest-asyncio>=1.3.0",
     "pytest-stub>=1.1.0",
     "ruff>=0.15.11",
+    "sqlalchemy[mypy]>=2.0.49",
 ]
 
 [[tool.mypy.overrides]]
 module = "watchdog.*"
 ignore_missing_imports = true
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "alembic.*"
+ignore_missing_imports = true
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "sqlalchemy.*"
+ignore_missing_imports = true

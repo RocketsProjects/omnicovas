@@ -4,13 +4,12 @@ omnicovas.core.main
 Main entry point for the OmniCOVAS Python core brain.
 
 Starts the asyncio event loop and wires all Phase 1 components together:
-    JournalWatcher → EventDispatcher → Stub Handlers
-    StatusReader   → EventDispatcher → Stub Handlers
-
-This is the file Tauri will launch as a sidecar process.
+    JournalWatcher → EventDispatcher → Handlers → StateManager
+    StatusReader   → EventDispatcher → Handlers → StateManager
+                   → EventRecorder   → SQLite session database
 
 See: Master Blueprint v4.0 Section 3 (Tech Stack)
-See: Phase 1 Development Guide Week 2
+See: Phase 1 Development Guide Week 2-3
 """
 
 from __future__ import annotations
@@ -19,24 +18,13 @@ import asyncio
 import logging
 
 from omnicovas.core.dispatcher import EventDispatcher
-from omnicovas.core.handlers import (
-    handle_docked,
-    handle_docking_granted,
-    handle_fsd_jump,
-    handle_fuel_low,
-    handle_heat_warning,
-    handle_hull_damage,
-    handle_pips_changed,
-    handle_shield_down,
-    handle_ship_targeted,
-    handle_status,
-    handle_undocked,
-)
+from omnicovas.core.handlers import make_handlers
 from omnicovas.core.journal_watcher import JournalWatcher
+from omnicovas.core.state_manager import StateManager
 from omnicovas.core.status_reader import StatusReader
+from omnicovas.db.engine import init_database, make_session_factory
+from omnicovas.db.recorder import EventRecorder
 
-# Basic logging setup for Phase 1
-# Will be replaced by structlog in Week 6
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -50,52 +38,66 @@ async def main() -> None:
     Main async entry point.
 
     Wires together:
-    1. EventDispatcher (routes events to handlers)
-    2. JournalWatcher (reads journal files, feeds dispatcher)
-    3. StatusReader (polls Status.json, feeds dispatcher)
-    4. Stub handlers (prove routing works)
+    1. StateManager (the session memory)
+    2. Database engine + recorder (persistent event log)
+    3. EventDispatcher (routes events to handlers and recorders)
+    4. JournalWatcher (reads journal files)
+    5. StatusReader (polls Status.json)
     """
     logger.info("OmniCOVAS core brain starting...")
 
-    # Step 1: Create dispatcher
+    # Step 1: Initialize database
+    engine = await init_database()
+    session_factory = make_session_factory(engine)
+    recorder = EventRecorder(session_factory)
+
+    # Step 2: Create state manager
+    state = StateManager()
+
+    # Step 3: Create dispatcher and register everything
     dispatcher = EventDispatcher()
+    for event_type, handler in make_handlers(state).items():
+        dispatcher.register(event_type, handler)
+    dispatcher.register_recorder(recorder.record_event)
 
-    # Step 2: Register journal event handlers
-    dispatcher.register("FSDJump", handle_fsd_jump)
-    dispatcher.register("Docked", handle_docked)
-    dispatcher.register("Undocked", handle_undocked)
-    dispatcher.register("HullDamage", handle_hull_damage)
-    dispatcher.register("ShipTargeted", handle_ship_targeted)
-    dispatcher.register("DockingGranted", handle_docking_granted)
+    logger.info("Event handlers and recorder registered.")
 
-    # Step 3: Register Status.json event handlers
-    dispatcher.register("Status", handle_status)
-    dispatcher.register("FuelLow", handle_fuel_low)
-    dispatcher.register("HeatWarning", handle_heat_warning)
-    dispatcher.register("ShieldDown", handle_shield_down)
-    dispatcher.register("PipsChanged", handle_pips_changed)
-
-    logger.info("Event handlers registered.")
-
-    # Step 4: Start journal watcher
+    # Step 4: Start a database session for this run
     journal_watcher = JournalWatcher(dispatch_fn=dispatcher.dispatch)
+    current_journal = journal_watcher._find_current_journal()
+    journal_filename = current_journal.name if current_journal else "unknown"
+    await recorder.start_session(journal_filename=journal_filename)
+
+    # Step 5: Start journal watcher
     await journal_watcher.start()
 
-    # Step 5: Start Status.json reader
+    # Step 6: Start Status.json reader
     status_reader = StatusReader(dispatch_fn=dispatcher.dispatch)
     await status_reader.start()
 
     logger.info("OmniCOVAS core brain running. Press Ctrl+C to stop.")
 
-    # Step 6: Run until interrupted
     try:
         while True:
-            await asyncio.sleep(1)
+            await asyncio.sleep(5)
+            snap = state.snapshot
+            logger.info(
+                "[STATE SNAPSHOT] system=%s station=%s docked=%s "
+                "hull=%s fuel=%s (recorded=%d)",
+                snap.current_system,
+                snap.current_station,
+                snap.is_docked,
+                snap.hull_health,
+                snap.fuel_main,
+                recorder.events_recorded,
+            )
     except asyncio.CancelledError:
         pass
     finally:
         await status_reader.stop()
         await journal_watcher.stop()
+        await recorder.end_session()
+        await engine.dispose()
         logger.info(
             "OmniCOVAS core brain stopped. Total events processed: %d",
             dispatcher.events_processed,
