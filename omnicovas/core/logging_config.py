@@ -32,7 +32,7 @@ import re
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, MutableMapping
 
 import structlog
 
@@ -77,8 +77,10 @@ def _redact_string(value: str) -> str:
 
 
 def redaction_processor(
-    logger: Any, method_name: str, event_dict: dict[str, Any]
-) -> dict[str, Any]:
+    logger: Any,
+    method_name: str,
+    event_dict: MutableMapping[str, Any],
+) -> MutableMapping[str, Any]:
     """
     structlog processor: scan every value in the event dict for credentials
     and replace matches with [REDACTED]. Runs before the JSON serializer.
