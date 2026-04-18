@@ -22,6 +22,7 @@ dependencies = [
     "aiofiles>=25.1.0",
     "aiosqlite>=0.22.1",
     "alembic>=1.18.4",
+    "google-genai>=1.73.1",
     "sqlalchemy>=2.0.49",
     "watchdog>=6.0.0",
 ]
@@ -101,4 +102,8 @@ ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = "sqlalchemy.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "google.*"
 ignore_missing_imports = true

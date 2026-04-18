@@ -1,0 +1,16 @@
+{
+  "category": "trading_mechanics",
+  "description": "Trading: commodities, supply/demand, trade routes",
+  "entries": [
+    {
+      "id": "commodity_categories",
+      "topic": "Commodity Categories",
+      "content": "Commodities traded at stations fall into named categories such as Chemicals, Consumer Items, Foods, Industrial Materials, Legal Drugs, Machinery, Medicines, Metals, Minerals, Salvage, Slaves (illegal in most jurisdictions), Technology, Textiles, Waste, and Weapons. Category and legality flags are reported in the MarketBuy and MarketSell journal events.",
+      "patch_verified": "4.0",
+      "source": "in-game journal observation (MarketBuy/MarketSell events)",
+      "last_updated": "2026-04-18",
+      "confidence": "high",
+      "needs_review": false
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "category": "exploration_mechanics",
+  "description": "Exploration: FSS, DSS, route plotting, system scanning",
+  "entries": [
+    {
+      "id": "fss_vs_dss",
+      "topic": "FSS vs DSS Scanning",
+      "content": "The Full Spectrum Scanner (FSS) resolves all bodies in a system from any point within the system and is the primary discovery tool. The Detailed Surface Scanner (DSS) must be used at close range to a specific body to map its surface, reveal geological and biological signals, and earn the mapping bonus on the exploration data.",
+      "patch_verified": "4.0",
+      "source": "in-game journal observation (FSSDiscoveryScan, SAAScanComplete events)",
+      "last_updated": "2026-04-18",
+      "confidence": "high",
+      "needs_review": false
+    }
+  ]
+}

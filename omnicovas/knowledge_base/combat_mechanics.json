@@ -1,0 +1,16 @@
+{
+  "category": "combat_mechanics",
+  "description": "Ship combat: hull, shields, modules, weapons, damage",
+  "entries": [
+    {
+      "id": "hull_integrity_basics",
+      "topic": "Hull Integrity",
+      "content": "A ship's hull integrity is reported in journal events as a float between 0.0 (destroyed) and 1.0 (full health). The HullDamage event fires on each damage tick. At 0.0 the ship is destroyed and the commander incurs the rebuy cost.",
+      "patch_verified": "4.0",
+      "source": "in-game journal observation",
+      "last_updated": "2026-04-18",
+      "confidence": "high",
+      "needs_review": false
+    }
+  ]
+}
