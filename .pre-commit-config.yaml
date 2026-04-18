@@ -12,12 +12,14 @@ repos:
       - id: ruff-format
 
   # mypy — type checker (strict mode)
+  # Excludes tests/ — test frameworks use decorators that confuse strict mypy
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.20.1
     hooks:
       - id: mypy
         additional_dependencies: []
         args: [--strict]
+        exclude: ^tests/
 
   # General file hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks

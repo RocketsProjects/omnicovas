@@ -92,3 +92,68 @@ async def handle_docking_granted(event: dict[str, Any]) -> None:
     station = event.get("StationName", "Unknown")
     logger.info("[STUB] DockingGranted → %s", station)
     print(f"[EVENT] DockingGranted → {station}")
+
+
+async def handle_status(event: dict[str, Any]) -> None:
+    """
+    Handle Status — synthetic event from Status.json poll.
+
+    Phase 2: Will update StateManager with live state
+    Phase 1: Logs key fields
+    """
+    flags = event.get("Flags", 0)
+    heat = event.get("Heat", 0.0)
+    fuel = event.get("Fuel", {})
+    fuel_main = fuel.get("FuelMain", 0.0) if isinstance(fuel, dict) else 0.0
+    sub_events = event.get("SubEvents", [])
+
+    logger.debug(
+        "[STUB] Status → flags=0x%x heat=%.2f fuel=%.1f subs=%s",
+        flags,
+        heat,
+        fuel_main,
+        sub_events,
+    )
+
+
+async def handle_fuel_low(event: dict[str, Any]) -> None:
+    """
+    Handle FuelLow — synthetic sub-event from Status.json.
+
+    Phase 2: Will trigger low fuel advisory
+    Phase 1: Logs warning
+    """
+    logger.warning("[STUB] FuelLow → fuel dropped below 25%%")
+    print("[EVENT] ⚠ FuelLow → fuel dropped below 25%")
+
+
+async def handle_heat_warning(event: dict[str, Any]) -> None:
+    """
+    Handle HeatWarning — synthetic sub-event from Status.json.
+
+    Phase 2: Will trigger heat advisory
+    Phase 1: Logs warning
+    """
+    logger.warning("[STUB] HeatWarning → heat rising above 75%%")
+    print("[EVENT] ⚠ HeatWarning → heat rising above 75%")
+
+
+async def handle_shield_down(event: dict[str, Any]) -> None:
+    """
+    Handle ShieldDown — synthetic sub-event from Status.json.
+
+    Phase 2: Will trigger tactical alert
+    Phase 1: Logs warning
+    """
+    logger.warning("[STUB] ShieldDown → shields collapsed")
+    print("[EVENT] ⚠ ShieldDown → shields collapsed")
+
+
+async def handle_pips_changed(event: dict[str, Any]) -> None:
+    """
+    Handle PipsChanged — synthetic sub-event from Status.json.
+
+    Phase 2: Will inform combat/exploration advisors
+    Phase 1: Debug-level log only (fires frequently)
+    """
+    logger.debug("[STUB] PipsChanged")
