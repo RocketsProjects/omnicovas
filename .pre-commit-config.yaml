@@ -17,7 +17,10 @@ repos:
     rev: v1.20.1
     hooks:
       - id: mypy
-        additional_dependencies: []
+        additional_dependencies:
+          - types-psutil
+          - types-PyYAML
+          - types-pywin32
         args: [--strict]
         exclude: ^(tests/|alembic/)
 

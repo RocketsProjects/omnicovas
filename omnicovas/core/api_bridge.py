@@ -107,10 +107,12 @@ class ApiBridge:
         state_manager: StateManager,
         host: str = "127.0.0.1",
         port: int | None = None,
+        resource_monitor: Any = None,
     ) -> None:
         self._state = state_manager
         self._host = host
         self._port = port if port is not None else find_free_port()
+        self._resource_monitor = resource_monitor
         self._app = self._build_app()
         self._broadcaster = WebSocketBroadcaster()
         self._activity_log: deque[dict[str, Any]] = deque(maxlen=ACTIVITY_LOG_CAPACITY)
@@ -173,6 +175,39 @@ class ApiBridge:
             return {
                 "total": len(self._activity_log),
                 "entries": list(self._activity_log),
+            }
+
+        @app.get("/resources")  # type: ignore[misc,untyped-decorator,unused-ignore]
+        async def get_resources() -> dict[str, Any]:
+            """Live resource usage snapshot (Principle 10)."""
+            if self._resource_monitor is None:
+                return {"enabled": False}
+
+            latest = self._resource_monitor.latest
+            budget = self._resource_monitor.budget
+            return {
+                "enabled": True,
+                "snapshot": (
+                    {
+                        "memory_used_mb": round(latest.memory_used_mb, 1),
+                        "memory_total_mb": round(latest.memory_total_mb, 1),
+                        "cpu_percent": round(latest.cpu_percent, 1),
+                        "disk_free_gb": round(latest.disk_free_gb, 1),
+                        "disk_total_gb": round(latest.disk_total_gb, 1),
+                    }
+                    if latest is not None
+                    else None
+                ),
+                "budget": {
+                    "max_cache_size_mb": budget.max_cache_size_mb,
+                    "max_galaxy_dump_size_gb": budget.max_galaxy_dump_size_gb,
+                    "max_background_task_cpu_percent": (
+                        budget.max_background_task_cpu_percent
+                    ),
+                    "max_api_calls_per_minute_total": (
+                        budget.max_api_calls_per_minute_total
+                    ),
+                },
             }
 
         @app.websocket("/ws/events")  # type: ignore[misc,untyped-decorator,unused-ignore]

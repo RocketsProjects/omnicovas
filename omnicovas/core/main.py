@@ -3,14 +3,16 @@ omnicovas.core.main
 
 Main entry point for the OmniCOVAS Python core brain.
 
-Phase 1 pipeline (fully wired at Week 5):
+Phase 1 pipeline (fully wired at Week 6):
+    configure_logging()  ← must run first
+    ResourceMonitor      ← Principle 10 enforcement
     JournalWatcher ──┐
                      ├─→ EventDispatcher ──┬─→ Handlers ─→ StateManager
     StatusReader ────┘                     ├─→ EventRecorder → SQLite
                                            └─→ ApiBridge → FastAPI/WebSocket → Tauri UI
 
 See: Master Blueprint v4.0 Section 3 (Tech Stack)
-See: Phase 1 Development Guide Week 2-5
+See: Phase 1 Development Guide Week 2-6
 """
 
 from __future__ import annotations
@@ -24,15 +26,12 @@ from omnicovas.core.api_bridge import ApiBridge
 from omnicovas.core.dispatcher import EventDispatcher
 from omnicovas.core.handlers import make_handlers
 from omnicovas.core.journal_watcher import JournalWatcher
+from omnicovas.core.logging_config import configure_logging
+from omnicovas.core.resource_monitor import ResourceMonitor
 from omnicovas.core.state_manager import StateManager
 from omnicovas.core.status_reader import StatusReader
 from omnicovas.db.engine import init_database, make_session_factory
 from omnicovas.db.recorder import EventRecorder
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
 
 logger = logging.getLogger(__name__)
 
@@ -41,37 +40,43 @@ async def main() -> None:
     """
     Main async entry point.
 
-    Wires together every Phase 1 component:
-        1. StateManager (session memory)
-        2. Database + EventRecorder (persistent event log)
-        3. ApiBridge (FastAPI bridge to Tauri UI)
-        4. EventDispatcher (routes events to all subscribers)
-        5. JournalWatcher (reads journal files)
-        6. StatusReader (polls Status.json)
-
-    When everything is up, emits a JSON "ready" line to stdout
-    so Tauri can pick up the port and load the UI.
+    Wires together every Phase 1 component in the correct order:
+        0. configure_logging()  — must be first so all subsequent logs work
+        1. ResourceMonitor      — start early to observe startup resource use
+        2. Database             — init schema, create session row
+        3. StateManager         — in-memory session state
+        4. ApiBridge            — FastAPI + WebSocket + /resources endpoint
+        5. EventDispatcher      — routes events to handlers + recorder + bridge
+        6. JournalWatcher       — reads journal files
+        7. StatusReader         — polls Status.json
+        8. Emit ready JSON to stdout for Tauri sidecar to pick up port
     """
+    # Step 0: logging must be configured before anything else logs
+    configure_logging()
+
     logger.info("OmniCOVAS core brain starting...")
 
-    # Step 1: Database
+    # Step 1: resource monitor
+    resource_monitor = ResourceMonitor()
+    await resource_monitor.start()
+
+    # Step 2: database
     engine = await init_database()
     session_factory = make_session_factory(engine)
     recorder = EventRecorder(session_factory)
 
-    # Step 2: State manager
+    # Step 3: state manager
     state = StateManager()
 
-    # Step 3: API bridge (FastAPI + WebSocket)
-    bridge = ApiBridge(state_manager=state)
+    # Step 4: API bridge
+    bridge = ApiBridge(state_manager=state, resource_monitor=resource_monitor)
 
-    # Step 4: Dispatcher
+    # Step 5: dispatcher wiring
     dispatcher = EventDispatcher()
     for event_type, handler in make_handlers(state).items():
         dispatcher.register(event_type, handler)
     dispatcher.register_recorder(recorder.record_event)
 
-    # Hook the bridge into the dispatcher as a raw recorder
     async def push_to_bridge(event: dict[str, object], raw_line: str) -> None:
         await bridge.push_event(event)
 
@@ -79,24 +84,24 @@ async def main() -> None:
 
     logger.info("Event handlers, recorder, and bridge registered.")
 
-    # Step 5: Journal watcher
+    # Step 6: journal watcher
     journal_watcher = JournalWatcher(dispatch_fn=dispatcher.dispatch)
     current_journal = journal_watcher._find_current_journal()
     journal_filename = current_journal.name if current_journal else "unknown"
     await recorder.start_session(journal_filename=journal_filename)
     await journal_watcher.start()
 
-    # Step 6: Status.json reader
+    # Step 7: Status.json reader
     status_reader = StatusReader(dispatch_fn=dispatcher.dispatch)
     await status_reader.start()
 
-    # Step 7: Start API bridge LAST, so state is already populating
+    # Step 8: start API bridge last
     await bridge.start()
     if not await bridge.wait_until_ready():
         logger.error("API bridge did not become ready in time")
         return
 
-    # Step 8: Emit ready JSON to stdout — Tauri reads this to learn the port
+    # Emit ready JSON so Tauri can pick up the port
     ready_message = {
         "status": "ready",
         "port": bridge.port,
@@ -106,15 +111,21 @@ async def main() -> None:
     print(json.dumps(ready_message), flush=True)
     sys.stdout.flush()
     logger.info("Ready signal emitted: port=%d", bridge.port)
-
     logger.info("OmniCOVAS core brain running. Press Ctrl+C to stop.")
 
     try:
         while True:
             await asyncio.sleep(5)
             snap = state.snapshot
+            res = resource_monitor.latest
+            res_str = (
+                f"mem={res.memory_used_mb:.0f}MB cpu={res.cpu_percent:.1f}%"
+                if res is not None
+                else "mem=? cpu=?"
+            )
             logger.info(
-                "[STATE] system=%s station=%s docked=%s hull=%s fuel=%s (db=%d ws=%d)",
+                "[STATE] system=%s station=%s docked=%s hull=%s "
+                "fuel=%s (db=%d ws=%d %s)",
                 snap.current_system,
                 snap.current_station,
                 snap.is_docked,
@@ -122,6 +133,7 @@ async def main() -> None:
                 snap.fuel_main,
                 recorder.events_recorded,
                 bridge._broadcaster.client_count,
+                res_str,
             )
     except asyncio.CancelledError:
         pass
@@ -129,6 +141,7 @@ async def main() -> None:
         await status_reader.stop()
         await journal_watcher.stop()
         await bridge.stop()
+        await resource_monitor.stop()
         await recorder.end_session()
         await engine.dispose()
         logger.info(
