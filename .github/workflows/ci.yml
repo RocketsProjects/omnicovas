@@ -1,0 +1,56 @@
+# GitHub Actions CI Pipeline for OmniCOVAS
+# Runs on every push and pull request.
+# Enforces Code Quality Gates from CLAUDE.MD Section VI.
+#
+# Pipeline:
+#   1. Checkout code
+#   2. Install Python 3.11 + uv
+#   3. Install dependencies
+#   4. Run ruff check (lint)
+#   5. Run mypy (strict type check)
+#   6. Run pytest (all tests)
+#   7. All must pass = green checkmark
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-gates:
+    name: Code Quality Gates
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Create virtual environment
+        run: uv venv --python 3.11
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras
+
+      - name: Run ruff (lint)
+        run: uv run ruff check omnicovas/ tests/
+
+      - name: Run ruff (format check)
+        run: uv run ruff format --check omnicovas/ tests/
+
+      - name: Run mypy (strict type check)
+        run: uv run mypy omnicovas/
+
+      - name: Run pytest
+        run: uv run pytest -v

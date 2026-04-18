@@ -1,0 +1,9 @@
+{
+  "kb_version": "0.1.0",
+  "last_full_audit_date": "2026-04-18",
+  "game_version_at_last_audit": "unknown",
+  "total_entries": 0,
+  "entries_needing_review": 0,
+  "schema_version": 1,
+  "notes": "Initial Knowledge Base scaffold. Entries to be populated in Week 4."
+}
