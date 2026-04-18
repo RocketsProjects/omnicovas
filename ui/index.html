@@ -5,34 +5,281 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OmniCOVAS</title>
     <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
       body {
-        background-color: #0a0a0f;
-        color: #00ff88;
-        font-family: 'Courier New', monospace;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
+        background: linear-gradient(135deg, #0a0a14 0%, #0f1020 100%);
+        color: #e0e0e8;
+        font-family: 'Consolas', 'Courier New', monospace;
+        min-height: 100vh;
+        padding: 24px;
+        overflow-x: hidden;
       }
-      .status {
-        text-align: center;
-      }
+
       h1 {
-        font-size: 2rem;
+        color: #ff8800;
+        font-size: 1.8rem;
         letter-spacing: 0.3rem;
+        text-transform: uppercase;
+        margin-bottom: 4px;
       }
-      p {
+
+      .subtitle {
         color: #888;
+        font-size: 0.75rem;
+        letter-spacing: 0.2rem;
+        margin-bottom: 24px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .card {
+        background: rgba(20, 22, 35, 0.7);
+        border: 1px solid rgba(255, 136, 0, 0.2);
+        border-radius: 4px;
+        padding: 16px;
+      }
+
+      .card h2 {
+        color: #ff8800;
+        font-size: 0.85rem;
+        letter-spacing: 0.2rem;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 136, 0, 0.2);
+        padding-bottom: 6px;
+      }
+
+      .field {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
         font-size: 0.9rem;
+      }
+
+      .field .label {
+        color: #888;
+      }
+
+      .field .value {
+        color: #00ffaa;
+        font-weight: bold;
+      }
+
+      .field .value.unknown {
+        color: #555;
+        font-style: italic;
+      }
+
+      .status-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 6px;
+        vertical-align: middle;
+      }
+
+      .status-dot.connected { background: #00ffaa; box-shadow: 0 0 8px #00ffaa; }
+      .status-dot.disconnected { background: #ff4444; }
+
+      .connection-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 6px 24px;
+        font-size: 0.75rem;
+        color: #888;
+        background: rgba(10, 10, 20, 0.9);
+        border-bottom: 1px solid rgba(255, 136, 0, 0.2);
+      }
+
+      .activity-log {
+        background: rgba(20, 22, 35, 0.7);
+        border: 1px solid rgba(255, 136, 0, 0.2);
+        border-radius: 4px;
+        padding: 16px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .activity-log h2 {
+        color: #ff8800;
+        font-size: 0.85rem;
+        letter-spacing: 0.2rem;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 136, 0, 0.2);
+        padding-bottom: 6px;
+      }
+
+      .log-entry {
+        font-size: 0.8rem;
+        padding: 3px 0;
+        color: #aaa;
+        border-bottom: 1px dotted rgba(255, 136, 0, 0.1);
+      }
+
+      .log-entry .type {
+        color: #ff8800;
+        display: inline-block;
+        min-width: 140px;
       }
     </style>
   </head>
   <body>
-    <div class="status">
-      <h1>⚙ OmniCOVAS</h1>
-      <p>Phase 1 — Infrastructure Skeleton</p>
-      <p>Python core initializing...</p>
+    <div class="connection-bar">
+      <span id="status-dot" class="status-dot disconnected"></span>
+      <span id="status-text">Connecting to core brain…</span>
+      <span id="port-info" style="margin-left: 12px;"></span>
     </div>
+
+    <div style="margin-top: 24px;">
+      <h1>⚙ OmniCOVAS</h1>
+      <p class="subtitle">Phase 1 Infrastructure · Week 5</p>
+
+      <div class="grid">
+        <div class="card">
+          <h2>Location</h2>
+          <div class="field"><span class="label">System</span><span id="f-system" class="value unknown">—</span></div>
+          <div class="field"><span class="label">Station</span><span id="f-station" class="value unknown">—</span></div>
+          <div class="field"><span class="label">Docked</span><span id="f-docked" class="value unknown">—</span></div>
+          <div class="field"><span class="label">Supercruise</span><span id="f-supercruise" class="value unknown">—</span></div>
+        </div>
+
+        <div class="card">
+          <h2>Ship</h2>
+          <div class="field"><span class="label">Ship type</span><span id="f-ship" class="value unknown">—</span></div>
+          <div class="field"><span class="label">Hull</span><span id="f-hull" class="value unknown">—</span></div>
+          <div class="field"><span class="label">Shields</span><span id="f-shields" class="value unknown">—</span></div>
+          <div class="field"><span class="label">Fuel</span><span id="f-fuel" class="value unknown">—</span></div>
+        </div>
+      </div>
+
+      <div class="activity-log">
+        <h2>Activity Log</h2>
+        <div id="log-entries">
+          <div class="log-entry"><em>Waiting for events…</em></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // The Python core writes its port to a file that Tauri could pick up.
+      // For Phase 1, we probe common ports or let the user pass one.
+      // In Week 6+ Tauri will read the ready JSON from the sidecar stdout.
+      // For now we read from localhost query param or try a default.
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const portFromQuery = urlParams.get('port');
+      const DEFAULT_PORT = portFromQuery || window.OMNICOVAS_PORT || null;
+
+      const statusDot = document.getElementById('status-dot');
+      const statusText = document.getElementById('status-text');
+      const portInfo = document.getElementById('port-info');
+      const logContainer = document.getElementById('log-entries');
+
+      function setField(id, value, unknownText = 'unknown') {
+        const el = document.getElementById(id);
+        if (value === null || value === undefined) {
+          el.textContent = unknownText;
+          el.classList.add('unknown');
+        } else {
+          el.textContent = value;
+          el.classList.remove('unknown');
+        }
+      }
+
+      function renderState(s) {
+        setField('f-system', s.current_system);
+        setField('f-station', s.current_station);
+        setField('f-docked', s.is_docked === null ? null : (s.is_docked ? 'YES' : 'NO'));
+        setField('f-supercruise', s.is_in_supercruise === null ? null : (s.is_in_supercruise ? 'YES' : 'NO'));
+        setField('f-ship', s.current_ship_type);
+        setField('f-hull', s.hull_health === null ? null : `${(s.hull_health * 100).toFixed(1)}%`);
+        setField('f-shields', s.shield_up === null ? null : (s.shield_up ? 'UP' : 'DOWN'));
+        setField('f-fuel', s.fuel_main === null ? null : `${s.fuel_main.toFixed(1)} t`);
+      }
+
+      function addLogEntry(entry) {
+        const waiting = logContainer.querySelector('em');
+        if (waiting) logContainer.innerHTML = '';
+
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerHTML = `<span class="type">${entry.event_type}</span> ${entry.summary || ''}`;
+        logContainer.insertBefore(div, logContainer.firstChild);
+
+        // Keep DOM manageable
+        while (logContainer.children.length > 50) {
+          logContainer.removeChild(logContainer.lastChild);
+        }
+      }
+
+      async function tryConnect(port) {
+        try {
+          const res = await fetch(`http://127.0.0.1:${port}/state`);
+          if (!res.ok) return false;
+          const state = await res.json();
+          renderState(state);
+
+          statusDot.className = 'status-dot connected';
+          statusText.textContent = 'Connected to core brain';
+          portInfo.textContent = `port ${port}`;
+
+          // Open WebSocket for live events
+          const ws = new WebSocket(`ws://127.0.0.1:${port}/ws/events`);
+          ws.onmessage = (msg) => {
+            try {
+              const data = JSON.parse(msg.data);
+              if (data.type === 'initial_state') {
+                renderState(data.state);
+              } else if (data.type === 'event' && data.event) {
+                addLogEntry(data.event);
+                // Re-fetch state on every event so fields refresh
+                fetch(`http://127.0.0.1:${port}/state`)
+                  .then(r => r.json())
+                  .then(renderState)
+                  .catch(() => {});
+              }
+            } catch (e) { /* ignore */ }
+          };
+          ws.onerror = () => { /* ignore */ };
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      async function discover() {
+        if (DEFAULT_PORT) {
+          if (await tryConnect(DEFAULT_PORT)) return;
+        }
+        // Probe a small range as a fallback for Phase 1 dev
+        for (let port = 50000; port < 65000; port += 1) {
+          if (port % 500 !== 0) continue; // only probe every 500
+          if (await tryConnect(port)) return;
+        }
+        statusText.textContent = 'No core brain found. Start the Python core.';
+      }
+
+      discover();
+      // Re-poll /state every 2s as a safety net against missed WS events
+      setInterval(async () => {
+        if (statusDot.classList.contains('connected')) {
+          try {
+            const port = portInfo.textContent.replace('port ', '');
+            const res = await fetch(`http://127.0.0.1:${port}/state`);
+            if (res.ok) renderState(await res.json());
+          } catch (e) { /* ignore */ }
+        }
+      }, 2000);
+    </script>
   </body>
 </html>
