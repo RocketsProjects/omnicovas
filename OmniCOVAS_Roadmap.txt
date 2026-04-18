@@ -1,0 +1,603 @@
+# OmniCOVAS — Comprehensive Roadmap
+### Companion Document to Master Blueprint v4.0
+
+*Priority-ranked feature roadmap with release mapping for solo developer (10-20 hrs/week).*
+
+---
+
+## 🎯 Purpose
+
+This document answers three questions:
+1. **What gets built first?** (Priority ranking)
+2. **What ships in v1.0 vs later releases?** (Release mapping)
+3. **How do I actually execute this?** (Week-by-week v1.0 plan)
+
+---
+
+## 📊 Priority Framework
+
+| Priority | Label | Meaning |
+|----------|-------|---------|
+| **P1** | Critical | Must exist for v1.0 to function. Blockers. |
+| **P2** | High | Must exist for v1.0 to be useful. Primary features. |
+| **P3** | Medium | Valuable. v1.0 stretch or v1.1 target. |
+| **P4** | Low | Nice to have. v1.1+. |
+| **P5** | Deferred | Revisit after v1.0 stabilizes. v2.0+. |
+
+---
+
+## 🗓️ Release Strategy
+
+### v1.0 — "Core Intelligence" (Months 1-12)
+**Goal:** Useful daily tool for commanders. Establishes architecture and trust.
+
+**Scope:**
+- Pillar 1 (Ship Telemetry) — complete
+- Pillar 2 (Combat) — core features
+- Pillar 3 (Exploration) — core features
+- Pillar 5 (Trading/Mining) — core features
+- Pillar 7 (Squadron) — basic P2P sync only
+- UI shell with overlay
+- Voice I/O (via EDDI/VoiceAttack) for basic queries
+- Settings + privacy page
+- First-run onboarding (Three-Path model)
+
+### v1.1 — "Expansion" (Months 13-18)
+**Goal:** Pillar completion and Powerplay/BGS.
+
+**Scope:**
+- Pillar 4 (BGS/PP2) — core features
+- Pillar 6 (Engineering) — core features
+- Pillar 2-5 feature additions
+- Tier 2 inline Explainability UI
+- Accessibility enhancements
+
+### v1.2 — "Deep Features" (Months 19-24)
+**Goal:** Advanced features, illegal ops, squadron stretch.
+
+**Scope:**
+- Full Illegal Ops suite
+- Squadron stretch features
+- Build Template Library
+- Advanced mining/BGS features
+
+### v1.5 — "Polish" (Months 25+)
+**Goal:** Quality, performance optimization, remaining features.
+
+### v2.0 — "Vision Complete" (Long-term)
+**Goal:** All 166+ features. Native voice option. Advanced integrations.
+
+---
+
+# PART I — INFRASTRUCTURE & CORE (Priority 1 — v1.0 Critical)
+
+These must exist before any pillar can be built.
+
+## Phase 1: The Core (Weeks 1-6)
+
+**Goal:** Foundation infrastructure. No user-facing features yet.
+
+| Feature | Priority | Week Estimate |
+|---------|----------|---------------|
+| GitHub repo initialization (AGPL-3.0 + CLA template) | P1 | 1 |
+| README, SECURITY.md, CONTRIBUTING.md | P1 | Included |
+| Python 3.11+ project structure | P1 | Included |
+| Native journal file watcher (watchdog) | P1 | 1 |
+| Native Status.json watcher | P1 | Included |
+| Native journal event parser (core event types) | P1 | 2 |
+| Async event dispatcher (asyncio) | P1 | 1 |
+| State manager | P1 | Included |
+| SQLite + SQLAlchemy schema | P1 | 1 |
+| Module loader architecture | P1 | Included |
+| AIProvider interface + GeminiProvider | P1 | 1 |
+| NullProvider | P1 | Included |
+| Rate Limit Registry | P1 | Included |
+| Structured logging (structlog) | P1 | Included |
+| Confirmation Gate middleware | P1 | Included |
+| Knowledge Base scaffold (empty files, schema) | P1 | 1 |
+| KB validation pipeline (Principle 6) | P1 | 1 |
+| Local encrypted config vault | P1 | Included |
+| Resource Budget Framework (Principle 10) | P1 | 1 |
+| Tauri application skeleton | P1 | 1 |
+| Basic Activity log UI skeleton | P1 | Included |
+
+**Phase 1 Duration Estimate:** 6 weeks at 15 hrs/week = 90 hours total
+
+---
+
+# PART II — PILLAR 1: SHIP TELEMETRY (Priority 1 — v1.0 Critical Foundation)
+
+## Phase 2: Ship Telemetry (Weeks 7-10)
+
+**Goal:** The foundation every other pillar depends on.
+
+### Core Features (All P1 — required for v1.0)
+
+| Feature | Priority | Complexity |
+|---------|----------|-----------|
+| Live Ship State tracking | P1 | Medium |
+| Module Health Tracking | P1 | Low |
+| Hull & Integrity Triggers | P1 | Low |
+| Loadout Awareness | P1 | Medium |
+| Fuel & Jump Range | P1 | Low |
+| Cargo Monitoring | P1 | Low |
+| Critical Event Broadcaster | P1 | Medium |
+| Extended Event Broadcaster (docking, wanted, etc.) | P1 | Low |
+
+### Core Features (P2 — v1.0 target)
+
+| Feature | Priority | Complexity |
+|---------|----------|-----------|
+| Predictive Module-Targeting Alerts | P2 | Medium |
+| Tactical Threat Assessment | P2 | Medium |
+| Multi-Ship State Tracking | P2 | Low |
+
+### Proposed Additions (Mixed priority)
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| A. Power Distribution Intelligence | P2 | v1.0 |
+| B. Heat Management Intelligence | P2 | v1.0 |
+| C. Shield Intelligence | P3 | v1.1 |
+| D. Module Priority Mapping | P3 | v1.1 |
+| E. Repair & Rearm Intelligence | P2 | v1.0 |
+| F. Rebuy Calculator | P2 | v1.0 |
+| G. Ship Performance Logging | P3 | v1.1 |
+| H. Voice Queries About The Ship | P2 | v1.0 (voice enabled) |
+
+**Phase 2 Duration Estimate:** 4 weeks at 15 hrs/week = 60 hours
+
+---
+
+# PART III — UI SHELL (Priority 1 — v1.0 Critical)
+
+## Phase 3: UI Shell (Weeks 11-14)
+
+**Goal:** Commander-facing interface.
+
+| Feature | Priority | Complexity |
+|---------|----------|-----------|
+| Tauri desktop app full shell | P1 | Medium |
+| Game overlay (transparent always-on-top) | P1 | High |
+| FastAPI bridge Python ↔ Tauri | P1 | Medium |
+| First-Run Onboarding (Three-Path Model) | P1 | Medium |
+| Privacy Page with opt-in toggles | P1 | Low |
+| Settings panel (Three-Tier Customization) | P1 | Medium |
+| Activity Log UI (full) | P1 | Medium |
+| Data flow transparency map | P1 | Low |
+| Resource dashboard UI | P2 | Low |
+| Accessibility framework (Principle 1) | P1 | Medium |
+| Color-blind modes | P2 | Low |
+| Font size adjustments | P2 | Low |
+| Keyboard-only navigation | P2 | Medium |
+| Credits/Contributors page (Principle 4) | P2 | Low |
+| SBOM display | P2 | Low |
+
+**Phase 3 Milestone:** Prototype ready — **submit Frontier Developer application + Inara whitelisting request**
+
+**Phase 3 Duration Estimate:** 4 weeks at 15 hrs/week = 60 hours
+
+---
+
+# PART IV — PILLAR 2: TACTICAL & COMBAT (Priority 1 — v1.0 Core Pillar)
+
+## Phase 4: Combat Pillar (Weeks 15-20)
+
+### Core Features v1.0 (P1 or P2)
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| Target Intelligence | P2 | v1.0 |
+| Interdiction Warning & Response | P1 | v1.0 |
+| PvP Gank Database (local log + Inara lookup) | P2 | v1.0 |
+| Bounty & Combat Bond Tracking | P2 | v1.0 |
+| Combat Zone Intelligence | P2 | v1.0 |
+| Hostility & Threat Warnings | P2 | v1.0 |
+| Combat Rank Tracking | P2 | v1.0 |
+
+### Core Features v1.1 (P3)
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| Anti-Xeno Operations Suite (Off/Light coaching) | P3 | v1.0 partial, v1.1 complete |
+| Massacre Mission Stacker | P3 | v1.1 |
+| Sub-Module Scanner | P3 | v1.1 |
+| Fighter Crew Support | P4 | v1.2 |
+
+### Odyssey Ground Combat
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| Basic on-foot state awareness | P3 | v1.0 |
+| Frontline Solutions tracking | P4 | v1.2 |
+| Settlement raid intelligence | P4 | v1.2 |
+
+### Proposed Additions
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| A. Post-Combat Debrief | P3 | v1.1 |
+| B. Hardpoint & Utility Management | P3 | v1.1 |
+| C. Escape Planner | P2 | v1.0 |
+| D. Thermal Attack Intelligence | P4 | v1.2 |
+| E. Wake Scanning Intelligence | P3 | v1.1 |
+| F. Engagement Range Calculator | P3 | v1.1 |
+| G. PvP CMDR Intelligence | P2 | v1.0 (basic) |
+| H. Munitions Management | P2 | v1.0 |
+| I. Critical State Response (opt-in) | P3 | v1.1 |
+| J. Combat Difficulty Meter | P3 | v1.1 |
+
+**Phase 4 Duration Estimate:** 6 weeks at 15 hrs/week = 90 hours
+
+---
+
+# PART V — PILLAR 3: EXPLORATION & NAVIGATION (Priority 2 — v1.0 Core Pillar)
+
+## Phase 5: Exploration Pillar (Weeks 21-26)
+
+### Core Features v1.0 (P1 or P2)
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| Route Plotting (Spansh integration) | P2 | v1.0 |
+| System Intelligence on Arrival | P2 | v1.0 |
+| Scanning Intelligence (FSS/DSS) | P2 | v1.0 |
+| Bookmark System | P2 | v1.0 |
+| Fuel & Jump Range (already in Pillar 1) | P1 | v1.0 |
+| Fleet Carrier Navigation (basic) | P2 | v1.0 |
+| EDSM Integration (opt-in) | P2 | v1.0 |
+
+### Bio Insights Engine (Key Differentiator)
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| Bio Insights Engine (native build) | P2 | v1.0 |
+| Exobiology sample distance tracker | P2 | v1.0 |
+| Exobiology value estimation | P2 | v1.0 |
+| Biome genus prediction (KB-based) | P3 | v1.1 |
+
+### Other Features
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| SRV Survey Operations | P3 | v1.0 (basic) |
+| First Discovery Hunting | P3 | v1.1 |
+| Outfitting & Shipyard Search | P3 | v1.1 |
+| EDDiscovery Feature Integration | P4 | v1.2 |
+| ED Observatory deeper integration | P5 | v2.0 |
+
+### Proposed Additions
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| A. Expedition Planner | P4 | v1.2 |
+| B. High-Value Target ID | P3 | v1.1 |
+| C. Lost Commander Assistance | P3 | v1.1 |
+| D. Jumponium Management | P4 | v1.2 |
+| E. Codex Integration | P5 | v2.0 |
+| F. Planetary Landing Intelligence | P3 | v1.1 |
+| G. Guardian/Thargoid Site Navigation | P4 | v1.2 |
+| H. Biome-Specific Exobiology Intelligence | P4 | v1.2 |
+| I. Earnings-Per-Hour Tracker | P3 | v1.1 |
+| J. Exploration Build Validator | P4 | v1.2 |
+| K. Data Redemption Optimizer | P2 | v1.0 |
+| L. Pretty System Finder | P5 | v2.0 |
+
+### Data Infrastructure
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| Spansh bulk dump import pipeline | P2 | v1.0 |
+| EDAstro local cache layer | P2 | v1.0 |
+
+**Phase 5 Duration Estimate:** 6 weeks at 15 hrs/week = 90 hours
+
+---
+
+# PART VI — PILLAR 5: TRADING, MINING & COLONIZATION (Priority 2 — v1.0 Core Pillar)
+
+## Phase 6: Trading/Mining Pillar (Weeks 27-34)
+
+### Core Features v1.0
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| Commodity Price Intelligence | P2 | v1.0 |
+| Trade Loop Optimizer (Inara-based) | P2 | v1.0 |
+| Mining Intelligence Core (hotspots) | P2 | v1.0 |
+| Cargo Intelligence | P2 | v1.0 |
+| Interdiction Awareness for Traders | P2 | v1.0 |
+| EDDN Market Data Submission (opt-in) | P2 | v1.0 |
+| Efficiency & Logistics Tracking (cr/hr) | P2 | v1.0 |
+| Mining Coaching (Off/Light tiers) | P3 | v1.0 |
+
+### Fleet Carrier Command Center
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| FC Navigation (covered in Pillar 3) | P2 | v1.0 |
+| Tritium Manager | P2 | v1.0 |
+| FC Market basic | P3 | v1.1 |
+| FC Full Command Center | P3 | v1.1 |
+
+### Colonization
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| Colonization Operations (basic) | P3 | v1.0 |
+| Colonization Full Operations | P3 | v1.1 |
+
+### Proposed Additions
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| A. Profit Margin Validator | P3 | v1.0 |
+| B. Station Economy Intelligence | P3 | v1.1 |
+| C. Rare Commodity Run Tracker | P4 | v1.2 |
+| D. Price History Analytics | P4 | v1.2 |
+| E. Passenger Mission Intelligence | P4 | v1.2 |
+| F. Ship Transfer Logistics | P4 | v1.2 |
+| G. Trade Build Validator | P4 | v1.2 |
+| H. Limpet Controller Optimization | P3 | v1.1 |
+| I. Fleet Carrier Market Maker | P4 | v1.2 |
+| J. Deep Space Refueling Network | P4 | v1.2 |
+| K. Mining Yield Optimization | P3 | v1.1 |
+| L. Smuggling Intelligence (base) | P5 | v1.2+ |
+| M. Community Goal Trade Optimization | P3 | v1.1 |
+
+### Illegal Ops Suite (Mostly Deferred)
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| N. Heat-Level Management | P4 | v1.2 |
+| O. Stealth Approach Coaching | P4 | v1.2 |
+| P. Piracy Target Selection | P5 | v2.0 |
+| Q. Contraband Underground | P5 | v2.0 |
+| R. Scan Evasion Tactics | P4 | v1.2 |
+| S. Power & Kill Warrant Intelligence | P5 | v2.0 |
+| T. Criminal Safe Haven Registry | P5 | v2.0 |
+| U. Criminal Session Tracker | P4 | v1.2 |
+| V. Crime Clearance Optimization | P4 | v1.2 |
+
+**Phase 6 Duration Estimate:** 8 weeks at 15 hrs/week = 120 hours
+
+---
+
+# PART VII — PILLAR 7: SQUADRON & SOCIAL (Priority 2 — v1.0 Basic)
+
+## Phase 7: Squadron Pillar (Weeks 35-40)
+
+### Core Features v1.0
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| ChaCha20-Poly1305 encryption | P1 | v1.0 |
+| STUN-based P2P | P2 | v1.0 |
+| Basic invite codes | P2 | v1.0 |
+| Secure P2P Telemetry Sync (hull, shields, fuel) | P2 | v1.0 |
+| Squadron Leader Authority | P2 | v1.0 |
+| Group Persistence (Permanent + Temporary) | P2 | v1.0 |
+
+### Deferred to v1.1+
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| Peer-Relay Fallback | P3 | v1.1 |
+| Shared Sub-Module Target Painting | P3 | v1.1 |
+| Mission Synchronization | P3 | v1.1 |
+| Wing-Based Mining Coordination | P3 | v1.1 |
+| Top Secret Mode (full spec) | P3 | v1.1 |
+| Burn Command (full spec) | P3 | v1.1 |
+| Three-Tier Cross-Squadron Model | P4 | v1.2 |
+
+### Stretch Features
+
+| Feature | Priority | Release |
+|---------|----------|---------|
+| Shared Bookmarks | P3 | v1.1 |
+| Role Assignments | P4 | v1.2 |
+| Squadron Log | P4 | v1.2 |
+| Emergency Broadcast | P3 | v1.1 |
+| Loot Coordination | P5 | v2.0 |
+| Discord Integration | P4 | v1.2 |
+
+**Phase 7 Duration Estimate:** 6 weeks at 15 hrs/week = 90 hours
+
+---
+
+# PART VIII — POLISH & INTEGRATION (Priority 1 — v1.0 Critical)
+
+## Phase 8: v1.0 Polish (Weeks 41-44)
+
+| Feature | Priority | Complexity |
+|---------|----------|-----------|
+| Cross-pillar integration validation | P1 | Medium |
+| Performance profiling & latency audit | P1 | Medium |
+| Self security audit | P1 | Medium |
+| Hallucination Guard stress test | P1 | Low |
+| KB completion pass (for shipping features) | P1 | Medium |
+| Defensive Update validation framework | P1 | Medium |
+| Explainability UI (Tier 3 inline) | P1 | Medium |
+| Documentation (user guide, FAQ) | P1 | Medium |
+| SignPath Foundation application | P2 | Low |
+| Beta release preparation | P1 | Low |
+
+**Phase 8 Duration Estimate:** 4 weeks at 15 hrs/week = 60 hours
+
+---
+
+# PART IX — v1.1+ ROADMAP
+
+## v1.1 Release (Months 13-18)
+
+### Pillar 4 (BGS/Powerplay 2.0) — Complete
+
+All 12 Core Features. Deferred from v1.0 due to scope.
+
+### Pillar 6 (Engineering & Materials) — Complete
+
+All 12 Core Features. Deferred from v1.0 due to scope.
+
+### Feature Additions
+
+- All P3 features deferred from v1.0
+- Tier 2 inline Explainability
+- Additional accessibility features
+
+**v1.1 Estimate:** 6 months at same pace
+
+---
+
+## v1.2 Release (Months 19-24)
+
+- All P4 features
+- Illegal Ops Suite (partial)
+- Advanced features across pillars
+- Build Template Library
+
+---
+
+## v1.5 Release (Months 25+)
+
+- Polish
+- Performance optimization
+- Remaining P4 features
+
+---
+
+## v2.0 Release (Long-term)
+
+- All P5 deferred features
+- Native voice option (replaces EDDI/VoiceAttack requirement)
+- Advanced integrations
+- Stretch features
+
+---
+
+# PART X — EFFORT SUMMARY
+
+## v1.0 Total Estimate
+
+| Phase | Weeks | Hours |
+|-------|-------|-------|
+| Phase 1 — Core | 6 | 90 |
+| Phase 2 — Ship Telemetry | 4 | 60 |
+| Phase 3 — UI Shell | 4 | 60 |
+| Phase 4 — Combat | 6 | 90 |
+| Phase 5 — Exploration | 6 | 90 |
+| Phase 6 — Trading/Mining | 8 | 120 |
+| Phase 7 — Squadron (basic) | 6 | 90 |
+| Phase 8 — Polish | 4 | 60 |
+| **Total** | **44 weeks** | **660 hours** |
+
+### Timeline by Availability
+
+- **10 hrs/week:** 66 weeks = **~15 months**
+- **15 hrs/week:** 44 weeks = **~10 months**
+- **20 hrs/week:** 33 weeks = **~8 months**
+
+**Realistic expectation:** **9-15 months to v1.0**, depending on weekly availability.
+
+---
+
+# PART XI — DEPENDENCIES & BLOCKERS
+
+## Critical Dependencies
+
+| Dependency | Blocks | Mitigation |
+|-----------|--------|-----------|
+| Frontier CAPI approval | CAPI-dependent features in all pillars | Features gated behind approval, rest ship regardless |
+| Inara whitelisting | CMDR lookups, faction data | Ship without, update when approved |
+| EDDI (user install) | Voice features | Documentation clear; core features work without |
+| VoiceAttack (user purchase) | Voice commands | Optional feature; documentation clear |
+| Spansh data dump availability | Route plotting, system intel | If unavailable, fall back to live API (slower) |
+
+## Known Risks
+
+1. **Frontier CAPI approval denied or delayed** — ship v1.0 with Option C (features gated)
+2. **Inara rate limit changes** — our architecture already tight against 2/min; resilient
+3. **Game update breaks journal schema** — Defensive Update framework catches this
+4. **Developer time pressure** — scope flexibility built in; features can defer
+
+---
+
+# PART XII — SUCCESS CRITERIA
+
+## v1.0 is Successful If:
+
+- ✅ Commanders can install and run OmniCOVAS on day one
+- ✅ All five core pillars (1, 2, 3, 5, 7-basic) are functional
+- ✅ Zero legal compliance issues
+- ✅ Published on GitHub with AGPL-3.0 + CLA
+- ✅ At least one positive review from an ED community member
+- ✅ Frontier application submitted (approved or pending)
+- ✅ Inara whitelisting requested
+- ✅ Documentation sufficient for new commanders to succeed
+
+## v1.0 is NOT Required to:
+
+- ❌ Have all 166+ features implemented
+- ❌ Have native voice (EDDI required is acceptable)
+- ❌ Have advanced AI reasoning beyond basic queries
+- ❌ Have all pillars complete
+- ❌ Have commercial licensing set up
+- ❌ Have bug bounty program
+- ❌ Have paid code signing certificate
+
+---
+
+# PART XIII — MILESTONE CHECKLIST
+
+## End of Phase 1 (Week 6)
+- [ ] Public GitHub repo with AGPL-3.0 + CLA
+- [ ] Python package structure
+- [ ] Native journal parser reading basic events
+- [ ] First structured log entry written
+- [ ] Tauri skeleton launches
+
+## End of Phase 2 (Week 10)
+- [ ] Ship Telemetry publishes events
+- [ ] Core event types handled (FSD jump, docked, hull damage)
+- [ ] Activity log shows events
+
+## End of Phase 3 (Week 14) — PROTOTYPE READY
+- [ ] UI shell functional
+- [ ] Overlay renders transparent
+- [ ] Privacy page with working toggles
+- [ ] First-run onboarding works end-to-end
+- [ ] Frontier Developer application submitted
+- [ ] Inara whitelisting request submitted
+
+## End of Phase 4 (Week 20)
+- [ ] Combat alerts functional
+- [ ] Interdiction warnings trigger correctly
+- [ ] Target Intelligence lookups working
+
+## End of Phase 5 (Week 26)
+- [ ] Route plotting functional
+- [ ] System intel on arrival
+- [ ] Bio Insights Engine predicting correctly
+- [ ] Spansh bulk dump imported
+
+## End of Phase 6 (Week 34)
+- [ ] Commodity price lookups working
+- [ ] Trade loop optimizer functional
+- [ ] Mining intelligence operational
+- [ ] FC Tritium Manager working
+
+## End of Phase 7 (Week 40)
+- [ ] Two commanders can squadron together
+- [ ] Telemetry sync working via STUN
+- [ ] Invite codes functional
+
+## End of Phase 8 (Week 44) — v1.0 BETA
+- [ ] All pillars integrated
+- [ ] Performance validated
+- [ ] Documentation complete
+- [ ] Ready for community beta testing
+
+---
+
+*This roadmap is a living document. Update as reality diverges from plan.*
+
+*— OmniCOVAS Comprehensive Roadmap v4.0*

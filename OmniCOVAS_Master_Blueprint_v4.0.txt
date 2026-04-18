@@ -1,0 +1,805 @@
+# OmniCOVAS — Master Architecture Blueprint
+### Version 4.0 — The Constitutional Maturity Release
+
+*The definitive source of truth for Project OmniCOVAS. All development flows from this document.*
+
+**Changelog from v3.2:**
+- Constitutional framework restructured: 10 new Laws (v4.0) replacing v3.2 laws
+- 10 Architectural Principles introduced as guidance layer below Laws
+- Law 9 clarified: Original Integration with Interpretation B (voice features require EDDI/VoiceAttack, core features standalone)
+- EDDN submission default changed to opt-in (Privacy-by-Default)
+- Knowledge Base Stewardship infrastructure added to Phase 1
+- Resource Efficiency framework added to Phase 1
+- Explainability UI for Tier 3 AI responses (synthesis of Options B + C)
+- Contributor License Agreement (CLA) infrastructure added for future monetization flexibility
+- Defensive Update validation infrastructure added to Phase 10
+- EDAstro and Elite BGS local caches added for Graceful Failure
+- Attribution expanded to include contributors and dependencies (SBOM)
+- Accessibility framework added to Phases 3/4
+- Companion document: Comprehensive Roadmap with priority ranking
+
+---
+
+# PART I — THE CONSTITUTION
+
+---
+
+## ⚖️ Section 0 — The Ten Laws of Operation (v4.0)
+
+*Every module, every line of code, every architectural decision is subordinate to these laws. They are not guidelines.*
+
+| # | Law | Core Mandate |
+|---|-----|-------------|
+| 1 | **Confirmation Gate** | AI suggests. Commander decides. Always. |
+| 2 | **Legal Compliance Protocol** | Every rule, license, EULA, ToS, and law is absolute. No exceptions. |
+| 3 | **API Respect Protocol** | Rate limits are hard constraints. Maintain courteous relationships. |
+| 4 | **AI Provider Agnosticism** | Gemini default. Anything or nothing by choice. |
+| 5 | **Zero Hallucination Doctrine** | If it isn't verified, it isn't said. |
+| 6 | **Performance Priority** | Zero lag. Function before flair. Always. |
+| 7 | **Telemetry Rigidity** | Telemetry defines reality. Nothing else does. |
+| 8 | **Sovereignty & Transparency** | Commander's data stays local. The system is always auditable. |
+| 9 | **Original Integration** | We build our own. We integrate compliantly. |
+| 10 | **Unified Intelligence, Independent Operation** | Centralized suite. No critical dependencies. |
+
+### Law 1 — Confirmation Gate
+> **The AI will never perform, trigger, or initiate any in-game action without explicit commander confirmation.**
+
+- AI operates in "suggest, never act" mode at all times
+- Hard confirmation layer between every AI recommendation and executable output
+- Voice acknowledgment, UI click, or bound keypress required
+- No background automation affecting game state without commander awareness
+- Cannot be overridden by settings, macros, or scripts
+
+### Law 2 — Legal Compliance Protocol
+> **Every applicable real-world law, license, End User License Agreement, Terms of Service, and copyright is an absolute constraint. We do not interpret flexibility into compliance. When in doubt, we stop and verify.**
+
+- Applicable real-world laws (copyright, GDPR, local privacy laws)
+- Frontier Developments' EULA and CAPI terms
+- Every external service's Terms of Service
+- All open source license obligations (ours and dependencies')
+- Trademark respect and required disclaimers
+- Proactive compliance verification
+- When legal interpretation is uncertain, pause until verified
+- Compliance is a feature, not an afterthought
+
+### Law 3 — API Respect Protocol
+> **All external service rate limits are hard constraints, never guidelines. We maintain courteous, proactive relationships with service maintainers.**
+
+- Every rate limit enforced at client level
+- Every service cached aggressively
+- Every maintainer notified when integrating their service
+- Formal approval where required (Frontier, Inara)
+- Informal courtesy where appropriate (Spansh, Elite BGS, EDAstro)
+- Graceful degradation — never retry storms
+
+### Law 4 — AI Provider Agnosticism
+> **Gemini is the default AI. The system is architected so any AI — cloud, local, or none — can be swapped in without changing core logic.**
+
+- Core brain never calls AI providers directly
+- All providers implement same `AIProvider` abstract interface
+- Provider selection is a single user config entry
+- `NullProvider` ensures full functionality with zero AI
+- Four modes: Gemini Free (default) / Premium Cloud / Local LLM / No AI
+
+### Law 5 — Zero Hallucination Doctrine
+> **Every AI in this system is strictly bound by verified Elite Dangerous knowledge and project-supplied facts. Speculation is forbidden.**
+
+- Every AI prompt grounded in structured system prompt with verified mechanics
+- Knowledge Base is the AI's only source of truth
+- Unverifiable responses flagged and suppressed
+- AI must respond "I don't have verified data on that" rather than guess
+- Knowledge Base version-tagged, maintained rigorously
+
+### Law 6 — Performance Priority
+> **OmniCOVAS exists to deliver precise, high-speed intelligence. Function and speed take absolute precedence over personality and flair. Zero lag between game event and system response.**
+
+- Zero blocking I/O in core
+- Latency budgets per event type (combat <100ms, navigation <200ms)
+- Modular isolation — slow processes never cascade
+- AI persona is cosmetic; core routing is untouchable
+- Conversational padding is forbidden
+- Performance regressions are bugs, not tradeoffs
+
+### Law 7 — Telemetry Rigidity
+> **The system's reality is defined solely by the hardware and software telemetry it receives.**
+
+- No assumptions about game state — only what telemetry confirms
+- Inferred states clearly labeled as such, never presented as fact
+- Source priority order for conflict resolution (local journal always wins)
+- Never fabricate state to fill data gaps
+
+### Law 8 — Sovereignty & Transparency
+> **The commander owns their data. The system explains itself at all times. Data stays local unless the commander says otherwise. Every action, recommendation, and outbound byte is visible and accountable.**
+
+- Local-first by default
+- Explicit opt-in for all outbound data
+- Most restrictive privacy setting always wins
+- Data flow transparency map visible in UI
+- Every AI recommendation traceable to source
+- Every API call logged with destination and payload summary
+- Activity log accessible to commander
+- No silent operations
+
+### Law 9 — Original Integration
+> **We build our own Elite Dangerous-specific features. We do not bundle or redistribute third-party software. Where interoperation with established third-party tools is legally permitted and adds value, we integrate compliantly — accepting required external tools as architectural partners for specific feature domains.**
+
+**Interpretation B (Locked):**
+- Core OmniCOVAS functionality (dashboard, overlay, telemetry, data analysis, squadron sync) works **standalone** without external tools
+- Voice I/O features **require EDDI and VoiceAttack** — commanders install these separately per their own licenses
+- All ED-specific features built natively
+- No bundling, embedding, or redistribution of third-party software
+- Standard open source libraries permitted under compatible licenses
+- Community data services consumed as published (EDDN, EDSM, Inara, etc.)
+- Documented migration path if a required integration partner becomes unavailable
+
+### Law 10 — Unified Intelligence, Independent Operation
+> **Game intelligence is centralized in this suite. Fragmentation is a failure state. Critical dependencies on external tools are also a failure state — we work alongside them, never dependent on them for core functionality.**
+
+- Single source of truth for game intelligence during a session
+- No required external tool for core (non-voice) functionality
+- Optional external tool integrations for user convenience
+- System fully operates with only OmniCOVAS running (voice disabled)
+- System integrates gracefully when users choose external tools
+- Core dependencies forbidden for non-voice features; voice dependencies acceptable
+
+---
+
+## 🎯 Section 0.5 — The Ten Architectural Principles
+
+*Principles guide implementation. They are not laws but shape every design decision.*
+
+| # | Principle | Summary |
+|---|-----------|---------|
+| 1 | **Accessibility** | System usable by commanders with diverse abilities and setups |
+| 2 | **Sustainability** | Project operates at zero ongoing cost, sustainable by volunteer effort |
+| 3 | **Evolutionary** | System adapts to game updates, community changes, and user feedback |
+| 4 | **Attribution** | Every data source, contributor, and dependency credited visibly |
+| 5 | **Graceful Failure** | Every external dependency has a local fallback |
+| 6 | **Knowledge Base Stewardship** | KB treated as critical infrastructure; every entry version-tagged and audited |
+| 7 | **Privacy-by-Default** | Every default setting is the most privacy-protective option |
+| 8 | **Defensive Update** | Game patches and tool updates validated; assumptions tested after every change |
+| 9 | **Explainability** | Every AI recommendation traceable to source on demand |
+| 10 | **Resource Efficiency** | Memory, CPU, disk, and bandwidth use measured, bounded, and transparent |
+
+---
+
+## 🧠 Section 1 — Core Philosophy
+
+> **Event-driven. Async-first. Modular by design. Local-first for latency. Law-bound by constitution. Zero-budget by design. Built for the long term.**
+
+OmniCOVAS is a single, portable, high-performance intelligence suite for Elite Dangerous. It replaces the fragmented ecosystem of third-party tools with one unified command deck — governed by the Ten Laws, shaped by the Ten Principles, and architected for zero-latency response to live game telemetry. The project operates at zero ongoing cost, sustained by volunteer effort and community trust.
+
+---
+
+# PART II — ARCHITECTURE
+
+---
+
+## 📡 Section 2 — Data Pipeline (Layered by Latency)
+
+| Priority | Source | Latency | Purpose |
+|----------|--------|---------|---------|
+| 1st | **Journal Files** (local) | ~0ms | Raw game events, fastest possible |
+| 2nd | **Status.json** (local) | ~0ms | Live pip/heat/flag state |
+| 3rd | **EDDI** (optional, voice only) | ~10-50ms | Voice event triggers |
+| 4th | **Local SQLite (bulk dumps)** | ~1-10ms | Galaxy-wide data pre-loaded |
+| 5th | **CAPI** (Frontier, gated) | ~100-500ms | Ship loadouts, carriers |
+| 6th | **EDDN** (live feed) | ~200-800ms | Crowdsourced data |
+| 7th | **EDSM / Inara / EDAstro / Spansh / Elite BGS** | ~500ms-2s | Supplementary data |
+
+**Key Principle:** Native journal parsing is primary. EDDI is the voice bridge, not the data source.
+
+---
+
+## 🏗️ Section 3 — Tech Stack & System Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│                   UI LAYER                       │
+│  Desktop App (Tauri) + Overlay                   │
+│  Voice I/O (EDDI + VoiceAttack — voice only)     │
+├─────────────────────────────────────────────────┤
+│              CONFIRMATION GATE LAYER             │
+│  All AI actions require explicit confirmation    │
+├─────────────────────────────────────────────────┤
+│                 PYTHON CORE BRAIN                │
+│  asyncio event loop — non-blocking               │
+│  Module Dispatcher │ State Manager │ Cache       │
+├─────────────────────────────────────────────────┤
+│              AI ABSTRACTION LAYER                │
+│  AIProvider interface │ Knowledge Base           │
+│  Hallucination Guard │ Explainability Log        │
+├─────────────────────────────────────────────────┤
+│              DATA INGESTION LAYER                │
+│  Native Journal Parser │ Status.json Reader      │
+│  EDDI Voice Bridge (optional) │ API Clients      │
+│  Rate Limit Registry │ Bulk Dump Importer        │
+├─────────────────────────────────────────────────┤
+│              RESOURCE BUDGET FRAMEWORK           │
+│  Memory │ CPU │ Disk │ Bandwidth tracking        │
+├─────────────────────────────────────────────────┤
+│              EXTERNAL DATA SOURCES               │
+│  EDDN │ CAPI │ EDSM │ Inara │ Spansh │ EDAstro  │
+│  Elite BGS │ BGS-Tally (optional)                │
+└─────────────────────────────────────────────────┘
+```
+
+### UI Framework — Tauri
+- Binary size: 3-10 MB
+- Native OS WebView transparency for overlay
+- Modern web stack frontend
+- Rust backend performance
+- Clean separation: Python intelligence, Tauri UI, bridged via FastAPI
+
+### Python Stack
+- `Python 3.11+` — core brain
+- `asyncio` — async event loop
+- `watchdog` — journal file watcher (native)
+- `websockets` — EDDN live feed
+- `aiohttp` — async API clients
+- `SQLite + SQLAlchemy` — local state, caching, bulk data
+- `FastAPI` — internal REST bridge to Tauri
+- `cryptography` — local encrypted config vault
+- `structlog` — structured JSON logging
+
+### Voice Stack (Optional Feature Requirement)
+- `EDDI` — required for voice I/O features (user-installed, external)
+- `VoiceAttack` — required for voice command processing (user-installed, external, commercial)
+- Python ↔ EDDI via localhost TCP socket bridge
+- Core OmniCOVAS works fully without voice enabled
+
+### P2P Networking Stack
+- `ChaCha20-Poly1305` — authenticated encryption
+- STUN (Google's free public servers) — primary
+- Peer-Relay Fallback — squadron members volunteer (opt-in)
+- Zero infrastructure cost
+
+---
+
+## 🔐 Section 4 — Privacy & Data Sovereignty
+
+### Privacy-by-Default Implementation
+
+**First-Run Privacy Page:**
+On initial setup, a dedicated privacy page presents:
+- Complete list of potential outbound data types
+- Explicit toggle for each (all off by default)
+- Clear explanation of value for each (why you might want to enable)
+- Skip option — use defaults, configure later
+- Link to detailed privacy documentation
+
+**Example First-Run Toggles:**
+```
+[ ] EDDN market data submission (helps the community)
+[ ] EDSM commander tracking (see your travels)
+[ ] Squadron telemetry sync (when in squadron)
+[ ] AI provider API calls (for AI features)
+[ ] Crash report submission (helps us improve)
+[ ] Usage analytics (none planned, but structural)
+```
+
+**Every toggle is off until commander enables it. No exceptions.**
+
+### Data Flow Transparency Map
+- Visible in UI Settings
+- Shows every outbound data flow with destination and frequency
+- Updates in real-time as commander changes settings
+- Includes API call statistics per service
+
+---
+
+## 🤖 Section 5 — AI Abstraction Layer
+
+```python
+class AIProvider:
+    async def query(self, prompt: str, context: dict) -> str:
+        raise NotImplementedError
+
+class GeminiProvider(AIProvider):      # Default
+class OpenAIProvider(AIProvider):      # Optional cloud
+class OllamaProvider(AIProvider):      # Local LLM
+class NullProvider(AIProvider):        # No AI mode
+    async def query(self, prompt, context):
+        return None
+```
+
+### The Four AI Operating Modes
+
+| Mode | Description |
+|------|-------------|
+| **Gemini Free Tier (Default)** | Aggressive caching, batched queries, stays in free tier |
+| **Premium Cloud** | OpenAI/Claude/paid Gemini — user pays |
+| **Local LLM** | Ollama — runs on-device |
+| **No AI (NullProvider)** | Full functionality, pure telemetry |
+
+### Three AI Integration Tiers
+
+- **Tier 1 — Pure Telemetry** — Deterministic lookups. Works everywhere.
+- **Tier 2 — Light AI (Rule-Based)** — KB rules, no LLM. Works everywhere.
+- **Tier 3 — Full AI (LLM-Dependent)** — Natural language. Requires AI mode.
+
+### Explainability Implementation (Tier-Based)
+
+- **All tiers:** Logged in Activity Log with full traceability
+- **Tier 3 responses:** Inline "Why?" button next to each recommendation
+- **Future v1.1:** Expand inline buttons to Tier 2 based on user demand
+
+### Top Secret Mode AI Behavior
+
+When Top Secret Mode active, AI provider forced to `NullProvider` regardless of user setting. Commander sees:
+
+> *"AI queries disabled during Top Secret operations to prevent context leakage. Configure Local LLM mode for AI during covert ops."*
+
+### Knowledge Base Stewardship (Principle 6)
+
+```
+/omnicovas/knowledge_base
+  combat_mechanics.json
+  engineering_materials.json
+  bgs_mechanics.json
+  powerplay2_mechanics.json
+  odyssey_mechanics.json
+  trading_mechanics.json
+  exploration_mechanics.json
+  exobiology_mechanics.json
+  api_limits.yaml
+  _metadata.json            # KB-wide version, last audit date
+```
+
+**Every entry has:**
+- `patch_verified` — last ED game version the entry was verified against
+- `source` — where the information came from
+- `last_updated` — ISO timestamp
+- `confidence` — high / medium / low
+- `needs_review` — boolean flag
+
+**KB Validation Pipeline (Phase 1 deliverable):**
+- Automated tests verify entries match journal data patterns
+- On game version detection, all entries flagged for review
+- Pull request template for community contributions
+- Audit dashboard shows KB health at a glance
+
+---
+
+## 🔌 Section 6 — EDDI Integration Strategy (Voice Only)
+
+Under Law 9 Interpretation B, EDDI is **required for voice features**, not for core operation.
+
+```
+Game Journal Files + Status.json
+      ↓ (PRIMARY DATA PATH — native parsing)
+  OmniCOVAS Native Journal Parser
+      ↓
+  Core Brain (asyncio event dispatcher)
+      ↓
+  Confirmation Gate → Module → Response
+      ↓                          ↓
+  UI / Overlay          Optional Voice Output
+                              ↑
+                  (via EDDI + VoiceAttack bridge,
+                   only if voice features enabled)
+```
+
+**Voice features require:**
+- EDDI installed separately by commander
+- VoiceAttack installed separately by commander (commercial ~$10-15)
+
+**Without voice:**
+- Full OmniCOVAS functionality via overlay + keyboard/mouse
+- All pillars work
+- All telemetry works
+- All squadron features work
+
+**OmniCOVAS provides:**
+- Recommended EDDI configuration profile
+- Pre-built VoiceAttack profile for OmniCOVAS commands
+- Setup wizard for voice features (guides user through EDDI/VoiceAttack install)
+- Documentation on the voice feature dependency
+
+---
+
+## 💰 Section 7 — Licensing & Future Monetization
+
+### License: AGPL-3.0 with Contributor License Agreement (CLA)
+
+**Why AGPL-3.0:**
+- Copyleft protects against proprietary forks
+- Network-use clause closes SaaS loophole
+- Protects creator's commercial rights
+- Allows personal and community use
+- Compatible with GPL-3.0 community tools (EDDI via socket)
+
+**Why CLA:**
+- All contributors grant project creator license to their contributions
+- Preserves future dual-licensing option
+- Standard practice (Qt, MongoDB, Django all use CLAs)
+- Contributors retain their own copyright and can use their code elsewhere
+- ~30 minutes to implement using Apache ICLA template
+
+**Commercial Paths (Preserved):**
+- Donations (GitHub Sponsors, Ko-fi, Patreon)
+- Dual licensing (AGPL free + commercial license for businesses)
+- Paid services around open source core (premium AI integrations, cloud backup — future)
+
+---
+
+# PART III — THE SEVEN PILLARS
+
+*(Detailed feature lists preserved from v3.2 — see Roadmap document for priority rankings and release mapping)*
+
+**Pillar 1 — Ship Telemetry** (Foundation, Phase 2)
+10 Core + 8 Additions. Publishes to all other pillars.
+
+**Pillar 2 — Tactical & Combat** (Phase 4)
+12 Core + 10 Additions. AX Operations, PvP, CZ, Pirate Hunting, Odyssey Ground.
+
+**Pillar 3 — Exploration & Navigation** (Phase 5)
+13 Core (incl. Bio Insights) + 12 Additions. Route plotting, exobiology, bookmarks.
+
+**Pillar 4 — Powerplay 2.0 & BGS** (Phase 8)
+12 Core + 12 Additions + 5 Audit. Merit Intelligence, Tick Monitoring, BGS-Tally API.
+
+**Pillar 5 — Trading, Mining & Colonization** (Phase 6)
+12 Core + 13 Additions + 9 Illegal Ops. Full FC management, colonization, illegal gameplay.
+
+**Pillar 6 — Engineering & Materials** (Phase 7)
+12 Core + 12 Additions. Materials, blueprints, Guardian tech, tech brokers, suit engineering.
+
+**Pillar 7 — Squadron & Social** (Phase 9)
+8 Core + 6 Stretch. ChaCha20-Poly1305 P2P, Top Secret Mode, Burn Command.
+
+---
+
+# PART IV — CROSS-CUTTING CONCERNS
+
+---
+
+## 🎚️ Section 8 — Universal Patterns
+
+**Four-Tier Coaching Model:** Off / Light / Medium / Heavy
+
+**Three-Path Onboarding:**
+- Easy Mode (60-sec setup, NullProvider, Casual Pilot preset)
+- Custom Setup (5-15 min wizard)
+- Power User (full config access)
+
+**Three-Tier Customization:**
+- Preset Profiles (Combat Pilot / Explorer / Trader / Miner)
+- Category Toggles
+- Granular Settings
+
+**Privacy Hierarchy (most restrictive wins):**
+```
+Top Secret Mode → Individual Opt-Out → Squadron Override → Global Default (OFF)
+```
+
+**Three Output Modes (per feature):** Voice / Overlay / Both
+
+**Three AI Integration Tiers:** Pure Telemetry / Light AI / Full AI
+
+---
+
+## 🛡️ Section 9 — Resource Budget Framework (Principle 10)
+
+All resource use bounded and transparent:
+
+```yaml
+# resource_budget.yaml
+disk:
+  max_galaxy_dump_size_gb: 5          # Configurable
+  max_log_retention_days: 30
+  log_rotation_size_mb: 100
+
+memory:
+  max_cache_size_mb: 512              # Configurable
+  max_ai_context_tokens: 4000
+  eviction_policy: LRU
+
+cpu:
+  max_background_task_cpu_percent: 10  # Respect gaming PC
+  journal_parse_priority: high
+  ui_render_priority: high
+  api_polling_priority: low
+
+bandwidth:
+  max_eddn_submission_per_hour: 100
+  max_api_calls_per_minute_total: 50
+```
+
+**Resource Dashboard UI:** Shows current OmniCOVAS resource use in real-time.
+
+**Conservative Defaults:** First-run detects constrained systems (e.g., <8GB RAM, <100GB free disk) and applies lower defaults.
+
+---
+
+## 🔐 Section 10 — Security Protocol
+
+- All API keys in local encrypted config vault
+- CAPI OAuth tokens securely stored, automatic refresh
+- User-supplied AI provider keys, local only
+- Squadron P2P via ChaCha20-Poly1305
+- No data leaves machine without explicit consent
+- AI providers receive minimum context only
+- Full offline operation capable
+- Peer-relay nodes never hold decryption keys
+
+---
+
+## 🛡️ Section 11 — Fault Tolerance & Graceful Failure (Principle 5)
+
+**Every external dependency has a local fallback:**
+
+| Dependency | Fallback |
+|-----------|----------|
+| EDDN stream | Local cache |
+| EDSM API | Local cache + Spansh dumps |
+| Inara API | Local cache (extended) |
+| Frontier CAPI | Journal data |
+| Spansh API | Bulk dumps |
+| EDAstro API | Local cache |
+| Elite BGS API | Local historical snapshot |
+| BGS-Tally | Optional (no fallback needed) |
+| EDDI (voice) | Disable voice features, keep core |
+| VoiceAttack (voice) | Disable voice features, keep core |
+| AI Provider | NullProvider |
+
+**System never hard crashes. Degraded mode always available.**
+
+---
+
+## 📊 Section 12 — Observability & Explainability (Principle 9)
+
+**Logging Infrastructure:**
+- Structured JSON (structlog)
+- Per-module channels
+- Event trace log
+- API call log
+- Activity log UI
+- Explainability log (source traceability)
+- Squadron audit log (unless Burn active)
+
+**Explainability UI:**
+- Inline "Why?" button on Tier 3 AI recommendations
+- Activity Log access for all tier explanations
+- KB source visible on demand
+- AI model, prompt, response all logged
+
+---
+
+## 📏 Section 13 — Rate Limit Registry (Verified)
+
+```yaml
+eddn:
+  mode: subscriber
+  submission_default: OFF  # Privacy-by-Default
+  submission_mode: event_driven_when_enabled
+
+edsm:
+  requests_per_hour: 360
+  cache_ttl_system: 86400
+  cache_ttl_body: 604800
+  cache_ttl_station: 3600
+  honors_rate_limit_headers: true
+
+inara:
+  requests_per_minute: 2
+  cache_ttl_cmdr: 86400
+  cache_ttl_faction: 21600
+  cache_ttl_cg: 1800
+  cache_ttl_engineer: 604800
+  batch_events: true
+  whitelist_required: true
+
+frontier_capi:
+  requests_per_minute: 1
+  cache_ttl_profile: 3600
+  cache_ttl_fleetcarrier: 900
+  oauth_pkce: true
+  developer_approval_required: true
+  approval_status: pending  # Updates with actual status
+
+spansh_api:
+  requests_per_minute: 30
+  cache_ttl: 1800
+  verification_required: true
+
+spansh_dumps:
+  refresh_schedule: weekly
+  import_to_sqlite: true
+  size_budget_gb: 5
+
+edastro:
+  requests_per_15min: 100
+  cache_ttl: 3600
+  local_cache_enabled: true
+
+elite_bgs:
+  requests_per_minute: 1
+  cache_ttl: 21600
+  local_historical_snapshot: true
+  verification_required: true
+
+bgs_tally:
+  integration_type: optional_outbound
+  requires_user_configuration: true
+```
+
+---
+
+## ⚡ Section 14 — Performance Commitments
+
+- No blocking I/O in core
+- Local journal first (native parser)
+- In-memory state cache
+- Debounced API calls
+- Modular isolation
+- Latency budgets:
+  - Combat alerts: <100ms
+  - Navigation: <200ms
+  - Trade queries: <500ms
+  - BGS analytics: <2s
+
+---
+
+## 🔄 Section 15 — Defensive Update Infrastructure (Principle 8)
+
+**On Startup:**
+- Detect current ED version from journal header
+- Compare to last known good version
+- Run schema validation tests for journal events
+- Run endpoint tests for external APIs (when called)
+- Alert commander if version change detected
+
+**Known Breakage Registry:**
+- Maintained list of patch/version combinations with known issues
+- Warnings surfaced to commander when they run affected versions
+- Community contributions via GitHub issues
+
+---
+
+# PART V — LICENSING, TRUST & COMPLIANCE
+
+---
+
+## 📜 Section 16 — License: AGPL-3.0 + CLA
+
+*(See Compliance Matrix for complete license obligations)*
+
+**Key Points:**
+- All contributions require signed CLA
+- Project creator retains copyright
+- Dual-licensing option preserved
+- AGPL-3.0 protects community users
+
+---
+
+## 🛡️ Section 17 — Zero-Budget Trust Infrastructure
+
+**Code Signing:**
+- Phase 1: Unsigned, honest documentation
+- Post-MVP: Apply to SignPath Foundation (free OSS signing)
+- Fallback: Continue unsigned, revisit annually
+
+**Trust Mechanisms:**
+- Public GitHub repository from day one
+- README with "why trust this?" section
+- SECURITY.md responsible disclosure (Hall of Fame only, no cash)
+- Data flow transparency map in UI
+- Reproducible builds via GitHub Actions
+- SBOM published each release
+- Plain-language privacy policy
+- Privacy page at first run with explicit opt-ins
+- All dependencies disclosed
+- Honest SmartScreen documentation
+
+**Distribution (All Free):**
+- GitHub Releases (primary)
+- GitHub Pages website
+- Discord community
+- ED forum thread
+- EDCodex listing
+- Reddit r/EliteDangerous
+
+**Sustainability:**
+- GitHub Sponsors enabled day one
+- No paywalled features
+- CLA preserves future commercial licensing option
+
+---
+
+## ✅ Section 18 — Compliance Summary
+
+*(See companion document: OmniCOVAS_Compliance_Matrix.md)*
+
+**Compliant With:**
+- ✅ Frontier Developments EULA and CAPI terms
+- ✅ EDDN terms of use
+- ✅ EDSM API (360/hour)
+- ✅ Inara API (2/min, whitelist required)
+- ✅ Spansh informal terms
+- ✅ EDAstro (100/15min)
+- ✅ Elite BGS (cautious default)
+- ✅ BGS-Tally (OpenAPI spec)
+- ✅ EDDI GPL-3.0 (external integration only)
+- ✅ VoiceAttack commercial (external only)
+- ✅ GDPR privacy principles
+- ✅ All open source library licenses
+
+**Trademark Disclaimer:**
+> *"OmniCOVAS is not an official tool and is not affiliated with Frontier Developments. 'Elite', 'Elite Dangerous', and 'Frontier' are trademarks of Frontier Developments plc."*
+
+---
+
+# PART VI — BUILD STRATEGY
+
+---
+
+## 🎯 Section 19 — Development Context
+
+**Developer Profile:** Solo, 10-20 hours/week
+**Completion Target:** v1.0 useful to commanders, 9-12 months estimate
+**Philosophy:** Ship useful, grow over years, some features may never ship
+
+---
+
+## 🗺️ Section 20 — Release Strategy Overview
+
+**v1.0 — Half the Vision (Target: 9-12 months)**
+- 3-4 fully functional pillars
+- Commanders find it useful daily
+- Full vision documented so users see what's coming
+
+**v1.1-v1.5 — Filling Out (Ongoing)**
+- Additional pillars
+- Feature additions to existing pillars
+- Expanded integrations
+
+**v2.0+ — Advanced Features**
+- Stretch features
+- Native voice option
+- Advanced integrations
+
+*(See companion document: OmniCOVAS_Roadmap.md for detailed priority ranking and release mapping)*
+
+---
+
+## ✅ Section 21 — Status Dashboard
+
+| Item | Status |
+|------|--------|
+| Ten Laws v4.0 | ✅ Locked |
+| Ten Architectural Principles | ✅ Locked |
+| All pillar specifications | ✅ Locked |
+| UI Framework (Tauri) | ✅ Locked |
+| License (AGPL-3.0 + CLA) | ✅ Locked |
+| Zero-Budget Infrastructure | ✅ Locked |
+| Law 9 Interpretation B | ✅ Locked |
+| EDDN default opt-in | ✅ Locked |
+| Privacy page + first-run toggles | ✅ Locked |
+| Explainability (Tier 3 inline + Log all) | ✅ Locked |
+| KB Stewardship infrastructure | ✅ Locked |
+| Resource Efficiency framework | ✅ Locked |
+| Defensive Update infrastructure | ✅ Locked |
+| Accessibility framework | ✅ Locked |
+| Roadmap with priorities | ✅ Companion doc |
+| Compliance Matrix | ✅ Companion doc |
+| Approval Applications | ✅ Companion doc |
+
+---
+
+# PART VII — COMPANION DOCUMENTS
+
+**1. OmniCOVAS_Roadmap.md**
+Comprehensive priority-ranked roadmap with release mapping, week-by-week v1.0 plan, dependencies, and milestones.
+
+**2. OmniCOVAS_Compliance_Matrix.md**
+Complete compliance audit covering every external service, legal obligation, and attribution requirement.
+
+**3. OmniCOVAS_Approval_Applications.md**
+Pre-drafted application packages for Frontier Developer approval and Inara whitelisting.
+
+---
+
+*This blueprint is a living document. All additions must pass through the Ten Laws and Ten Principles before adoption.*
+
+*— OmniCOVAS Master Blueprint v4.0 — The Constitutional Maturity Release*

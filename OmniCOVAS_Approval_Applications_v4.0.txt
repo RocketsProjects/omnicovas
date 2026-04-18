@@ -1,0 +1,380 @@
+# OmniCOVAS — Approval Applications
+### Companion Document to Master Blueprint v4.0
+
+*Pre-drafted application packages for external service approval. Updated to reflect v4.0 constitutional framework (Ten Laws, Ten Architectural Principles).*
+
+---
+
+## 🎯 Purpose
+
+Two critical external relationships require formal approval:
+
+1. **Frontier Developer Approval** — for Companion API (CAPI) access
+2. **Inara Whitelisting** — for production Inara API use
+
+**Submission Timing:** End of Phase 3 (Week 14, when UI Shell completes and a demonstrable prototype exists).
+
+---
+
+# PART I — FRONTIER DEVELOPER APPLICATION
+
+---
+
+## 🎮 Application Overview
+
+**Target:** Frontier Developments developer portal at **user.frontierstore.net**
+
+**Request:** Developer account with CAPI authorization for OmniCOVAS, supporting OAuth2 PKCE.
+
+---
+
+## 📋 Application Package
+
+### Document 1 — Cover Letter
+
+---
+
+**To: Frontier Developments Developer Team**
+**From: [Project Creator Name]**
+**Re: OmniCOVAS — Companion API Access Request**
+
+Dear Frontier Developer Team,
+
+I am requesting developer access and Companion API authorization for OmniCOVAS, an open-source (AGPL-3.0) intelligence suite for Elite Dangerous commanders.
+
+OmniCOVAS consolidates functionality currently scattered across multiple third-party tools — combat telemetry, navigation planning, BGS tracking, engineering progress, squadron coordination — into a single unified dashboard. The project is governed by a constitutional framework of Ten Laws and Ten Architectural Principles, with legal compliance as Law 2 (second only to the Confirmation Gate ensuring no AI-driven game actions).
+
+**Our Approach to Your Infrastructure:**
+
+Law 2 (Legal Compliance Protocol) makes every EULA, ToS, and rate limit an absolute constraint. Law 3 (API Respect Protocol) mandates that rate limits are never treated as guidelines. Our architecture specifically implements:
+- OAuth2 PKCE for all CAPI authentication
+- Rate limiting at ~1 query/minute (well under your 2/sec hard limit)
+- Fleet Carrier polling aligned with your 15-minute server refresh cycle
+- Automatic token refresh within the 25-day limit
+- Encrypted local token storage (never transmitted elsewhere)
+- Graceful handling of 422 responses
+
+**What We Will Use CAPI For:**
+- `/profile` — authenticated commander's own ship loadout
+- `/market` — station market data at dock
+- `/shipyard` — shipyard inventory at dock
+- `/fleetcarrier` — fleet carrier data (if owned)
+- `/journal` — session journal (only after session end)
+
+**What We Will Not Do:**
+- No scraping of other commanders' data
+- No bulk enumeration
+- No endpoints beyond those listed
+- No automation that affects gameplay (Law 1 Confirmation Gate)
+- No modification or injection into the game client
+- No redistribution of Frontier game assets
+
+The project is transparent by design. Source code, architecture decisions, and compliance posture are publicly auditable at our GitHub repository. I believe this transparency is the right foundation for a tool that interacts with your infrastructure.
+
+I would be grateful for the opportunity to serve the Elite Dangerous commander community with your authorization.
+
+Respectfully,
+[Project Creator Name]
+OmniCOVAS Project
+[GitHub URL]
+
+---
+
+### Document 2 — Technical Architecture Summary
+
+**OmniCOVAS Technical Profile**
+
+- **Project Type:** Open source (AGPL-3.0 with CLA) desktop application
+- **Primary Platform:** Windows (Tauri application, VR-compatible via standard overlay tools)
+- **Architecture:** Python core brain + Tauri UI + optional EDDI/VoiceAttack for voice features
+- **Repository:** [GitHub URL, public from day one]
+
+**CAPI Endpoint Usage Plan:**
+- `/profile` — Cache 1h, refresh on commander request or demand
+- `/market` — Refresh only on dock journal event
+- `/shipyard` — Refresh only on dock journal event
+- `/fleetcarrier` — Cache 15min (aligns with server refresh)
+- `/journal` — Query only at session end
+
+**Rate Limit Discipline:**
+- Hard enforcement at ~1 request per minute
+- Graceful backoff on any rate-limit response
+- No retry storms
+- Respect for your infrastructure is architectural, not aspirational
+
+**OAuth2 Implementation:**
+- PKCE flow for all authentication
+- Refresh tokens within 25-day expiration
+- Access tokens in local encrypted vault
+- Never transmitted to any third party
+- Never logged
+- Localhost callback for auth redirect
+
+**Security Practices:**
+- All credentials in local encrypted configuration vault
+- Credentials never transmitted to any third party
+- Credentials never logged
+- Credentials never appear in telemetry
+
+---
+
+### Document 3 — The Ten Laws
+
+*Included as evidence of our constitutional framework:*
+
+1. **Confirmation Gate** — AI suggests. Commander decides. Always.
+2. **Legal Compliance Protocol** — Every rule, license, EULA, ToS, and law is absolute.
+3. **API Respect Protocol** — Rate limits are hard constraints.
+4. **AI Provider Agnosticism** — Swappable AI architecture.
+5. **Zero Hallucination Doctrine** — Verified data only.
+6. **Performance Priority** — Zero lag, function first.
+7. **Telemetry Rigidity** — Telemetry defines reality.
+8. **Sovereignty & Transparency** — Commander owns their data.
+9. **Original Integration** — We build our own; interoperate compliantly.
+10. **Unified Intelligence, Independent Operation** — Centralized, but not dependent.
+
+---
+
+### Document 4 — Compliance Commitments
+
+**We commit to:**
+- ✅ Never modify, inject into, or interfere with the Elite Dangerous game executable
+- ✅ Never provide automation creating unfair gameplay advantages
+- ✅ Never enable AFK farming, bot play, or account sharing
+- ✅ Never bypass anti-cheat mechanisms
+- ✅ Use CAPI only for purposes documented above
+- ✅ Respect the ~1 query/minute CAPI guidance
+- ✅ Implement graceful degradation if rate-limited
+- ✅ Display the required trademark disclaimer
+- ✅ Maintain public source code auditability
+- ✅ Update our compliance posture as Frontier's terms evolve
+
+**Trademark Disclaimer Displayed:**
+> *"OmniCOVAS is not an official tool and is not affiliated with Frontier Developments. 'Elite', 'Elite Dangerous', and 'Frontier' are trademarks of Frontier Developments plc."*
+
+---
+
+### Document 5 — Working Prototype Link
+
+*Included when submitting at end of Phase 3:*
+- Link to GitHub repository
+- Link to prototype binary download
+- Brief usage guide
+- Screenshots showing the application in action
+
+---
+
+## 🕒 Expected Timeline
+
+Frontier approval typically takes weeks to months based on community reports.
+
+**Contingency Plan (Ship-Blocking Path):**
+- If approval delayed, all CAPI-dependent features gated behind approval status
+- Journal-based fallbacks (Law 5 resilience) ensure most features still work
+- v1.0 ships regardless of CAPI approval status
+- Commanders see clear indication of which features require approval
+
+---
+
+# PART II — INARA WHITELISTING REQUEST
+
+---
+
+## 💬 Application Overview
+
+**Target:** Artie, Inara developer, via direct message on Inara forums
+
+**Request:** Whitelisting of OmniCOVAS application identifier with Inara's API.
+
+---
+
+## 📋 Outreach Message
+
+*Matches Inara community culture — direct, friendly, not bureaucratic.*
+
+---
+
+**Subject: Whitelisting Request — OmniCOVAS**
+
+Hello Artie,
+
+o7 Commander,
+
+I'm writing to request whitelisting for OmniCOVAS, an open-source (AGPL-3.0) intelligence suite I've been working on. I wanted to reach out before going live so you know who we are and how we plan to use the Inara API.
+
+**About OmniCOVAS:**
+OmniCOVAS is a desktop application (Tauri + Python) that consolidates multiple ED tools into a single unified dashboard with voice integration. Source is at [GitHub URL].
+
+**How We Use Inara:**
+We treat Inara as a specialist data source for what only Inara does well — CMDR profiles, faction metadata, community goals, Powerplay information. For market data and live intelligence, we primarily consume EDDN directly and use Spansh bulk dumps. This significantly reduces our live Inara query load.
+
+**Our Rate Limit Discipline:**
+- Hard enforcement at 2 requests per minute (never exceeded)
+- Event batching where your API supports it (session start/end, docked, FSD jump)
+- Aggressive caching: CMDR 24h, factions 6h, CGs 30min, engineers 7d
+- Squadron cache pooling — when multiple commanders run OmniCOVAS in a squadron, a single lookup populates all their local caches
+- Priority queue for commander-requested vs background lookups
+- Graceful degradation at 70% budget used
+
+**What We Contribute:**
+We plan to submit commander data (our own users' activity) to enrich Inara — session events, jumps, scans. Our philosophy: contribute more than we query.
+
+**What We'd Like From You:**
+- Whitelisting app identifier: `OmniCOVAS`
+- Any additional guidelines you'd like us to follow
+- Any concerns about our approach
+
+The app will not go live until Phase 3 completion. I'm reaching out now to align with your expectations.
+
+Thank you for everything Inara does for the ED community.
+
+Fly safely,
+[Project Creator Name]
+OmniCOVAS Project
+
+---
+
+### Supporting Technical Detail (Provided If Requested)
+
+**Inara API Endpoints We Will Use:**
+- `getCommanderProfile` — CMDR identity lookups
+- `setCommanderCredits` — commander data contribution
+- `setCommanderRankPilot` — rank contribution
+- `setCommanderInventoryCargo` — cargo contribution
+- `setCommanderTravelJump` — travel contribution
+- `setCommanderStorageModules` — storage contribution
+- `setCommanderUnlockedItem` — unlock progression
+- `setCommunityGoal` / `getCommunityGoalsRecent` — CG data
+
+**Will Not Use:**
+- Bulk profile enumeration
+- Beta/test data submission from production
+- Legacy galaxy data
+
+**Batching Strategy:**
+- Session events batched into single request on session end
+- Scan events batched per dock/jump event
+- Multiple properties in single event where supported
+- No duplicates or stale data
+
+---
+
+# PART III — OPTIONAL OUTREACH
+
+---
+
+## 📧 Spansh Maintainer (Phase 5)
+
+**Target:** Gareth Harper
+**Platform:** Forums or Discord
+**Purpose:** Confirm rate limits for live API queries
+
+---
+
+Hi Gareth,
+
+o7. I'm building OmniCOVAS (open source, AGPL-3.0), an ED intelligence suite. We're integrating Spansh primarily through your bulk data dumps (weekly imports to local SQLite), which handles the bulk of our needs.
+
+We'd also like to use your live API for on-demand route plotting when commanders request it. I don't see published rate limits — could you give us guidance on what's appropriate? We're building with rate limit discipline as a first-class concern.
+
+Project: [GitHub URL]
+
+Thanks for everything Spansh does for the community.
+
+Fly safely,
+[Project Creator Name]
+
+---
+
+## 📧 Elite BGS API Maintainer (Phase 8)
+
+**Target:** Elite BGS maintainer
+**Platform:** GitHub issues
+**Purpose:** Confirm rate limits and integration
+
+---
+
+Hi,
+
+I'm building OmniCOVAS (open source, AGPL-3.0), an ED intelligence suite with deep BGS features. We'd like to integrate with the Elite BGS API for historical data access.
+
+I don't see published rate limits — could you share what's appropriate? We default to cautious usage (1 req/min with 6-hour cache TTL since BGS updates on daily tick), and we heavily prefer deep-linking to your web dashboard over repeated API calls.
+
+Project: [GitHub URL]
+
+Thanks for maintaining such valuable infrastructure for BGS commanders.
+
+o7,
+[Project Creator Name]
+
+---
+
+## 📧 BGS-Tally Maintainer (Phase 8)
+
+**Target:** aussig
+**Platform:** GitHub issues on BGS-Tally repository
+**Purpose:** Validate OpenAPI spec integration
+
+---
+
+Hi aussig,
+
+o7. I'm building OmniCOVAS (open source, AGPL-3.0) and we're implementing the client side of your OpenAPI spec so that BGS-Tally-compatible servers can receive OmniCOVAS-aggregated BGS data if users configure it.
+
+Could you share any integration gotchas or validation feedback as we build this out? Our goal is full spec compliance so users can seamlessly integrate OmniCOVAS with their existing BGS-Tally setups.
+
+Project: [GitHub URL]
+
+Thanks for BGS-Tally — it's a cornerstone of the BGS community.
+
+Fly safely,
+[Project Creator Name]
+
+---
+
+# PART IV — SUBMISSION CHECKLIST
+
+Before submitting any application, verify:
+
+### Universal Requirements
+- [ ] Phase 3 prototype functional and demonstrable
+- [ ] Public GitHub repository live with full source
+- [ ] README clearly describes project and goals
+- [ ] AGPL-3.0 LICENSE file present
+- [ ] Contributor License Agreement template present
+- [ ] SECURITY.md with responsible disclosure
+- [ ] Required trademark disclaimer visible
+- [ ] All attribution strings implemented in UI
+- [ ] Privacy page functional with opt-in toggles
+- [ ] Data flow transparency map functional
+
+### Frontier-Specific
+- [ ] OAuth2 PKCE implemented and tested
+- [ ] Rate limiting enforced in code (not just documented)
+- [ ] FC polling respects 15-minute server cadence
+- [ ] Journal-based fallbacks tested for every CAPI feature
+- [ ] Encrypted token storage working
+- [ ] Refresh token logic handles 25-day expiration
+- [ ] 422 response handling tested
+
+### Inara-Specific
+- [ ] Event batching implemented per their spec
+- [ ] All cache TTLs enforced in code
+- [ ] Rate limit enforcement at 2/min verified under load
+- [ ] App identifier string finalized
+- [ ] Squadron cache pooling architecture explained if asked
+- [ ] Data submission pipeline tested with test account
+
+### Post-Approval Actions
+- [ ] Approval status recorded in project documentation
+- [ ] Production API keys in encrypted vault
+- [ ] Production configuration deployed
+- [ ] Compliance Matrix updated with approval reference
+- [ ] Thank-you message sent to maintainer
+- [ ] Features previously gated by approval unlocked
+
+---
+
+*These application drafts are maintained alongside the Master Blueprint. Update before submission if project details change.*
+
+*— OmniCOVAS Approval Applications v4.0*
