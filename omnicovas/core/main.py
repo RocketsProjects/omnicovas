@@ -91,9 +91,11 @@ async def main() -> None:
         dispatcher.register(event_type, handler)
 
     # Register Pillar 1 feature handlers (Phase 2)
+    from omnicovas.features import fuel as _fuel
     from omnicovas.features import ship_state as _ship_state
 
     _ship_state.register(dispatcher.register, state, broadcaster)
+    _fuel.register(dispatcher.register, state, broadcaster)
 
     dispatcher.register_recorder(recorder.record_event)
 
