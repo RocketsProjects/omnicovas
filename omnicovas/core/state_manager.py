@@ -74,6 +74,9 @@ class SessionState:
     current_station: str | None = None
     current_ship_type: str | None = None
     current_ship_name: str | None = None
+    # 0.0 (destroyed) → 1.0 (full health). Matches the journal HullDamage.Health
+    # field exactly — do NOT convert to percent on ingest. KB threshold entries
+    # use the same 0.0–1.0 scale (e.g. hull_critical_threshold = 0.10, not 10.0).
     hull_health: float | None = None
     shield_up: bool | None = None
     fuel_main: float | None = None
