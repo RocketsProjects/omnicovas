@@ -22,7 +22,12 @@ from __future__ import annotations
 
 import pytest
 
-from omnicovas.core.state_manager import StateManager, TelemetrySource
+from omnicovas.core.state_manager import (
+    ModuleInfo,
+    SessionState,
+    StateManager,
+    TelemetrySource,
+)
 
 
 @pytest.mark.asyncio
@@ -188,3 +193,256 @@ def test_public_snapshot_excludes_private_fields() -> None:
 
     # Result is a plain dict (safe to JSON-serialise)
     assert isinstance(snapshot, dict)
+
+
+# ---------------------------------------------------------------------------
+# ModuleInfo dataclass
+# ---------------------------------------------------------------------------
+
+
+def test_module_info_can_be_constructed() -> None:
+    """ModuleInfo must accept all documented fields."""
+    mod = ModuleInfo(
+        slot="MediumHardpoint1",
+        item="hpt_pulselaser_fixed_medium",
+        item_localised="Pulse Laser",
+        health=0.95,
+        power=0.6,
+        priority=1,
+        on=True,
+        engineering=None,
+    )
+    assert mod.slot == "MediumHardpoint1"
+    assert mod.health == 0.95
+    assert mod.engineering is None
+
+
+def test_module_info_accepts_engineering_block() -> None:
+    """ModuleInfo engineering field must accept a raw dict."""
+    eng = {"BlueprintName": "Weapon_LongRange", "Level": 5, "Quality": 1.0}
+    mod = ModuleInfo(
+        slot="MediumHardpoint1",
+        item="hpt_pulselaser_fixed_medium",
+        item_localised=None,
+        health=1.0,
+        power=0.6,
+        priority=1,
+        on=True,
+        engineering=eng,
+    )
+    assert mod.engineering is not None
+    assert mod.engineering["Level"] == 5
+
+
+def test_module_info_optional_fields_accept_none() -> None:
+    """power, priority, item_localised, and engineering can all be None."""
+    mod = ModuleInfo(
+        slot="Armour",
+        item="sidewinder_armour_grade1",
+        item_localised=None,
+        health=1.0,
+        power=None,
+        priority=None,
+        on=True,
+        engineering=None,
+    )
+    assert mod.power is None
+    assert mod.priority is None
+
+
+# ---------------------------------------------------------------------------
+# Phase 2 SessionState fields -- default to None
+# ---------------------------------------------------------------------------
+
+
+def test_phase2_ship_identity_fields_default_none() -> None:
+    """All Phase 2 ship identity fields must start as None (Law 5)."""
+    state = SessionState()
+    assert state.current_ship_type is None
+    assert state.current_ship_id is None
+    assert state.current_ship_ident is None
+    assert state.current_ship_name is None
+
+
+def test_phase2_hull_shield_additions_default_none() -> None:
+    """shield_strength_pct must default to None."""
+    state = SessionState()
+    assert state.shield_strength_pct is None
+
+
+def test_phase2_fuel_fields_default_none() -> None:
+    """fuel_reservoir and jump_range_ly must default to None."""
+    state = SessionState()
+    assert state.fuel_reservoir is None
+    assert state.jump_range_ly is None
+
+
+def test_phase2_cargo_inventory_defaults_empty() -> None:
+    """cargo_inventory must default to an empty dict (not None)."""
+    state = SessionState()
+    assert state.cargo_inventory == {}
+    assert isinstance(state.cargo_inventory, dict)
+
+
+def test_phase2_modules_defaults_empty() -> None:
+    """modules must default to an empty dict (not None)."""
+    state = SessionState()
+    assert state.modules == {}
+    assert isinstance(state.modules, dict)
+
+
+def test_phase2_loadout_hash_defaults_none() -> None:
+    """loadout_hash must default to None."""
+    state = SessionState()
+    assert state.loadout_hash is None
+
+
+def test_phase2_pip_fields_default_none() -> None:
+    """sys_pips, eng_pips, wep_pips must all default to None."""
+    state = SessionState()
+    assert state.sys_pips is None
+    assert state.eng_pips is None
+    assert state.wep_pips is None
+
+
+def test_phase2_heat_level_defaults_none() -> None:
+    """heat_level must default to None."""
+    state = SessionState()
+    assert state.heat_level is None
+
+
+# ---------------------------------------------------------------------------
+# update_field() works for all new Phase 2 fields
+# ---------------------------------------------------------------------------
+
+
+def test_update_ship_identity_fields() -> None:
+    """update_field() must accept all four ship identity fields."""
+    state = StateManager()
+    state.update_field("current_ship_type", "Python", TelemetrySource.JOURNAL)
+    state.update_field("current_ship_id", 42, TelemetrySource.JOURNAL)
+    state.update_field("current_ship_ident", "QE-01", TelemetrySource.JOURNAL)
+    state.update_field("current_ship_name", "HMCS Bonaventure", TelemetrySource.JOURNAL)
+
+    snap = state.snapshot
+    assert snap.current_ship_type == "Python"
+    assert snap.current_ship_id == 42
+    assert snap.current_ship_ident == "QE-01"
+    assert snap.current_ship_name == "HMCS Bonaventure"
+
+
+def test_update_fuel_phase2_fields() -> None:
+    """update_field() must accept fuel_reservoir and jump_range_ly."""
+    state = StateManager()
+    state.update_field("fuel_reservoir", 0.25, TelemetrySource.STATUS_JSON)
+    state.update_field("jump_range_ly", 38.4, TelemetrySource.JOURNAL)
+
+    snap = state.snapshot
+    assert snap.fuel_reservoir == 0.25
+    assert snap.jump_range_ly == 38.4
+
+
+def test_update_pip_fields() -> None:
+    """update_field() must accept sys_pips, eng_pips, wep_pips."""
+    state = StateManager()
+    state.update_field("sys_pips", 2, TelemetrySource.STATUS_JSON)
+    state.update_field("eng_pips", 4, TelemetrySource.STATUS_JSON)
+    state.update_field("wep_pips", 6, TelemetrySource.STATUS_JSON)
+
+    snap = state.snapshot
+    assert snap.sys_pips == 2
+    assert snap.eng_pips == 4
+    assert snap.wep_pips == 6
+
+
+def test_update_heat_level() -> None:
+    """update_field() must accept heat_level as a 0.0-1.0 float."""
+    state = StateManager()
+    state.update_field("heat_level", 0.72, TelemetrySource.STATUS_JSON)
+
+    assert state.snapshot.heat_level == 0.72
+
+
+def test_update_loadout_hash() -> None:
+    """update_field() must accept loadout_hash."""
+    state = StateManager()
+    state.update_field(
+        "loadout_hash",
+        "abc123def456",
+        TelemetrySource.JOURNAL,
+    )
+    assert state.snapshot.loadout_hash == "abc123def456"
+
+
+# ---------------------------------------------------------------------------
+# Source priority applies to new Phase 2 fields
+# ---------------------------------------------------------------------------
+
+
+def test_journal_outranks_status_json_for_ship_type() -> None:
+    """Journal must win over status_json for ship identity fields."""
+    state = StateManager()
+    state.update_field("current_ship_type", "Sidewinder", TelemetrySource.STATUS_JSON)
+    accepted = state.update_field(
+        "current_ship_type", "Python", TelemetrySource.JOURNAL
+    )
+    assert accepted is True
+    assert state.snapshot.current_ship_type == "Python"
+
+
+def test_status_json_cannot_override_journal_for_heat() -> None:
+    """If journal sets heat_level, status_json cannot override it."""
+    state = StateManager()
+    state.update_field("heat_level", 0.50, TelemetrySource.JOURNAL)
+    accepted = state.update_field("heat_level", 0.90, TelemetrySource.STATUS_JSON)
+    assert accepted is False
+    assert state.snapshot.heat_level == 0.50
+
+
+# ---------------------------------------------------------------------------
+# reset() clears all Phase 2 fields
+# ---------------------------------------------------------------------------
+
+
+def test_reset_clears_phase2_fields() -> None:
+    """reset() must return all Phase 2 fields to their initial defaults."""
+    state = StateManager()
+    state.update_field("current_ship_type", "Anaconda", TelemetrySource.JOURNAL)
+    state.update_field("jump_range_ly", 55.0, TelemetrySource.JOURNAL)
+    state.update_field("heat_level", 0.3, TelemetrySource.STATUS_JSON)
+    state.update_field("sys_pips", 4, TelemetrySource.STATUS_JSON)
+
+    state.reset()
+
+    snap = state.snapshot
+    assert snap.current_ship_type is None
+    assert snap.jump_range_ly is None
+    assert snap.heat_level is None
+    assert snap.sys_pips is None
+    assert snap.modules == {}
+    assert snap.cargo_inventory == {}
+
+
+# ---------------------------------------------------------------------------
+# public_snapshot() includes Phase 2 fields
+# ---------------------------------------------------------------------------
+
+
+def test_public_snapshot_includes_phase2_fields() -> None:
+    """public_snapshot() must expose all new Phase 2 public fields."""
+    state = StateManager()
+    state.update_field("current_ship_type", "Krait_MkII", TelemetrySource.JOURNAL)
+    state.update_field("jump_range_ly", 30.0, TelemetrySource.JOURNAL)
+
+    snap = state.public_snapshot()
+
+    assert "current_ship_type" in snap
+    assert snap["current_ship_type"] == "Krait_MkII"
+    assert "jump_range_ly" in snap
+    assert snap["jump_range_ly"] == 30.0
+    assert "heat_level" in snap
+    assert "sys_pips" in snap
+    assert "modules" in snap
+    assert "cargo_inventory" in snap
+    # Private fields must still be absent
+    assert "_field_sources" not in snap
