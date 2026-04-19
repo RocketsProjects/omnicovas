@@ -1,0 +1,492 @@
+# OmniCOVAS — Compliance Matrix
+### Companion Document to Master Blueprint v4.1
+
+*Complete compliance audit reflecting the v4.0 constitutional framework (Ten Laws, Ten Architectural Principles) and Phase 1 operational status.*
+
+---
+
+## 🎯 Purpose
+
+Catalogs every rule, term of service, rate limit, license obligation, and real-world law that OmniCOVAS must respect. Reference during development to verify no rule is being broken.
+
+**Status Legend:**
+- ✅ **Operational** — implemented in code and verified working in Phase 1
+- ✅ **Committed** — architecturally locked, implementation pending
+- ⏳ **Phase N** — planned for a future phase, not yet implemented
+
+**Review Cadence:**
+- After every Frontier ED patch
+- After every external API update
+- Quarterly otherwise
+- Before every release
+- At every phase transition (v4.1 update happens now at Phase 1→2 boundary)
+
+**Changelog from v4.0:**
+- Phase 1 items marked operational (DPAPI vault, structlog + redaction, KB validation, Resource Budget Framework, Activity Log, Confirmation Gate, etc.)
+- Phase-phase timing re-baselined (Frontier/Inara submissions now Phase 3, not Phase 3-of-original-roadmap)
+- No new compliance obligations introduced in Phase 2 (no external APIs)
+- Section 11 summary table updated with current implementation status
+
+---
+
+## 📜 Section 1 — Law 2 (Legal Compliance) Implementation
+
+Law 2 makes real-world legal compliance an absolute constraint. This section enumerates all applicable rules.
+
+### Real-World Laws
+
+| Law/Regulation | Jurisdiction | Relevance | Phase 1 Status |
+|---------------|--------------|-----------|----------------|
+| Copyright law | Global | Our code (AGPL), third-party code (respect licenses) | ✅ Operational (AGPL-3.0 applied) |
+| GDPR | EU | Commander privacy, data export, right to delete | ✅ Architecture supports (local-first) |
+| CCPA | California | Similar privacy protections for CA commanders | ✅ Architecture supports |
+| Computer Fraud and Abuse Act | US | No circumventing access controls, no unauthorized access | ✅ Architecture compliant |
+| Digital Millennium Copyright Act | US | Anti-circumvention, protected works | ✅ Architecture compliant |
+| Consumer protection laws | Various | Honest representation of features, no deception | ✅ Documentation honest |
+
+### Required Disclaimers (Must Appear in Product)
+
+**Trademark Disclaimer (About page + README):** ✅ In README (Phase 1), ⏳ About page (Phase 3 UI)
+> *"OmniCOVAS is not an official tool and is not affiliated with Frontier Developments. 'Elite', 'Elite Dangerous', and 'Frontier' are trademarks of Frontier Developments plc."*
+
+**License Disclaimer (About page + README):** ✅ In README (Phase 1), ⏳ About page (Phase 3 UI)
+> *"OmniCOVAS is licensed under AGPL-3.0. Full license text available in LICENSE file. Contributors grant additional rights per Contributor License Agreement."*
+
+**Third-Party Disclaimer (About page):** ⏳ Phase 3 UI
+> *"OmniCOVAS uses data and services from EDDN, EDSM, Inara, Spansh, EDAstro, Elite BGS, BGS-Tally, and others. We are grateful to these maintainers and their communities."*
+
+**Privacy Disclaimer (Privacy page + first-run):** ⏳ Phase 3 UI
+> *"OmniCOVAS respects your privacy. By default, no data leaves your machine. All external data sharing is opt-in and configurable. See privacy page for complete details."*
+
+---
+
+## 🎮 Section 2 — Frontier Developments
+
+### 2.1 Elite Dangerous EULA
+
+**Prohibited under Law 9 Interpretation B:**
+- ❌ Modifying game executable
+- ❌ Injecting into game process
+- ❌ Auto-aim, auto-pilot, auto-trade
+- ❌ Bot play or AFK farming
+- ❌ Account sharing facilitation
+- ❌ Anti-cheat circumvention
+- ❌ Redistributing game assets
+
+**Permitted (All Phase 1 Operational):**
+- ✅ Reading journal files (documented for tools)
+- ✅ Reading Status.json (documented live state)
+- ⏳ Reading ModulesInfo.json, Cargo.json, Backpack.json, ShipLocker.json (Phase 2)
+- ⏳ Using CAPI per Frontier's terms (Phase 3+, with approval)
+
+**Compliance Status:**
+- ✅ All "actions" are advisory (Law 1 Confirmation Gate — operational Phase 1)
+- ✅ No automation touches game input
+- ✅ Each user has own Frontier account
+- ✅ Game files read-only
+
+### 2.2 Frontier CAPI Terms
+
+**Requirements:**
+- ⏳ Developer approval required (Phase 3 submission target)
+- ✅ OAuth2 PKCE authentication (architecture committed)
+- ✅ Rate limits: ~1 query/min guidance, hard stop 2/sec (registry has entry)
+- ✅ 25-day refresh token expiration (architecture committed)
+- ✅ No abuse or scraping (architecture committed)
+
+**Architecture Compliance:**
+- ✅ OAuth2 PKCE designed
+- ✅ Rate limits in Registry (operational)
+- ✅ FC polling aligned with 15-min server refresh
+- ✅ Token refresh automated
+- ✅ Graceful 422 handling
+
+### 2.3 Trademarks
+
+**Must Not:**
+- Imply official partnership
+- Use trademarks in ways that confuse users
+- Use Frontier logos without permission
+
+**Will Do:**
+- ✅ Display required disclaimer (in README Phase 1)
+- ✅ Use only the words "Elite Dangerous" for game reference, no logos
+- ✅ Use "OmniCOVAS" as our own trademark
+
+---
+
+## 📡 Section 3 — Community Data Services
+
+### 3.1 EDDN
+
+**Rules:**
+- Documented schemas required
+- Submitter identification in header
+- No spam
+- Respect community infrastructure
+- Passive consumption unlimited
+
+**Compliance:**
+- ✅ Official schemas only (architecture committed)
+- ✅ Header: "OmniCOVAS/[version]" (architecture committed)
+- ✅ Validation before submission (architecture committed)
+- ✅ Submission is opt-in by default (Privacy-by-Default — committed)
+- ✅ Attribution: "Live data from EDDN" (committed for Phase 5+ UI)
+- ⏳ Operational implementation: Phase 5+
+
+### 3.2 EDSM
+
+**Rate Limit:** 360 requests/hour = 1 per 10 seconds (verified)
+
+**Compliance:**
+- ✅ Rate limit in registry
+- ✅ X-Rate-Limit headers monitoring designed
+- ✅ Cache policy: systems 24h, bodies 7d, stations 1h
+- ✅ "Data from EDSM" attribution committed
+- ✅ Opt-in commander tracking committed
+- ⏳ Operational implementation: Phase 5+
+
+### 3.3 Inara
+
+**Rate Limit:** 2 requests/minute (verified from developer)
+
+**Compliance:**
+- ✅ Rate limit in registry
+- ⏳ Whitelist application pending (Phase 3)
+- ✅ Event batching architecture
+- ✅ Heavy caching: CMDR 24h, factions 6h
+- ✅ Submission philosophy: contribute > query
+- ✅ Squadron cache pooling designed
+- ✅ "Data from Inara" attribution committed
+- ⏳ Operational implementation: Phase 5+
+
+### 3.4 Spansh
+
+**Rate Limits:** Not publicly documented
+
+**Compliance:**
+- ✅ Primary integration via bulk dumps (architecture)
+- ✅ Live API only for route plotting
+- ✅ Cautious default: 30 req/min
+- ⏳ Direct maintainer contact planned (Phase 5)
+- ✅ "Routing powered by Spansh" attribution committed
+- ✅ Weekly dump refresh architecture
+- ⏳ Operational implementation: Phase 5
+
+### 3.5 EDAstro
+
+**Rate Limit:** 100 requests/15 minutes (verified)
+
+**Compliance:**
+- ✅ Rate limit in registry
+- ✅ Headers monitoring designed
+- ✅ Local cache layer architecture (Graceful Failure Principle)
+- ✅ "Data from EDAstro" attribution committed
+- ✅ Data contribution pipeline planned
+- ⏳ Operational implementation: Phase 5+
+
+### 3.6 Elite BGS API
+
+**Rate Limits:** Not publicly documented
+
+**Compliance:**
+- ⏳ Maintainer contact required (Phase 8)
+- ✅ Cautious default: 1 req/min
+- ✅ 6-hour cache TTL
+- ✅ Local historical snapshot architecture (Graceful Failure Principle)
+- ✅ Deep-link preference
+- ✅ Attribution committed
+- ⏳ Operational implementation: Phase 8+
+
+### 3.7 BGS-Tally
+
+**Compliance:**
+- ✅ OpenAPI spec integration designed
+- ✅ User opt-in required architecture
+- ✅ `/discovery` endpoint respected
+- ✅ User can terminate anytime
+- ⏳ Operational implementation: Phase 8+
+
+---
+
+## 🔧 Section 4 — External Tools & Dependencies
+
+### 4.1 EDDI (Required for Voice Features)
+
+**License:** GPL-3.0
+
+**Compliance Under Law 9 Interpretation B:**
+- ❌ Cannot be bundled with OmniCOVAS (GPL-3.0 vs AGPL-3.0 bundling conflict)
+- ✅ External dependency — user-installed
+- ✅ Required only for voice features, not core functionality
+- ✅ Socket bridge communication (GPL-3.0 allows inter-process)
+- ⏳ Recommended EDDI configuration profile (Phase 3+)
+- ⏳ EDDI disables its own Inara integration to give us exclusive 2/min budget (Phase 3+)
+- ✅ Users retain all EDDI GPL-3.0 rights
+
+### 4.2 VoiceAttack (Required for Voice Commands)
+
+**License:** Commercial proprietary (~$10-15 purchase)
+
+**Compliance:**
+- ✅ Never bundled or redistributed
+- ✅ Required only for voice features, not core functionality
+- ✅ Users provide their own license
+- ⏳ Pre-built VoiceAttack profile (Phase 3+)
+
+### 4.3 EDMC
+
+**License:** GPL (components vary)
+
+**Compliance:**
+- ✅ Not a direct OmniCOVAS dependency
+- ✅ Users running EDMC alongside OmniCOVAS is compatible
+- ✅ We reference EDMC in ecosystem docs
+
+### 4.4 EDTools (edtools.cc)
+
+**Compliance:**
+- ✅ Deep-link reference only (architecture)
+- ✅ No API integration planned
+- ✅ Attribution where linked
+- ⏳ Phase 4+
+
+### 4.5 Coriolis / EDSY
+
+**Compliance:**
+- ✅ Deep-link references only (architecture)
+- ✅ Attribution where linked
+- ⏳ Phase 4+
+
+---
+
+## 🔒 Section 5 — Privacy & Data Protection
+
+### 5.1 GDPR Alignment
+
+**Requirements:**
+- Data portability
+- Right to deletion
+- Clear privacy notice
+- Explicit consent for collection
+- Data minimization
+
+**Compliance (via Law 8 Sovereignty & Transparency + Principle 7 Privacy-by-Default):**
+- ✅ All data local by default (Phase 1 operational)
+- ⏳ Privacy page at first-run with explicit toggles (Phase 3 UI)
+- ✅ Every outbound data flow is opt-in (architecture locked)
+- ✅ Delete capability (via data directory access, Phase 1)
+- ⏳ Data export capability UI (Phase 3)
+- ✅ Plain-language privacy language in README (Phase 1)
+- ✅ No telemetry collected by default (Phase 1)
+- ⏳ Data flow transparency map in UI (Phase 3)
+
+### 5.2 Commander Data Privacy
+
+**Compliance:**
+- ⏳ Squadron sharing via explicit invite + leader approval (Phase 7)
+- ✅ CMDR lookups use minimum necessary data (architecture)
+- ⏳ Top Secret Mode provides maximum privacy (Phase 7)
+- ✅ Privacy hierarchy (most restrictive wins) — architecture locked
+
+### 5.3 Third-Party API Key Handling
+
+**Compliance:**
+- ✅ API keys in local encrypted config vault only (DPAPI — Phase 1 operational)
+- ✅ Keys never transmitted elsewhere (Phase 1)
+- ✅ Logging system filters API key patterns (structlog redaction — Phase 1 operational)
+- ✅ Users supply their own keys (Phase 1)
+
+---
+
+## ⚖️ Section 6 — Open Source License Obligations
+
+### 6.1 Our License: AGPL-3.0 + CLA
+
+**Obligations as Licensor:**
+- ✅ Public source code (Phase 1 operational)
+- ✅ Clear license documentation (LICENSE file committed)
+- ✅ Preserve copyright notices
+- ✅ Honor user fork and modification rights
+
+**Contributor License Agreement:**
+- ✅ All contributions require signed CLA before merge (CLA.md committed)
+- ✅ Contributors grant project creator broad license
+- ✅ Contributors retain their copyright
+- ✅ Enables future dual-licensing flexibility
+- ✅ Template based on Apache ICLA
+- ✅ CLA Assistant integration documented
+
+### 6.2 Obligations of OmniCOVAS Users/Forkers
+
+**They Must:**
+- Preserve AGPL-3.0 on distributions
+- Publish modifications if running for others (network use clause)
+- Share source when providing network service
+- Preserve copyright notices
+
+**Documented In:** LICENSE, README, CONTRIBUTING.md (all Phase 1 committed)
+
+### 6.3 Third-Party Open Source Dependencies
+
+**SBOM (Software Bill of Materials):**
+- ✅ `pyproject.toml` lists all direct dependencies (Phase 1)
+- ⏳ Published with each GitHub release (Phase 3+)
+- ✅ Every dependency cataloged in `pyproject.toml` + `uv.lock`
+- ✅ Licenses listed (via dependency metadata)
+- ✅ No GPL-incompatible licenses in AGPL-3.0 project (verified)
+- ⏳ SBOM visible in About/Credits page (Phase 3 UI)
+
+---
+
+## 🖼️ Section 7 — Required Attributions
+
+| Source | Attribution Text | Location | Status |
+|--------|-----------------|----------|--------|
+| EDDN | "Live data from EDDN" | Near live market/exploration data | ⏳ Phase 5+ |
+| EDSM | "System data from EDSM" | Near system lookups | ⏳ Phase 5+ |
+| Inara | "Data from Inara" | Near CMDR profiles, factions, CGs | ⏳ Phase 5+ |
+| Spansh | "Routing powered by Spansh" | Near route plotting | ⏳ Phase 5+ |
+| EDAstro | "Data from EDAstro" | Near astrometric data | ⏳ Phase 5+ |
+| Elite BGS | "Historical data from Elite BGS" | Near BGS analytics | ⏳ Phase 8+ |
+| BGS-Tally | "BGS-Tally integration" | In squadron BGS settings | ⏳ Phase 8+ |
+
+**Global Attribution (About page, Phase 3):**
+Full thank-you text to all maintainers and communities.
+
+**Contributor Attribution (About/Credits page — Phase 3):**
+- All GitHub contributors listed
+- Role indication (code, docs, KB, testing)
+- Link to contribution
+
+**Dependency Attribution (About/Credits page — Phase 3):**
+- Complete SBOM displayed
+- License per dependency
+- Link to upstream
+
+---
+
+## 🚨 Section 8 — Compliance Red Flags
+
+### Critical Violations (Immediate Stop)
+
+- ❌ Exceeding any API's rate limit
+- ❌ Injecting into Elite Dangerous game process
+- ❌ Auto-pilot or auto-combat
+- ❌ Bundling EDDI or other GPL-3.0 code
+- ❌ Logging API keys or OAuth tokens
+- ❌ Sharing CMDR data without explicit opt-in
+- ❌ Data outbound without Privacy-by-Default opt-in
+
+**Phase 1 Controls in Place:**
+- ✅ structlog redaction processor filters API key patterns
+- ✅ DPAPI vault keeps keys out of plaintext
+- ✅ No outbound data paths exist yet (Phase 5+)
+- ✅ Rate Limit Registry operational
+
+### Warning-Level Issues
+
+- 🟡 Cache TTL too short
+- 🟡 User data flow without clear disclosure
+- 🟡 Dependencies with incompatible licenses
+- 🟡 Missing attribution
+
+---
+
+## 📅 Section 9 — Ongoing Compliance Schedule
+
+**Quarterly:**
+- Rate limits still accurate
+- Dependency licenses unchanged
+- API terms unchanged
+- Attribution current
+
+**After Frontier Patch:**
+- KB entries flagged for verification (via Knowledge Base Stewardship Principle)
+- CAPI endpoints unchanged
+- Journal schema unchanged
+- Defensive Update Principle validation runs (✅ operational Phase 1)
+
+**After External API Update:**
+- Rate limits re-verified
+- ToS reviewed
+- New endpoints evaluated
+
+**Before Each Release:**
+- SBOM regenerated
+- License compliance check
+- Attribution audit
+- Privacy notice currency
+- KB audit
+
+**At Phase Transitions:**
+- This Compliance Matrix updated
+- Status flags promoted where applicable
+- New phase-specific obligations added
+
+---
+
+## 📞 Section 10 — Maintainer Contact Register
+
+| Service | Contact Method | Purpose | Phase |
+|---------|---------------|---------|-------|
+| Frontier Developments | user.frontierstore.net | CAPI approval | Phase 3 |
+| Inara (Artie) | Inara forum DM | API whitelisting | Phase 3 |
+| Spansh (Gareth Harper) | Forum/Discord | Rate limits, data dumps | Phase 5 |
+| Elite BGS | GitHub issues | Rate limits, integration | Phase 8 |
+| BGS-Tally (aussig) | GitHub issues | API questions | Phase 8 |
+| EDSM (Anthor) | EDSM/forums | API questions | Phase 5 |
+| EDAstro (CMDR Orvidius) | Forums | API integration | Phase 5 |
+| EDDN (AnthorNet/Athanasius/jamesremuscat) | Forums/GitHub | Schema questions | Phase 5 |
+
+---
+
+## 📜 Section 11 — v4.0 Additions Implementation Summary
+
+**Items added in v4.0 and their current Phase 1 implementation status:**
+
+| Item | Status | Evidence |
+|------|--------|----------|
+| CLA requirement for contributors | ✅ Operational | CLA.md committed, CLA Assistant documented |
+| Privacy page at first-run | ⏳ Phase 3 UI | — |
+| EDDN submission opt-in by default | ✅ Committed | Architecture locked, implementation Phase 5+ |
+| SBOM visible in About page | ⏳ Phase 3 UI | `pyproject.toml` has dependency list |
+| Contributor attribution visible | ⏳ Phase 3 UI | — |
+| EDAstro local cache | ⏳ Phase 5+ | Architecture documented |
+| Elite BGS local historical snapshot | ⏳ Phase 8+ | Architecture documented |
+| KB validation pipeline | ✅ Operational | `tests/test_knowledge_base.py` runs in CI |
+| Resource Budget Framework | ✅ Operational | `resource_budget.yaml` + ResourceMonitor + `/resources` endpoint |
+| Defensive Update validation framework | ✅ Operational | Startup version check implemented |
+| Explainability UI (Tier 3 inline) | ⏳ Phase 3 UI | Activity Log exists; inline "Why?" button pending UI |
+| Accessibility features | ⏳ Phase 3 UI | — |
+
+---
+
+## 📜 Section 12 — Phase 2 Compliance Posture (New in v4.1)
+
+**Phase 2 scope: Pillar 1 (Ship Telemetry), 11 features, Weeks 7–10.**
+
+**No new compliance obligations introduced in Phase 2.** Because:
+- No new external APIs consumed in Phase 2
+- No new data outbound paths opened
+- No new third-party tools integrated
+- No UI-facing content introduced (Pillar 1 publishes events; UI shell is Phase 3)
+
+**Phase 2-specific compliance items:**
+
+| Item | Compliance Implication |
+|------|------------------------|
+| Ship State Broadcaster | No external data transmission; purely internal pub/sub. No compliance concern. |
+| Latency Budget Enforcement (CI hard-fail) | Strengthens Law 6 compliance by making performance auditable. |
+| Pillar 1 KB entries (~40 new) | Each entry must include `patch_verified`, `source`, `confidence`, `last_updated`, `needs_review`, plus new `_justification` comment. Covered by KB validation pipeline (✅ operational). |
+| Heat Management Tier 2 rules | Uses KB-grounded rules only; no LLM calls. Compliant with Law 5 (Zero Hallucination). |
+| Rebuy Calculator | Pure telemetry + KB insurance percentage. Zero external data. Tier 1. |
+
+**Compliance Matrix review at end of Phase 2:** Expected to advance zero items from ⏳ to ✅ in terms of external services, because Phase 2 is entirely internal. Next major compliance advance: Phase 3 when Frontier/Inara applications submit and UI-facing privacy/attribution elements ship.
+
+---
+
+*This document is maintained in parallel with the Master Blueprint v4.1.*
+
+*— OmniCOVAS Compliance Matrix v4.1*
+*Last updated: 2026-04-19*

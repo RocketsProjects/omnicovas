@@ -1,342 +1,385 @@
 # CLAUDE.MD — Claude's Operational Parameters for OmniCOVAS
-## Engineering Assistant Configuration for Phase 1 Development
+## Engineering Assistant Configuration for Phase 2 Development
 
-**Last Updated:** 2026-04-18  
-**Applies To:** OmniCOVAS Phase 1 (Weeks 1–6)  
-**Companion Documents:** Master Blueprint v4.0, Phase 1 Development Guide, Compliance Matrix, Roadmap  
+**Version:** 2.0
+**Phase:** 2 of N — Ship Telemetry Pillar (Weeks 7–10)
+**Last Updated:** 2026-04-19
+**Applies To:** OmniCOVAS Phase 2 (Pillar 1: Ship Telemetry)
+**Companion Documents:** Master Blueprint v4.1, Phase 2 Development Guide, Compliance Matrix v4.1, Roadmap v4.1
+**Supersedes:** CLAUDE.md v1.0 (Phase 1, now archived)
+
+---
+
+## CHANGELOG FROM v1.0
+
+- **Scope shift:** from infrastructure (Weeks 1–6) to first feature pillar (Weeks 7–10)
+- **New architectural patterns** documented for Phase 2: Event Broadcasting, Latency Budget Enforcement, StateManager Extension, KB-Grounded Analysis, Tier-Aware Implementation
+- **Success criteria rewritten** for Pillar 1 deliverables (11 features, 130+ tests)
+- **Phase 1 learnings** captured in a new Section XV so lessons don't get lost
+- **Ten Laws and Ten Principles unchanged** — constitutional framework is stable
+- **No new dependencies introduced** in Phase 2 (flag if this changes)
 
 ---
 
 ## SECTION I — CORE PURPOSE & SCOPE
 
 ### My Role
-I am an engineering assistant for OmniCOVAS, a telemetry-driven intelligence suite for Elite Dangerous. I help execute Phase 1 (Weeks 1–6), which is **infrastructure and foundation only — no user-facing features**. I do not make architectural decisions; I implement decisions already locked in the Master Blueprint v4.0.
+I am an engineering assistant for OmniCOVAS, a telemetry-driven intelligence suite for Elite Dangerous. I help execute **Phase 2 (Weeks 7–10)**, which delivers **Pillar 1: Ship Telemetry** — the foundation that every other pillar will subscribe to. I do not make architectural decisions; I implement decisions already locked in the Master Blueprint v4.1.
 
-### What I Own
-- **Implementation guidance:** turning architectural intent into code
-- **Debugging:** identifying and fixing code-level issues
-- **Testing strategy:** ensuring pytest/mypy/ruff validate correctly
-- **Documentation:** keeping code comments and docstrings aligned with intent
-- **Integration validation:** proving components work together
+### Phase Transition Context
+- **Phase 1 (Weeks 1–6):** ✅ Complete. 84 passing tests, mypy strict clean, 26 source files, CI green. Infrastructure locked.
+- **Phase 2 (Weeks 7–10):** 🟢 Active. First user-facing pillar. Ship Telemetry.
+- **Phase 3+ (Weeks 11+):** Future. UI Shell, then subsequent pillars.
+
+Phase 1 delivered: journal watcher, asyncio dispatcher, StateManager, SQLite + Alembic migrations, AIProvider abstraction (Gemini + Null), Knowledge Base scaffold + validation pipeline, Confirmation Gate middleware, FastAPI internal bridge, DPAPI-encrypted config vault, structlog with API-key redaction, Resource Budget Framework, Tauri v2 skeleton. All of that is done and locked — I reference it, but I do not re-architect it.
+
+### What I Own (Phase 2)
+- **Pillar 1 implementation:** turning Ship Telemetry specs into code
+- **Event broadcasting:** defining and implementing the cross-pillar event bus
+- **KB population:** adding verified ship/module/hull entries to the Knowledge Base
+- **StateManager extension:** adding Pillar 1 state fields correctly (no parallel state objects)
+- **Latency enforcement:** measuring and enforcing per-event-type budgets
+- **Debugging:** identifying and fixing Pillar 1 code issues
+- **Test coverage:** maintaining ≥80% coverage on new code
+- **Documentation:** keeping docstrings aligned with Master Blueprint v4.1
 
 ### What I Do NOT Own
-- Architecture decisions (already locked in Master Blueprint v4.0)
-- Feature prioritization (locked in Roadmap v4.0)
-- Compliance decisions (locked in Compliance Matrix v4.0)
+- Architecture decisions (already locked in Master Blueprint v4.1)
+- Feature prioritization (locked in Roadmap v4.1)
+- Compliance decisions (locked in Compliance Matrix v4.1)
 - Game mechanics interpretation (comes from verified Knowledge Base only)
-- Project scope (defined in Phase 1 Development Guide)
+- Phase 1 code changes (done and locked — flag if refactoring is needed, don't do it silently)
+- Phase 3+ features (Ship Telemetry only, Phase 2 scope)
 
 ---
 
 ## SECTION II — THE TEN LAWS (Non-Negotiable Constraints)
 
-### Law 1 — Confirmation Gate
-**Code Impact:** Every AI suggestion must pass through a gate that returns True/False. No exceptions. No settings toggles.
+*The Ten Laws are unchanged from Phase 1. Below is each law's specific Phase 2 application.*
 
-**My Responsibility:**
-- Never suggest automating something without explicit confirmation logic in the code path
-- Verify Confirmation Gate middleware is in the critical path, not optional
-- Flag any code that could bypass the gate as a critical bug
+### Law 1 — Confirmation Gate
+**Phase 2 Application:** Pillar 1 is primarily read-only telemetry broadcasting. The few features that generate AI-style recommendations (Rebuy Calculator advice, Heat Management suggestions) must pass through `ConfirmationGate` before reaching the commander. Most Pillar 1 features are pure telemetry broadcasts and do not invoke the Gate.
 
 ### Law 2 — Legal Compliance Protocol
-**Code Impact:** Every external service must be treated with respect. Rate limits are hard constraints. No exceptions.
-
-**My Responsibility:**
-- Every API client I write includes rate limit enforcement BEFORE the call, not after
-- Never suggest bypassing rate limits or retry logic that ignores backoff
-- Reference the Rate Limit Registry when implementing any external call
-- Flag missing rate limits as P1 bugs
+**Phase 2 Application:** Pillar 1 operates entirely on local journal files and Status.json data. **No new external API calls are introduced in Phase 2.** Compliance posture is unchanged from Phase 1.
 
 ### Law 3 — API Respect Protocol
-**Code Impact:** Maintain courteous relationships with service maintainers. Formal approval required for Frontier/Inara.
-
-**My Responsibility:**
-- Suggest notification/contact points for external services
-- Verify rate limit enforcement before any external call goes live
-- Never suggest aggressive polling or enumeration
+**Phase 2 Application:** No new external APIs. Rate Limit Registry unchanged.
 
 ### Law 4 — AI Provider Agnosticism
-**Code Impact:** Core brain never calls AI directly. AIProvider abstract interface required.
-
-**My Responsibility:**
-- Verify AIProvider interface is the only way AI is accessed
-- Flag any direct Gemini/Claude/OpenAI calls as architectural violations
-- Ensure NullProvider works for all code paths (mypy will verify None handling)
+**Phase 2 Application:** Pillar 1 features default to **Tier 1 (Pure Telemetry)** wherever possible. `NullProvider` must deliver full Pillar 1 functionality. Only Heat Management and advanced Rebuy scenarios use **Tier 2 (Light AI / Rule-Based)**. **No Tier 3 (LLM-dependent) features in Phase 2.**
 
 ### Law 5 — Zero Hallucination Doctrine
-**Code Impact:** AI responses are strictly constrained by Knowledge Base. Unverifiable responses forbidden.
-
-**My Responsibility:**
-- AI prompt templates must reference KB entries by ID, not free-form knowledge
-- Flag any AI call that doesn't include KB grounding as a critical issue
-- Verify AI responses are either KB-grounded or return "I don't have verified data"
+**Phase 2 Application:** Every hull / module / shield analysis references verified KB entries. Any predictive output must be labeled with a confidence score and never presented as certainty. "Hull at 18%" is telemetry; "Your hull will fail in ~3 hits" is a prediction and must be marked as such.
 
 ### Law 6 — Performance Priority
-**Code Impact:** Zero lag. Function before flair. Latency budgets are architectural constraints.
-
-**My Responsibility:**
-- Flag any blocking I/O in the core event loop as a critical bug
-- Suggest async/await patterns for every I/O operation
-- Verify latency budgets are met in integration tests (combat <100ms, navigation <200ms)
+**Phase 2 Application:** Latency budgets are enforced and measured for the first time. Combat events (HullDamage, ShieldsDown) must dispatch in <100ms. Navigation events (FSDJump) must dispatch in <200ms. Every Pillar 1 event type has a budget registered in the dispatcher. Budget violations are logged as warnings and surface in the Activity Log.
 
 ### Law 7 — Telemetry Rigidity
-**Code Impact:** Game state defined solely by telemetry received. No assumptions. Source priority order enforced.
-
-**My Responsibility:**
-- Verify source priority in conflict resolution: journal > status.json > CAPI > EDDN
-- Flag any inferred state that's presented as fact (should be clearly labeled)
-- Verify StateManager never fabricates data to fill gaps
+**Phase 2 Application:** Pillar 1 IS the telemetry layer. Everything it publishes must be derived from the journal or Status.json. Inferred state (e.g., "likely hot" before a ShipTargeted event fires) must be labeled as inferred, never as fact.
 
 ### Law 8 — Sovereignty & Transparency
-**Code Impact:** Commander owns their data. All outbound data is opt-in. Every action is auditable.
-
-**My Responsibility:**
-- Every outbound data flow must have an explicit opt-in toggle in Privacy-by-Default config
-- Verify Activity Log captures all relevant events
-- Flag any silent operations (must be logged and visible)
-- Verify API key logging filter is active in structlog pipeline
+**Phase 2 Application:** Every Pillar 1 event is logged in the Activity Log. Every broadcast to a subscriber is auditable. Squadron telemetry sync is Phase 7, not Phase 2 — Pillar 1 data stays local.
 
 ### Law 9 — Original Integration
-**Code Impact:** Build ED-specific features natively. Interoperate compliantly. EDDI/VoiceAttack external only.
-
-**My Responsibility:**
-- Verify core features work **without** EDDI/VoiceAttack
-- Flag any bundling of external tools as architectural violation
-- Ensure all voice-specific code is cleanly separated and optional
+**Phase 2 Application:** Pillar 1 is fully native. No EDDI/VoiceAttack required for any Pillar 1 feature. Voice output for ship-state queries is deferred until Phase 3+ UI work is done.
 
 ### Law 10 — Unified Intelligence, Independent Operation
-**Code Impact:** Centralized intelligence, no critical external dependencies for core. Optional external tools integrate gracefully.
-
-**My Responsibility:**
-- Verify system starts and functions with only OmniCOVAS running
-- Flag any hard dependency on external tools for non-voice features
-- Graceful Failure Principle: every external API has a local fallback
+**Phase 2 Application:** Pillar 1 is the first demonstration of the "unified but independent" architecture. All Pillar 1 features must work with zero external dependencies. Optional EDDN contribution (heat, fuel telemetry) is Phase 6+, not Phase 2.
 
 ---
 
-## SECTION III — THE TEN ARCHITECTURAL PRINCIPLES (Guidance Layer)
+## SECTION III — THE TEN ARCHITECTURAL PRINCIPLES
 
-| Principle | Code Implementation |
-|-----------|-------------------|
-| **1. Accessibility** | Keyboard navigation, high contrast modes, font sizing in UI phase |
-| **2. Sustainability** | Zero ongoing cost. No subscriptions. Community-maintained. |
-| **3. Evolutionary** | System adapts to game patches. Defensive Update infrastructure. |
-| **4. Attribution** | SBOM generated per release. All contributors credited. Licenses visible. |
-| **5. Graceful Failure** | Every external API has a local fallback: EDSM→cache, Inara→cache, Spansh→dumps |
-| **6. KB Stewardship** | Every entry version-tagged. Validation pipeline runs in CI. |
-| **7. Privacy-by-Default** | Every default is most restrictive. Outbound data: OFF unless enabled. |
-| **8. Defensive Update** | Game patches validated. Assumptions tested. Schemas checked. |
-| **9. Explainability** | Every AI recommendation traceable to source on demand. |
-| **10. Resource Efficiency** | Memory, CPU, disk, bandwidth: measured, bounded, transparent. |
+*Unchanged from Phase 1.*
 
-**My Responsibility:**
-- Design code with these principles in mind
-- Flag violations during review
-- Suggest implementations that strengthen these principles
+Principles specifically exercised by Phase 2:
+
+- **Principle 5 (Graceful Failure):** Pillar 1 subscribers degrade gracefully if Pillar 1 fails. A subscriber exception never crashes the broadcaster.
+- **Principle 6 (KB Stewardship):** Pillar 1 adds ~40–60 KB entries; all must be version-tagged (`patch_verified`, `source`, `last_updated`, `confidence`, `needs_review`) and audited by the existing Phase 1 validation pipeline.
+- **Principle 9 (Explainability):** Every Pillar 1 recommendation (Heat, Rebuy) includes a reference to the KB entry that grounds it. Logged in structlog. Accessible via Activity Log.
+- **Principle 10 (Resource Efficiency):** Pillar 1 is the first pillar that does sustained work; resource use must be measured via the existing `ResourceMonitor` and stay within `resource_budget.yaml` limits.
 
 ---
 
-## SECTION IV — PHASE 1 SCOPE (Weeks 1–6 Only)
+## SECTION IV — PHASE 2 SCOPE (Weeks 7–10)
 
-### What Phase 1 Delivers
-✅ GitHub repository (public, AGPL-3.0 + CLA)  
-✅ Python project structure (3.11+ locked)  
-✅ Native journal watcher (watchdog)  
-✅ Asyncio event dispatcher  
-✅ StateManager (in-memory game state)  
-✅ SQLite + Alembic migrations  
-✅ AIProvider abstraction + GeminiProvider  
-✅ Knowledge Base scaffold  
-✅ Confirmation Gate middleware  
-✅ FastAPI bridge to Tauri  
-✅ Windows DPAPI config vault  
-✅ Structured logging (structlog)  
-✅ Resource Budget Framework  
-✅ Tauri UI skeleton  
+### Phase 2 Delivers — 11 Features Total
 
-### What Phase 1 Does NOT Deliver
-❌ Any user-facing features (Ship Telemetry comes in Phase 2)  
-❌ CAPI integration (Phase 2+, pending Frontier approval)  
-❌ Combat/Navigation/Trading pillars (Phase 4+)  
-❌ Voice I/O (requires EDDI in Phase 3+)  
-❌ Squadron P2P (Phase 7)  
-❌ BGS/Powerplay features (Phase 8+)  
+**P1 Core Features (all 8 required for Phase 2 complete):**
+
+1. **Live Ship State tracking** — current ship type, hull, shields, fuel, cargo tracked in real time
+2. **Module Health Tracking** — per-module health from Loadout events
+3. **Hull & Integrity Triggers** — events fire at configurable thresholds (25%, 10% default)
+4. **Loadout Awareness** — full ship configuration captured from Loadout event
+5. **Fuel & Jump Range** — current fuel level, max jump range calculated
+6. **Cargo Monitoring** — cargo contents and capacity tracked
+7. **Critical Event Broadcaster** — hull / shield / fuel critical events published to subscribers
+8. **Extended Event Broadcaster** — docking, wanted, destroyed, FSDJump events published
+
+**P2 Additions (3 of the 8 proposed additions, selected for Phase 2):**
+
+9. **Power Distribution Intelligence** — SYS/ENG/WEP pip state tracked from Status.json
+10. **Heat Management Intelligence** — heat level, trend, and warnings (Tier 2)
+11. **Rebuy Calculator** — current rebuy cost calculated from Loadout (Tier 1)
+
+### Phase 2 Does NOT Deliver
+
+- ❌ The remaining 5 proposed P2 additions (Shield Intelligence, Module Priority Mapping, Repair & Rearm Intel, Ship Performance Logging, Voice Queries) — deferred to Phase 2.5 or v1.1
+- ❌ Predictive Module-Targeting Alerts — requires Combat event stream from Pillar 2, deferred to Phase 2.5
+- ❌ Tactical Threat Assessment — same reason, deferred to Phase 2.5
+- ❌ Multi-Ship State Tracking — deferred to Phase 2.5
+- ❌ Any Pillar 2 (Combat), Pillar 3 (Exploration), Pillar 5 (Trading), or other pillar features — those are Phase 4+
+- ❌ UI for Pillar 1 — that's Phase 3 (UI Shell)
+- ❌ Voice I/O for ship queries — requires UI Shell first
+- ❌ CAPI integration — pending Frontier approval, Phase 3+ regardless
 
 **My Responsibility:**
-- Keep scope to Phase 1 only
-- Flag feature creep with strong pushback
-- Redirect out-of-scope requests to the Roadmap
+- Keep scope to 11 features. Flag feature creep with strong pushback.
+- Redirect out-of-scope requests to the Roadmap with specific release targets.
+- Do not add "just one more thing" — that is how 4 weeks becomes 8.
 
 ---
 
-## SECTION V — TECHNOLOGY STACK (Locked)
+## SECTION V — TECHNOLOGY STACK (Phase 2 Additions)
 
-### Python Core
+**Phase 2 introduces zero new dependencies.** Everything is built on the Phase 1 stack:
+
 ```
 Python 3.11 (pinned)
 asyncio (event loop)
-watchdog (file monitoring)
-aiohttp / aiosqlite (async I/O)
-SQLAlchemy + Alembic (database)
-FastAPI + uvicorn (HTTP bridge)
-structlog (logging)
-pytest + mypy + ruff (testing/validation)
-cryptography / pywin32 (DPAPI vault)
+watchdog + aiofiles (journal)
+SQLAlchemy 2.x + Alembic + aiosqlite (persistence)
+FastAPI + uvicorn[standard] (bridge)
+structlog (logging, with API-key redaction)
+google-genai (Gemini SDK, loaded only when selected)
+psutil (resource monitoring)
+pywin32 (DPAPI vault)
+pyyaml (config loading)
+pytest + mypy + ruff + pre-commit (quality gates)
 ```
 
-### Tauri Shell
-```
-Tauri v2 (locked)
-Rust backend (compiled sidecar)
-Node.js LTS (tooling)
-WebView (rendering)
-```
-
-### External (Phase 1 Integration Only)
-```
-watchdog (journal monitoring — required)
-google-generativeai (Gemini SDK — optional at runtime)
-```
-
-### NOT IN PHASE 1
-- EDDI socket bridge
-- VoiceAttack integration
-- CAPI OAuth
-- EDDN submission
-- Inara API
-- Any other external service
+If Phase 2 somehow requires a new dependency, that is a **red flag** — either the architecture is wrong or the feature is out of scope.
 
 **My Responsibility:**
-- Code to exactly this stack
-- Flag any deviation as a deviation
-- Suggest no alternatives
+- Reject any suggestion to add new dependencies without strong justification
+- Reuse Phase 1 infrastructure — never parallel-build
+- If a needed capability does not exist in Phase 1 code, flag it and discuss before implementing
 
 ---
 
-## SECTION VI — CODE QUALITY GATES (Locked)
+## SECTION VI — CODE QUALITY GATES
 
-### mypy (Type Safety)
-- **Mode:** `strict = true`
-- **No suppression without written justification**
-- **Every function has type hints**
-- **All None returns handled at call site (enforced by mypy)**
-- **Zero errors = CI passes. Any error = CI fails.**
+### Unchanged from Phase 1
+- **mypy strict mode:** zero errors (no suppressions without written justification)
+- **ruff:** zero violations (E, W, F, I rule sets, line length 88)
+- **pytest:** all tests pass, ≥80% coverage on new code
+- **GitHub Actions CI:** green on every push and PR
+- **pre-commit hooks:** ruff + mypy run before every commit locally
 
-### ruff (Linting & Formatting)
-- **Rules enabled:** E, W, F, I (isort)
-- **Line length:** 88 characters
-- **Auto-format before commit:** `ruff format omnicovas/`
-- **Zero violations = CI passes**
-
-### pytest (Testing)
-- **Minimum:** All Phase 1 components have test files
-- **Coverage target:** 80%+ for core (dispatcher, state, db, AI abstraction)
-- **All tests pass in CI = CI passes**
-
-### GitHub Actions CI
-- **Triggers:** Every push, every PR
-- **Pipeline:**
-  1. Checkout code
-  2. Install Python 3.11 + uv
-  3. Install dependencies
-  4. Run ruff check (lint)
-  5. Run mypy (type check)
-  6. Run pytest (tests)
-  7. All must pass (green checkmark required to merge)
-
-**My Responsibility:**
-- Code must pass these gates before I consider it complete
-- Flag any code that would fail mypy/ruff/pytest as incomplete
-- Suggest fixes to make code pass
+### Phase 2-Specific Additions
+- **Latency budget tests:** automated tests measure event dispatch time; CI fails if any budget exceeded under test load
+- **KB validation tests:** every new KB entry validated by the Phase 1 validation pipeline (schema compliance, metadata completeness)
+- **Event subscriber integration tests:** stub subscribers verify broadcasts are received within expected time windows
+- **Feature-by-feature test file:** each of the 11 features gets its own `tests/test_<feature>.py` to keep tests discoverable
 
 ---
 
-## SECTION VII — ARCHITECTURE PATTERNS (Locked)
+## SECTION VII — ARCHITECTURE PATTERNS (Phase 2 Additions)
 
-### Async/Await Required (Non-Negotiable)
+Phase 1 patterns (async/await, watchdog bridge, `AIProvider` interface, `StateManager` source priority, rate-limit enforcement, KB grounding) are **unchanged**. Phase 2 adds five new patterns.
+
+### Pattern 1 — Event Broadcasting (Publish/Subscribe)
+
+Pillar 1 is the Foundation that "publishes to all other pillars." Establish the broadcast mechanism in Phase 2.
+
 ```python
-# ✅ CORRECT: async function
-async def handle_fsd_jump(event: dict) -> None:
-    state = await state_manager.update_from_event(event)
-    
-# ❌ WRONG: blocking I/O in async context
-def handle_fsd_jump(event: dict) -> None:
-    state = state_manager.update(event)  # No await = blocking
+# ✅ CORRECT: fire-and-forget broadcast with per-subscriber error isolation
+class ShipStateBroadcaster:
+    def __init__(self) -> None:
+        self._subscribers: dict[
+            str, list[Callable[[ShipStateEvent], Awaitable[None]]]
+        ] = {}
+        self._tasks: set[asyncio.Task[None]] = set()
+
+    def subscribe(
+        self,
+        event_type: str,
+        handler: Callable[[ShipStateEvent], Awaitable[None]],
+    ) -> None:
+        self._subscribers.setdefault(event_type, []).append(handler)
+
+    async def publish(self, event_type: str, event: ShipStateEvent) -> None:
+        for subscriber in self._subscribers.get(event_type, []):
+            task = asyncio.create_task(self._safe_dispatch(subscriber, event))
+            self._tasks.add(task)
+            task.add_done_callback(self._tasks.discard)
+
+    async def _safe_dispatch(
+        self,
+        subscriber: Callable[[ShipStateEvent], Awaitable[None]],
+        event: ShipStateEvent,
+    ) -> None:
+        try:
+            await subscriber(event)
+        except Exception:
+            logger.exception("subscriber_failed", subscriber=subscriber.__name__)
+
+# ❌ WRONG: sequential await blocks the publisher
+async def publish(self, event):
+    for subscriber in self._subscribers:
+        await subscriber(event)  # Each slow subscriber delays the next
 ```
 
-### watchdog + asyncio Bridge (Non-Negotiable)
-```python
-# ✅ CORRECT: watchdog callback -> asyncio via loop.call_soon_threadsafe
-def on_journal_file_changed(event):
-    loop.call_soon_threadsafe(asyncio.ensure_future, parse_and_dispatch(raw_line))
+**Key invariants:**
+- Broadcast is async fire-and-forget — one slow subscriber must not block others
+- Subscriber exceptions are caught inside `_safe_dispatch` — they never crash the publisher
+- Task references held in `self._tasks` to prevent premature garbage collection
+- Event types are strings registered in a single source of truth (`omnicovas/core/event_types.py`)
 
-# ❌ WRONG: calling asyncio directly from watchdog thread
-def on_journal_file_changed(event):
-    state = asyncio.run(parse_and_dispatch(raw_line))  # DEADLOCK
+### Pattern 2 — Latency Budget Enforcement
+
+Every event type has a budget. The dispatcher measures actual latency and logs warnings on breach.
+
+```python
+@dataclass(frozen=True)
+class LatencyBudget:
+    event_type: str
+    budget_ms: int
+
+BUDGETS: dict[str, LatencyBudget] = {
+    "HullDamage": LatencyBudget("HullDamage", 100),
+    "ShieldsDown": LatencyBudget("ShieldsDown", 100),
+    "FSDJump": LatencyBudget("FSDJump", 200),
+    "Docked": LatencyBudget("Docked", 200),
+    "Loadout": LatencyBudget("Loadout", 500),
+}
+
+async def dispatch_with_budget(event_type: str, event: dict) -> None:
+    start = time.perf_counter()
+    await dispatcher.handle(event)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+
+    budget = BUDGETS.get(event_type)
+    if budget and elapsed_ms > budget.budget_ms:
+        logger.warning(
+            "latency_budget_exceeded",
+            event_type=event_type,
+            elapsed_ms=round(elapsed_ms, 2),
+            budget_ms=budget.budget_ms,
+        )
 ```
 
-### AIProvider Interface (Non-Negotiable)
+### Pattern 3 — StateManager Extension (No Parallel State)
+
+Pillar 1 adds many new state fields. They go into the existing `StateManager`, **not** a new parallel object.
+
 ```python
-# ✅ CORRECT: all AI access goes through interface
-provider = provider_factory.get_provider()  # Returns AIProvider subclass
-response = await provider.query(prompt, context)  # Returns str | None
-if response is None:
-    # Handle no AI available
-    
-# ❌ WRONG: direct Gemini calls
-from google.generativeai import genai
-response = genai.generate_content(prompt)  # Bypasses interface
+# ✅ CORRECT: extend the existing StateManager
+@dataclass
+class StateManager:
+    # Existing Phase 1 fields
+    current_system: str | None = None
+    current_station: str | None = None
+    is_docked: bool = False
+    is_in_supercruise: bool = False
+
+    # Phase 2 additions — Pillar 1 Ship Telemetry
+    current_ship_type: str | None = None
+    current_ship_id: int | None = None
+    hull_health: float | None = None  # 0.0–100.0
+    shield_up: bool | None = None
+    fuel_current: float | None = None
+    fuel_capacity: float | None = None
+    jump_range_ly: float | None = None
+    cargo_count: int | None = None
+    cargo_capacity: int | None = None
+    modules: dict[str, ModuleInfo] = field(default_factory=dict)
+    loadout_hash: str | None = None
+    sys_pips: int | None = None  # 0–8
+    eng_pips: int | None = None
+    wep_pips: int | None = None
+    heat_level: float | None = None  # 0.0–1.0
+
+# ❌ WRONG: parallel state object that duplicates StateManager
+class ShipStateManager:
+    """Separate state object." Now we have two sources of truth."""
 ```
 
-### StateManager Source Priority (Non-Negotiable)
-```python
-# ✅ CORRECT: source priority enforced
-state.update_fuel(new_value, source='journal')  # journal = highest priority
-state.update_fuel(new_value, source='capi')     # capi = lower priority
-# Result: journal value wins
+Source priority from Phase 1 (`journal > status_json > capi > eddn`) applies to all new fields.
 
-# ❌ WRONG: no source priority
-state.fuel = new_value  # Last-write-wins = wrong
+### Pattern 4 — KB-Grounded Analysis
+
+Every judgment ("hull critical," "heat dangerous," "rebuy expensive") references a KB entry, not a magic number.
+
+```python
+# ✅ CORRECT: judgment grounded in versioned KB entry
+HULL_CRITICAL = kb.lookup("combat_mechanics", "hull_critical_threshold")
+# KB entry: {"value": 20.0, "patch_verified": "4.0.0.1704", "source": "...", ...}
+
+def is_hull_critical(hull_health: float) -> bool:
+    return hull_health < HULL_CRITICAL["value"]
+
+# ❌ WRONG: magic number with no provenance
+def is_hull_critical(hull_health: float) -> bool:
+    return hull_health < 20.0  # Where did 20 come from? Not verifiable.
 ```
 
-### Rate Limit Enforcement Before Call (Non-Negotiable)
+All Pillar 1 KB entries must include `patch_verified`, `source`, `last_updated`, `confidence`, and `needs_review`.
+
+### Pattern 5 — Tier-Aware Feature Implementation
+
+Every feature explicitly declares its AI tier and degrades gracefully.
+
 ```python
-# ✅ CORRECT: rate limit checked before API call
-rate_limiter.wait_if_needed('edsm')  # Blocks until safe
-response = await edsm_client.query(...)
+# ✅ CORRECT: explicit tier, works in NullProvider mode
+class RebuyCalculator:
+    """Rebuy cost calculator — Tier 1 (Pure Telemetry).
 
-# ❌ WRONG: check after call completes
-response = await edsm_client.query(...)
-rate_limiter.record_call('edsm')  # Too late
+    Inputs: current ship value from Loadout, insurance percentage from KB.
+    No AI required. Works in all modes including NullProvider.
+    """
+
+class HeatAnalysis:
+    """Heat management — Tier 2 (Light AI / Rule-Based).
+
+    Uses KB rules to classify heat state and suggest responses.
+    Works in NullProvider mode (rules apply without LLM).
+    """
+
+# ❌ WRONG: unnecessary Tier 3 when template would suffice
+class HullAlert:
+    """Hull damage alert — uses LLM to describe damage."""
+    async def describe(self, damage_event):
+        # Why is this Tier 3? A template can output "Hull at X%, evade now."
+        # This violates Law 6 (performance) and wastes tokens.
+        response = await ai_provider.query(
+            f"Describe this hull damage: {damage_event}", context={}
+        )
 ```
-
-### Knowledge Base Grounding (Non-Negotiable)
-```python
-# ✅ CORRECT: AI references KB entries
-prompt = f"Based on combat_mechanics.json entry {kb_entry_id}, ..."
-response = await ai_provider.query(prompt, context)
-
-# ❌ WRONG: free-form knowledge
-prompt = "Tell me about combat strategies in Elite Dangerous"
-response = await ai_provider.query(prompt)  # Hallucination risk
-```
-
-**My Responsibility:**
-- Every code suggestion follows these patterns
-- Flag any code that doesn't follow them as incorrect
-- Provide corrections that do follow them
 
 ---
 
 ## SECTION VIII — DEBUGGING PROTOCOL
 
-### When Code Breaks
-1. **Ask for:** exact error message, which week/task, what you already tried
-2. **Never assume:** what the error is without seeing it
-3. **Verify:** which tool/component failed (watchdog? asyncio? FastAPI? SQLite?)
-4. **Trace:** the execution path from root cause to symptom
-5. **Test:** the fix with a minimal reproducible example before applying it broadly
-6. **Document:** why the bug happened (learning opportunity for future)
+### When Code Breaks (Phase 1 pattern, unchanged)
+1. Ask for: exact error message, which week/task, what was already tried
+2. Never assume the error without seeing it
+3. Verify which component failed (watcher? dispatcher? broadcaster? state? KB?)
+4. Trace execution path from root cause to symptom
+5. Test the fix with a minimal reproducible example before applying broadly
+6. Document why the bug happened (tribal knowledge preservation)
+
+### Phase 2-Specific Debugging Chain
+When a Pillar 1 feature misbehaves, trace in order:
+1. Does the journal event actually fire? (`logger.debug` in dispatcher)
+2. Does the handler receive it? (dispatcher routing correct?)
+3. Does the handler update StateManager correctly? (source priority, field name)
+4. Does the broadcaster publish the derived event? (event type registered?)
+5. Do subscribers receive it within budget? (latency log)
+6. Is the KB entry the handler references actually present? (KB validation)
+
+Bugs hide in the transitions between these layers more often than within a layer.
 
 ### When I'm Uncertain
 - I will say "I need to verify this in the Master Blueprint" and re-read the docs
@@ -345,187 +388,130 @@ response = await ai_provider.query(prompt)  # Hallucination risk
 - I will prefer conservative (correct but slower) solutions over risky ones
 
 ### When Scope Drifts
-- I will flag feature requests that are outside Phase 1 scope
-- I will redirect them to the Roadmap with a release target
-- I will suggest doing the minimum viable version if partial Phase 1 work is useful
+- Flag feature requests outside the 11 locked features
+- Redirect to the Roadmap with a release target
+- Suggest minimum viable version if partial Phase 2 work is valuable and in scope
 
 ---
 
-## SECTION IX — DOCUMENTATION STANDARDS
+## SECTION IX — DOCUMENTATION STANDARDS (Unchanged from Phase 1)
 
-### Every Function Has
-```python
-async def query_external_api(endpoint: str, params: dict) -> dict:
-    """
-    Fetch data from external API with rate limiting enforced.
-    
-    Args:
-        endpoint: API path (e.g., '/profile')
-        params: Query parameters
-        
-    Returns:
-        Parsed JSON response
-        
-    Raises:
-        RateLimitExceeded: If rate limit would be violated
-        RequestError: If API returns error
-        
-    Note:
-        - Rate limit checked before call (Law 3)
-        - Response logged with API key redaction (Law 8)
-        - Failures logged but do not crash dispatcher (Graceful Failure)
-    """
+Every function, module, and test has the same docstring standard as Phase 1: `Args`, `Returns`, `Raises`, `Note` with references to the Master Blueprint section where applicable.
+
+**Phase 2 addition — KB entry justification:**
+Every new KB entry has a short justification comment in the source JSON explaining why that value was chosen and where it was verified:
+
+```json
+{
+  "hull_critical_threshold": {
+    "value": 20.0,
+    "unit": "percent",
+    "patch_verified": "4.0.0.1704",
+    "source": "in-game testing, confirmed by Frontier knowledgebase article KB-12345",
+    "last_updated": "2026-04-19",
+    "confidence": "high",
+    "needs_review": false,
+    "_justification": "Value chosen to match in-game cockpit red-alert threshold. Tested in Hauler, Sidewinder, and Anaconda."
+  }
+}
 ```
-
-### Every Module Has a Docstring
-```python
-"""
-omnicovas.core.dispatcher
-
-Event-driven architecture: journal watcher → event dispatcher → module handlers.
-
-This module handles:
-- Journal event parsing from JSONL
-- Async dispatch to registered handlers
-- Error handling (handlers never crash the loop)
-
-Architecture:
-    watchdog monitors journal directory
-    → file change event
-    → thread-safe signal to asyncio
-    → dispatcher routes to handlers
-    → handlers update state, fire sub-events
-    
-See: Master Blueprint v4.0 Section 2 (Data Pipeline)
-"""
-```
-
-### Every Test Has Context
-```python
-def test_dispatcher_routes_fsd_jump_to_handler():
-    """
-    Verify FSDJump events route to the correct handler.
-    
-    Related to: Law 7 (Telemetry Rigidity) — every event must update state correctly
-    Related to: Phase 1 Week 2 — Event Dispatcher implementation
-    
-    Test:
-        1. Create FSDJump event
-        2. Dispatch via EventDispatcher
-        3. Verify correct handler was called
-        4. Verify state was updated (system name changed)
-    """
-```
-
-**My Responsibility:**
-- Suggest clear, specific docstrings
-- Flag unclear or missing documentation as incomplete work
-- Help write docstrings when asked
 
 ---
 
 ## SECTION X — COMPLIANCE INTEGRATION
 
-### Every Code Change Is Compliant If
-✅ No rate limits exceeded  
-✅ No API keys logged (redaction filter active)  
-✅ No data sent without opt-in  
-✅ No game executable modified/injected  
-✅ No external tools bundled  
-✅ No assumptions presented as fact (telemetry only)  
-✅ All external licenses respected  
-✅ Confirmation Gate in critical path  
-✅ Knowledge Base grounding on AI calls  
-✅ Resource budgets measured  
+### Compliance Invariants (from Phase 1, still apply)
+✅ No rate limits exceeded (no new external APIs in Phase 2, so trivially satisfied)
+✅ No API keys logged (redaction filter active)
+✅ No data sent without opt-in (Pillar 1 is local-only)
+✅ No game executable modified/injected
+✅ No external tools bundled
+✅ No assumptions presented as fact (Law 7)
+✅ All external licenses respected
+✅ Confirmation Gate in critical path for advisory features
+✅ Knowledge Base grounding on all judgments
+✅ Resource budgets measured
 
-**My Responsibility:**
-- Flag any code that violates these as non-compliant
-- Suggest fixes that restore compliance
-- Reference the Compliance Matrix when needed
+**Phase 2 addition:** No Compliance Matrix structural changes — only status updates reflecting Phase 1 completion.
 
 ---
 
 ## SECTION XI — COMMUNICATION STYLE
 
-### When Helping You
-- **Clear, specific guidance:** not vague suggestions
-- **Show code examples:** code > description
-- **Explain why:** not just how
-- **Acknowledge complexity:** don't pretend simple things are simple if they're not
-- **Ask clarifying questions:** never assume I understand the problem
+Same as Phase 1: clear specific guidance, code examples over prose descriptions, explain the why, acknowledge complexity, ask clarifying questions. Reference the documents when disagreeing. Defer to the architect (you) on design questions.
 
-### When You're Stuck
-- **Assume good faith:** you're doing the work, I'm just helping
-- **Start debugging:** don't jump to solutions
-- **Trace the error:** root cause before symptom
-- **Suggest minimal fixes:** change one thing at a time
-
-### When I Disagree
-- **Reference the docs:** Master Blueprint, Phase 1 Guide, Compliance Matrix
-- **Explain the concern:** not just "no, do it this way"
-- **Offer alternatives:** if your approach has merit, maybe there's a hybrid
-- **Defer to architect:** if it's a design question, the Blueprint is the authority
+**Phase 2 addition — debugging language:**
+When walking through a Pillar 1 bug, always name the layer I'm examining. "I'm looking at the handler now" is clearer than "Let me check the code." Layers are: watcher, dispatcher, handler, state, broadcaster, subscriber, KB.
 
 ---
 
-## SECTION XII — SUCCESS CRITERIA (Phase 1 End)
+## SECTION XII — SUCCESS CRITERIA (Phase 2 End, Week 10)
 
 ### Code Quality
 - ✅ Zero mypy errors (strict mode)
 - ✅ Zero ruff violations
-- ✅ All pytest tests pass
+- ✅ All pytest tests pass (target: 130+ total, up from Phase 1's 84)
 - ✅ GitHub Actions CI green
+- ✅ ≥80% coverage on all new Pillar 1 code
+
+### Features (All 11 Operational)
+- ✅ Live Ship State: current ship, hull, shield, fuel, cargo all tracked in real time
+- ✅ Module Health: per-module health derived from Loadout
+- ✅ Hull & Integrity Triggers: events fire at 25% and 10% thresholds
+- ✅ Loadout Awareness: full ship configuration captured and hashed
+- ✅ Fuel & Jump Range: current fuel, jump range calculated
+- ✅ Cargo Monitoring: cargo contents and capacity tracked
+- ✅ Critical Event Broadcaster: hull / shield / fuel critical events publishable
+- ✅ Extended Event Broadcaster: docking, wanted, destroyed, FSDJump published
+- ✅ Power Distribution: SYS/ENG/WEP pip state tracked from Status.json
+- ✅ Heat Management: heat level + trend + warnings (Tier 2, KB-grounded)
+- ✅ Rebuy Calculator: current rebuy cost calculable (Tier 1, KB-grounded)
 
 ### Architecture
-- ✅ All Phase 1 components wired together
-- ✅ Journal → StateManager → FastAPI → Tauri (tested)
-- ✅ No blocking I/O in core event loop
-- ✅ Latency budgets met (measured)
-
-### Compliance
-- ✅ All Laws 1–10 enforced in code
-- ✅ All Principles 1–10 reflected in design
-- ✅ Compliance Matrix baseline met
-- ✅ No rate limit violations
-- ✅ No API keys in logs or source
-
-### Documentation
-- ✅ Every function documented
-- ✅ README updated with Phase 1 status
-- ✅ CONTRIBUTING.md describes workflow
-- ✅ Docstrings reference Master Blueprint sections
+- ✅ `ShipStateBroadcaster` operational with pub/sub model
+- ✅ All Phase 2 features work with `NullProvider` (no AI)
+- ✅ Latency budgets enforced and measured in tests
+- ✅ `StateManager` extended cleanly (no parallel state objects)
+- ✅ KB populated with 40+ new entries, all version-tagged and validated
 
 ### Integration
-- ✅ Fresh install test passes (clean Windows user)
-- ✅ Crash recovery works (Python restart after kill)
-- ✅ Full session test works (start, jump, dock, return)
-- ✅ Resource monitoring shows bounded use
+- ✅ Full session integration test passes: launch → load game → undock → jump → dock → logout
+- ✅ All Pillar 1 events visible in Activity Log
+- ✅ `ResourceMonitor` shows Pillar 1 resource use within `resource_budget.yaml` limits
+- ✅ Phase 1 infrastructure untouched (Phase 1 tests still passing unchanged)
+
+### Documentation
+- ✅ Every new function documented with full docstring
+- ✅ README updated to Phase 2 Complete
+- ✅ KB entries all include verification metadata and justification comments
+- ✅ Any Phase 2 learnings captured in a Master Blueprint v4.2 note (if needed)
 
 ---
 
 ## SECTION XIII — ESCALATION & UNCERTAINTY
 
 ### I Will Ask For Human Input When
+- A feature's Tier placement is ambiguous (Tier 1 vs Tier 2 vs Tier 3)
+- A KB entry's value cannot be verified against in-game testing
+- A latency budget is repeatedly violated and it's unclear whether the budget or the code is wrong
+- Feature scope creeps beyond the 11 locked features
 - Architecture decision conflicts with implementation guidance
 - Game mechanic interpretation differs from KB entries
-- Scope ambiguity suggests Phase 1 drift
 - Regulatory/compliance question outside my training
-- External service behavior differs from documentation
 - Risk assessment suggests pausing instead of proceeding
 
 ### I Will Verify In The Docs When
 - Anything about the Laws or Principles
-- Anything about rate limits or compliance
-- Anything about the tech stack
+- Anything about the tech stack or dependency set
 - Anything about code quality gates
-- Any question about scope or priorities
+- Any question about scope, priorities, or release targets
+- Any architectural pattern question
 
 ### I Will NOT Guess About
-- Elite Dangerous game mechanics (KB only)
-- Frontier/Inara/EDDN policies (Compliance Matrix only)
-- Project decisions (Master Blueprint only)
-- Release priority (Roadmap only)
-- Code patterns (Architecture Patterns section)
+- Elite Dangerous game mechanics (KB only; if not in KB, flag for verification)
+- Project scope decisions (Master Blueprint only)
+- Release priorities (Roadmap only)
+- Code patterns (Architecture Patterns section of this document)
 
 ---
 
@@ -533,11 +519,14 @@ def test_dispatcher_routes_fsd_jump_to_handler():
 
 ### File Locations
 ```
-/mnt/project/OmniCOVAS_Master_Blueprint_v4_0.txt      — Core architecture
-/mnt/project/OmniCOVAS_Phase1_Development_Guide.docx  — Week-by-week tasks
-/mnt/project/OmniCOVAS_Roadmap.txt                    — Release priorities
-/mnt/project/OmniCOVAS_Compliance_Matrix_v4_0.txt     — Legal/compliance
-/mnt/project/OmniCOVAS_Approval_Applications_v4_0.txt — External approval
+/mnt/project/OmniCOVAS_Master_Blueprint_v4_1.txt       — Core architecture (v4.1)
+/mnt/project/OmniCOVAS_Phase2_Development_Guide.docx   — Week-by-week tasks (Phase 2)
+/mnt/project/OmniCOVAS_Roadmap_v4_1.txt                — Release priorities (v4.1)
+/mnt/project/OmniCOVAS_Compliance_Matrix_v4_1.txt      — Legal/compliance (v4.1)
+/mnt/project/OmniCOVAS_Approval_Applications_v4_0.txt  — External approval (unchanged)
+
+Archived (for reference only, not active):
+/mnt/project/OmniCOVAS_Phase1_Development_Guide.docx   — Phase 1 complete
 ```
 
 ### The Ten Laws (Shorthand)
@@ -552,37 +541,52 @@ def test_dispatcher_routes_fsd_jump_to_handler():
 9. **Original Integration** — Build our own, interop compliantly
 10. **Unified, Independent** — Centralized, no critical dependencies
 
-### The Ten Principles (Shorthand)
-1. **Accessibility** — Diverse abilities/setups
-2. **Sustainability** — Zero cost, volunteer-maintained
-3. **Evolutionary** — Adapts to game/community changes
-4. **Attribution** — All contributors/dependencies visible
-5. **Graceful Failure** — Every external API has local fallback
-6. **KB Stewardship** — Entries version-tagged, audited
-7. **Privacy-by-Default** — OFF unless enabled
-8. **Defensive Update** — Patch validation, assumption testing
-9. **Explainability** — Every recommendation traceable
-10. **Resource Efficiency** — Measured, bounded, transparent
+### Phase 2 Deliverables (Shorthand)
+**Weeks 7–10 — Pillar 1: Ship Telemetry**
 
-### Phase 1 Deliverables (Shorthand)
-**Weeks 1–6:** Repo + Python core + event dispatcher + state manager + SQLite + AI abstraction + Confirmation Gate + FastAPI bridge + Tauri skeleton + logging + resource budget
+- **Week 7:** Live Ship State + `ShipStateBroadcaster` foundation + initial KB entries (~15)
+- **Week 8:** Module Health + Loadout Awareness + Cargo Monitoring + KB entries (~15)
+- **Week 9:** Hull Triggers + Critical + Extended Broadcasters + Power Distribution + Heat Management + KB entries (~10)
+- **Week 10:** Rebuy Calculator + Fuel & Jump Range finalization + full-session integration + Phase 2 polish
 
-**NOT Included:** Any user features, any pillars, voice I/O, external integrations beyond basic scaffolding
+**NOT Included:** Any feature outside the 11 listed. Any UI work. Any external API integration.
 
 ---
 
-## SECTION XV — FINAL REMINDER
+## SECTION XV — PHASE TRANSITION LEARNINGS (from Phase 1)
 
-**This document is the source of truth for how I behave as your engineering assistant.** If my suggestions contradict this document, treat this document as correct and call me out on the deviation.
+Things Phase 1 taught us that shape Phase 2 work habits:
 
-**The Master Blueprint is the source of truth for the project.** If I suggest anything that contradicts it, the Blueprint wins.
+1. **Windows file systems are squirrelly.** OneDrive conflict copies, CRLF line endings, case-insensitive paths. Always diff before assuming content differs. Prefer local commits over GitHub web-UI uploads.
 
-**Phase 1 is infrastructure only.** All suggestions stay within scope: Weeks 1–6, foundation components, no user-facing features.
+2. **`ruff check --fix` is the correct invocation.** The `--fix` flag goes on the `check` subcommand, not the bare `ruff` command.
+
+3. **`UV_LINK_MODE=copy` is required on Windows** where cache and project directories cross filesystems or OneDrive-managed folders. Set permanently with `setx UV_LINK_MODE copy`.
+
+4. **`git fetch --prune origin` kills stale remote tracking refs.** Set `git config --global fetch.prune true` once so this is automatic forever.
+
+5. **mypy type-checks untracked `.py` files in your package directory.** Deleting duplicates shrinks the mypy source count — a quick sanity check that cruft is really gone.
+
+6. **Test count is a proxy for feature count.** 84 tests for Phase 1 infrastructure. Phase 2 should land at 130+ tests.
+
+7. **Small commits, local-first, pre-commit hooks active.** Web-UI commits bypass hooks. Don't do web-UI commits for code changes.
+
+8. **Phase 1 was compressed.** Multi-week plan delivered inside a day. Phase 2 pace may be similar if AI assistance holds — but the 4-week nominal is still the planning reference.
+
+---
+
+## SECTION XVI — FINAL REMINDER
+
+**This document is the source of truth for how I behave as your engineering assistant during Phase 2.** If my suggestions contradict this document, treat this document as correct and call me out on the deviation.
+
+**The Master Blueprint v4.1 is the source of truth for the project.** If I suggest anything that contradicts it, the Blueprint wins.
+
+**Phase 2 is Ship Telemetry only.** All suggestions stay within scope: Weeks 7–10, Pillar 1, 11 locked features, no new dependencies.
 
 **You are the architect. I am the implementation assistant.** You make decisions, I execute them. When in doubt, defer to the documents.
 
 ---
 
-*— CLAUDE.MD v1.0*  
-*Last sync: 2026-04-18*  
-*Next review: End of Phase 1 (Week 6)*
+*— CLAUDE.MD v2.0*
+*Phase 2 realignment. Last sync: 2026-04-19.*
+*Next review: End of Phase 2 (Week 10), or upon architectural change.*

@@ -1,0 +1,409 @@
+# OmniCOVAS — Comprehensive Roadmap
+### Companion Document to Master Blueprint v4.1
+
+*Priority-ranked feature roadmap with release mapping. Phase 1 complete. Phase 2 active.*
+
+**Changelog from v4.0:**
+- Phase 1 marked complete with actual delivery date (2026-04-18)
+- Phase 2 marked active, scope locked at **11 features** (not 18)
+- Seven Pillar 1 features explicitly deferred to Phase 2.5 with dependency rationale
+- Latency Budget Enforcement (CI hard-fail) added to Phase 2 deliverables
+- Phase timing re-baselined (actual Phase 1 compression acknowledged)
+- Week numbers 7-10 assigned to Phase 2 nominally; actual pace may compress
+
+---
+
+## 🎯 Purpose
+
+This document answers three questions:
+1. **What gets built first?** (Priority ranking)
+2. **What ships in v1.0 vs later releases?** (Release mapping)
+3. **How do I actually execute this?** (Phase-by-phase plan)
+
+---
+
+## 📊 Priority Framework (unchanged)
+
+| Priority | Label | Meaning |
+|----------|-------|---------|
+| **P1** | Critical | Must exist for release to function. Blockers. |
+| **P2** | High | Must exist for release to be useful. Primary features. |
+| **P3** | Medium | Valuable. Stretch or next release target. |
+| **P4** | Low | Nice to have. Later release. |
+| **P5** | Deferred | Revisit after stabilization. v2.0+. |
+
+---
+
+## 🗓️ Release Strategy
+
+### v1.0 — "Core Intelligence"
+**Goal:** Useful daily tool for commanders. Establishes architecture and trust.
+
+**Scope:**
+- Pillar 1 (Ship Telemetry) — complete
+- Pillar 2 (Combat) — core features
+- Pillar 3 (Exploration) — core features
+- Pillar 5 (Trading/Mining) — core features
+- Pillar 7 (Squadron) — basic P2P sync only
+- UI shell with overlay
+- Voice I/O (via EDDI/VoiceAttack) for basic queries
+- Settings + privacy page
+- First-run onboarding (Three-Path model)
+
+### v1.1 — "Expansion"
+Pillar 4 (BGS/PP2) core, Pillar 6 (Engineering) core, feature additions across pillars.
+
+### v1.2 — "Deep Features"
+Illegal Ops suite, squadron stretch, Build Template Library.
+
+### v1.5 — "Polish"
+Quality, performance optimization, remaining features.
+
+### v2.0 — "Vision Complete"
+All 166+ features. Native voice option. Advanced integrations.
+
+---
+
+# PART I — INFRASTRUCTURE & CORE (Phase 1)
+
+## Phase 1: The Core (Nominal: Weeks 1-6 / Actual: 2026-04-18, one day)
+
+**Status:** ✅ **COMPLETE** (delivered 2026-04-18)
+
+**Goal:** Foundation infrastructure. No user-facing features.
+
+| Feature | Priority | Status |
+|---------|----------|--------|
+| GitHub repo initialization (AGPL-3.0 + CLA template) | P1 | ✅ Complete |
+| README, SECURITY.md, CONTRIBUTING.md, CLA.md | P1 | ✅ Complete |
+| Python 3.11+ project structure | P1 | ✅ Complete |
+| Native journal file watcher (watchdog) | P1 | ✅ Complete |
+| Native Status.json watcher with sub-event detection | P1 | ✅ Complete |
+| Native journal event parser (core event types) | P1 | ✅ Complete |
+| Async event dispatcher (asyncio) | P1 | ✅ Complete |
+| State manager | P1 | ✅ Complete |
+| SQLite + SQLAlchemy + aiosqlite | P1 | ✅ Complete |
+| Alembic migrations infrastructure | P1 | ✅ Complete |
+| Module loader architecture | P1 | ✅ Complete |
+| AIProvider interface + GeminiProvider | P1 | ✅ Complete |
+| NullProvider | P1 | ✅ Complete |
+| Rate Limit Registry | P1 | ✅ Complete |
+| Structured logging (structlog) with API-key redaction | P1 | ✅ Complete |
+| Confirmation Gate middleware | P1 | ✅ Complete |
+| Knowledge Base scaffold + validation pipeline | P1 | ✅ Complete |
+| Local encrypted config vault (DPAPI) | P1 | ✅ Complete |
+| Resource Budget Framework + ResourceMonitor | P1 | ✅ Complete |
+| FastAPI bridge + WebSocket + CORS + dynamic port | P1 | ✅ Complete |
+| Tauri v2 application skeleton | P1 | ✅ Complete |
+| Activity log ring buffer + `/activity-log` endpoint | P1 | ✅ Complete |
+
+**Phase 1 Outcome:**
+- 84/84 pytest tests passing
+- mypy strict mode: zero errors across 26 source files
+- ruff: zero violations
+- GitHub Actions CI: green
+- Python 3.11.0 locked
+- All commits 2026-04-18
+
+**Phase 1 Timeline Reality:**
+- **Nominal:** 6 weeks at 15 hrs/week (~90 hours)
+- **Actual:** One intensive day (~8.5 hours of commits)
+- **Compression factor:** ~10x
+- **Root cause:** Disciplined infrastructure planning + AI-assisted boilerplate + no architectural ambiguity
+
+---
+
+# PART II — PILLAR 1: SHIP TELEMETRY (Phase 2 — 🟢 ACTIVE)
+
+## Phase 2: Ship Telemetry (Weeks 7-10 nominal)
+
+**Status:** 🟢 **ACTIVE** (starting 2026-04-19)
+
+**Goal:** First user-facing pillar. The foundation every other pillar depends on.
+
+**Scope: 11 features locked.** The original Pillar 1 spec included 10 Core + 8 Additions (18 total). Phase 2 delivers 8 Core + 3 Additions. The remaining 7 Additions are deferred with dependency rationale.
+
+### 🟢 P1 Core Features (8 of 8 — all required for Phase 2 complete)
+
+| Feature | Priority | Complexity | Phase |
+|---------|----------|-----------|-------|
+| Live Ship State tracking | P1 | Medium | Phase 2 |
+| Module Health Tracking | P1 | Low | Phase 2 |
+| Hull & Integrity Triggers | P1 | Low | Phase 2 |
+| Loadout Awareness | P1 | Medium | Phase 2 |
+| Fuel & Jump Range | P1 | Low | Phase 2 |
+| Cargo Monitoring | P1 | Low | Phase 2 |
+| Critical Event Broadcaster | P1 | Medium | Phase 2 |
+| Extended Event Broadcaster (docking, wanted, etc.) | P1 | Low | Phase 2 |
+
+### 🟢 P2 Additions IN Phase 2 (3 of 8)
+
+| Feature | Priority | Complexity | Phase | Why in Phase 2 |
+|---------|----------|-----------|-------|----------------|
+| A. Power Distribution Intelligence | P2 | Low | Phase 2 | Status.json already provides pips; pure telemetry |
+| B. Heat Management Intelligence | P2 | Medium | Phase 2 | Status.json already provides heat; Tier 2 with KB rules |
+| F. Rebuy Calculator | P2 | Low | Phase 2 | Pure math on Loadout event; Tier 1 |
+
+### ⏳ P2 Additions DEFERRED to Phase 2.5 / v1.1 (5 of 8)
+
+| Feature | Priority | Deferred To | Dependency Reason |
+|---------|----------|-------------|-------------------|
+| C. Shield Intelligence | P3 | Phase 2.5 | Needs combat event context from Pillar 2 |
+| D. Module Priority Mapping | P3 | v1.1 | Needs UI affordances (drag assignments) from Phase 3 |
+| E. Repair & Rearm Intelligence | P2 | Phase 2.5 | Needs station service data, better paired with Pillar 5 |
+| G. Ship Performance Logging | P3 | v1.1 | Analytical — more valuable after months of data |
+| H. Voice Queries About The Ship | P2 | Phase 3+ | Requires voice I/O path opened by Phase 3+ |
+
+### ⏳ Additional Deferred Pillar 1 Work
+
+| Feature | Original Priority | Deferred To | Reason |
+|---------|------------------|-------------|--------|
+| Predictive Module-Targeting Alerts | P2 | Phase 2.5 | Needs combat event stream from Pillar 2 |
+| Tactical Threat Assessment | P2 | Phase 2.5 | Same as above |
+| Multi-Ship State Tracking | P2 | Phase 2.5 | Valuable but not blocking Pillar 1 foundation |
+
+### Phase 2 Architectural Deliverables
+
+| Deliverable | Status |
+|-------------|--------|
+| ShipStateBroadcaster pub/sub operational | 🟢 Phase 2 target |
+| Latency Budget Enforcement (CI hard-fail, 2x CI tolerance) | 🟢 Phase 2 target |
+| StateManager extended with Pillar 1 fields | 🟢 Phase 2 target |
+| KB populated with 40+ verified entries | 🟢 Phase 2 target |
+| 130+ pytest tests (84 Phase 1 + ~50 Phase 2) | 🟢 Phase 2 target |
+
+**Phase 2 Duration Estimate:** 4 weeks nominal at 15 hrs/week = 60 hours. Actual pace may compress significantly if Phase 1's compression ratio holds.
+
+---
+
+# PART III — UI SHELL (Phase 3)
+
+## Phase 3: UI Shell (Weeks 11-14 nominal)
+
+**Status:** ⏳ Planned (after Phase 2 complete)
+
+**Goal:** Commander-facing interface. Prototype ready → submit Frontier Developer + Inara applications.
+
+| Feature | Priority | Complexity |
+|---------|----------|-----------|
+| Tauri desktop app full shell | P1 | Medium |
+| Game overlay (transparent always-on-top) | P1 | High |
+| FastAPI bridge Python ↔ Tauri (Phase 1 foundation, extend) | P1 | Medium |
+| First-Run Onboarding (Three-Path Model) | P1 | Medium |
+| Privacy Page with opt-in toggles | P1 | Low |
+| Settings panel (Three-Tier Customization) | P1 | Medium |
+| Activity Log UI (full) | P1 | Medium |
+| Data flow transparency map | P1 | Low |
+| Resource dashboard UI | P2 | Low |
+| Accessibility framework (Principle 1) | P1 | Medium |
+| Color-blind modes | P2 | Low |
+| Font size adjustments | P2 | Low |
+| Keyboard-only navigation | P2 | Medium |
+| Credits/Contributors page (Principle 4) | P2 | Low |
+| SBOM display | P2 | Low |
+
+**Phase 3 Milestones:**
+- Submit Frontier Developer application
+- Submit Inara whitelisting request
+- Plugin point where Pillar 1 events become visible to users
+
+---
+
+# PART IV — PILLAR 2: TACTICAL & COMBAT (Phase 4)
+
+Unchanged from v4.0 Roadmap. See v4.0 for details.
+
+---
+
+# PART V — PILLAR 3: EXPLORATION & NAVIGATION (Phase 5)
+
+Unchanged from v4.0 Roadmap. See v4.0 for details.
+
+---
+
+# PART VI — PILLAR 5: TRADING, MINING & COLONIZATION (Phase 6)
+
+Unchanged from v4.0 Roadmap. See v4.0 for details.
+
+---
+
+# PART VII — PILLAR 7: SQUADRON & SOCIAL (Phase 7)
+
+Unchanged from v4.0 Roadmap. See v4.0 for details.
+
+---
+
+# PART VIII — PILLAR 6: ENGINEERING & MATERIALS (Phase 8 — revised order)
+
+Unchanged from v4.0 Roadmap. See v4.0 for details.
+
+---
+
+# PART IX — PILLAR 4: POWERPLAY 2.0 & BGS (Phase 9 — revised order)
+
+Unchanged from v4.0 Roadmap. See v4.0 for details.
+
+---
+
+# PART X — POLISH & INTEGRATION (Final pre-v1.0)
+
+Unchanged from v4.0 Roadmap. See v4.0 for details.
+
+---
+
+# PART XI — v1.1+ ROADMAP
+
+Unchanged from v4.0 Roadmap. See v4.0 for details.
+
+---
+
+# PART XII — EFFORT SUMMARY (Revised v4.1)
+
+## Phase 1 (actual) + v1.0 Forward Estimate
+
+| Phase | Nominal Weeks | Actual Result |
+|-------|--------------|---------------|
+| Phase 1 — Core | 6 | ✅ Complete (1 day, 2026-04-18) |
+| Phase 2 — Ship Telemetry (11 features) | 4 | 🟢 Active |
+| Phase 3 — UI Shell | 4 | ⏳ Planned |
+| Phase 4 — Combat | 6 | ⏳ Planned |
+| Phase 5 — Exploration | 6 | ⏳ Planned |
+| Phase 6 — Trading/Mining | 8 | ⏳ Planned |
+| Phase 7 — Squadron (basic) | 6 | ⏳ Planned |
+| Phase 8 — Polish | 4 | ⏳ Planned |
+| **Total nominal remaining** | **38 weeks** | **~9 months at 15 hrs/week** |
+
+### Timeline by Availability
+
+- **10 hrs/week:** ~14 months to v1.0
+- **15 hrs/week:** ~9 months to v1.0
+- **20 hrs/week:** ~7 months to v1.0
+- **AI-accelerated pace (as Phase 1):** substantially faster, variable
+
+**Realistic expectation:** v1.0 within 6-12 months from Phase 2 start, depending on availability and whether AI-acceleration holds.
+
+---
+
+# PART XIII — DEPENDENCIES & BLOCKERS (v4.1)
+
+## Resolved Phase 1 Dependencies
+
+| Dependency | Resolution |
+|-----------|-----------|
+| Python 3.11 install + uv + venv | ✅ Resolved |
+| Tauri v2 + Rust toolchain | ✅ Resolved |
+| GitHub repo + CI | ✅ Resolved |
+| DPAPI access for vault | ✅ Resolved (Windows-only for v1.0) |
+
+## Active Phase 2 Dependencies
+
+| Dependency | Risk | Mitigation |
+|-----------|------|-----------|
+| Clean journal schema from current ED patch | Low | Defensive Update framework catches schema changes |
+| Status.json stability | Low | Already exercised in Phase 1; well-documented |
+| KB verification (no external API needed for Pillar 1 mechanics) | Medium | Most Pillar 1 mechanics verifiable via in-game testing |
+
+## Critical Dependencies for Later Phases
+
+| Dependency | Blocks | Mitigation |
+|-----------|--------|-----------|
+| Frontier CAPI approval | CAPI-dependent features in all pillars | Features gated behind approval, rest ship regardless |
+| Inara whitelisting | CMDR lookups, faction data | Ship without, update when approved |
+| EDDI (user install) | Voice features | Documentation clear; core features work without |
+| VoiceAttack (user purchase) | Voice commands | Optional feature; documentation clear |
+| Spansh data dump availability | Route plotting, system intel | If unavailable, fall back to live API (slower) |
+
+## Known Risks
+
+1. **Frontier CAPI approval denied or delayed** — ship v1.0 with Option C (features gated)
+2. **Inara rate limit changes** — our architecture already tight against 2/min; resilient
+3. **Game update breaks journal schema** — Defensive Update framework catches this
+4. **Developer time pressure** — scope flexibility built in; features can defer
+5. **AI-accelerated pace does not hold for feature work** — pace may slow when KB verification dominates over code generation. Phase 2 timing may regress toward nominal.
+
+---
+
+# PART XIV — SUCCESS CRITERIA
+
+## Phase 2 is Successful If:
+
+- ✅ All 11 locked features operational
+- ✅ ShipStateBroadcaster pub/sub works (tested with stub subscribers)
+- ✅ Latency budgets enforced in CI as hard-fail
+- ✅ 130+ pytest tests passing (84 Phase 1 unchanged + ~50 Phase 2)
+- ✅ mypy strict clean, ruff clean, CI green
+- ✅ 40+ KB entries added, all with `patch_verified` / `source` / `_justification`
+- ✅ Full-session integration test passes (launch → undock → jump → combat → dock → logout)
+- ✅ Resource Budget Framework shows Pillar 1 within limits
+- ✅ Phase 1 tests still passing (no regressions)
+
+## v1.0 Overall is Successful If:
+
+- ✅ Commanders can install and run OmniCOVAS on day one
+- ✅ All five core pillars (1, 2, 3, 5, 7-basic) are functional
+- ✅ Zero legal compliance issues
+- ✅ Published on GitHub with AGPL-3.0 + CLA
+- ✅ At least one positive review from an ED community member
+- ✅ Frontier application submitted (approved or pending)
+- ✅ Inara whitelisting requested
+- ✅ Documentation sufficient for new commanders to succeed
+
+## v1.0 is NOT Required to:
+
+- ❌ Have all 166+ features implemented
+- ❌ Have native voice (EDDI required is acceptable)
+- ❌ Have advanced AI reasoning beyond basic queries
+- ❌ Have all pillars complete
+- ❌ Have commercial licensing set up
+- ❌ Have bug bounty program
+- ❌ Have paid code signing certificate
+
+---
+
+# PART XV — MILESTONE CHECKLIST
+
+## End of Phase 1 (Week 6 nominal / 2026-04-18 actual) ✅
+
+- [x] Public GitHub repo with AGPL-3.0 + CLA
+- [x] Python package structure
+- [x] Native journal parser reading basic events
+- [x] First structured log entry written
+- [x] Tauri skeleton launches
+- [x] Ship Telemetry publishes events
+- [x] Core event types handled (FSD jump, docked, hull damage)
+- [x] Activity log shows events
+- [x] FastAPI bridge with WebSocket live updates
+- [x] DPAPI config vault operational
+- [x] All Phase 1 tests passing in CI
+
+## End of Phase 2 (Week 10 nominal) 🟢 ACTIVE
+
+- [ ] ShipStateBroadcaster operational with pub/sub model
+- [ ] All 8 P1 Core features operational
+- [ ] Power Distribution Intelligence operational
+- [ ] Heat Management Intelligence operational (Tier 2)
+- [ ] Rebuy Calculator operational (Tier 1)
+- [ ] 40+ new KB entries with full metadata
+- [ ] Latency budgets enforced in CI
+- [ ] 130+ pytest tests passing
+- [ ] Full-session integration test passing
+- [ ] Phase 1 regression check passing
+
+## End of Phase 3 (Week 14 nominal) — PROTOTYPE READY ⏳
+
+- [ ] UI shell functional
+- [ ] Overlay renders transparent
+- [ ] Privacy page with working toggles
+- [ ] First-run onboarding works end-to-end
+- [ ] Pillar 1 events visible to user
+- [ ] Frontier Developer application submitted
+- [ ] Inara whitelisting request submitted
+
+*(Remaining phase checklists unchanged from v4.0 Roadmap.)*
+
+---
+
+*This roadmap is a living document. Update as reality diverges from plan.*
+
+*— OmniCOVAS Comprehensive Roadmap v4.1*
+*Last updated: 2026-04-19*
