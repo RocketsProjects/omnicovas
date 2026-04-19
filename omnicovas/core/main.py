@@ -28,6 +28,7 @@ from omnicovas.core.broadcaster import ShipStateBroadcaster
 from omnicovas.core.dispatcher import EventDispatcher
 from omnicovas.core.handlers import make_handlers
 from omnicovas.core.journal_watcher import JournalWatcher
+from omnicovas.core.latency import BudgetedDispatcher
 from omnicovas.core.logging_config import configure_logging
 from omnicovas.core.resource_monitor import ResourceMonitor
 from omnicovas.core.state_manager import StateManager
@@ -107,14 +108,15 @@ async def main() -> None:
     logger.info("Event handlers, recorder, broadcaster, and bridge registered.")
 
     # Step 6: journal watcher
-    journal_watcher = JournalWatcher(dispatch_fn=dispatcher.dispatch)
+    budgeted = BudgetedDispatcher(dispatcher)
+    journal_watcher = JournalWatcher(dispatch_fn=budgeted.dispatch)
     current_journal = journal_watcher._find_current_journal()
     journal_filename = current_journal.name if current_journal else "unknown"
     await recorder.start_session(journal_filename=journal_filename)
     await journal_watcher.start()
 
     # Step 7: Status.json reader
-    status_reader = StatusReader(dispatch_fn=dispatcher.dispatch)
+    status_reader = StatusReader(dispatch_fn=budgeted.dispatch)
     await status_reader.start()
 
     # Step 8: start API bridge last
