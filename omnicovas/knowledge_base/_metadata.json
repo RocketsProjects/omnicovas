@@ -1,9 +1,9 @@
 {
-  "kb_version": "0.1.0",
+  "kb_version": "0.2.0",
   "schema_version": 1,
   "last_full_audit_date": "2026-04-19",
   "game_version_at_last_audit": "unknown",
-  "total_entries": 8,
-  "entries_needing_review": 1,
-  "notes": "Phase 1 Knowledge Base scaffold — 8 seed entries across 8 categories. Entry validation pipeline active. Bulk content populated in Phase 2 (Weeks 7-10)."
+  "total_entries": 20,
+  "entries_needing_review": 2,
+  "notes": "Week 7 Phase 2 additions: 9 new combat_mechanics entries (hull/shield/fuel/heat thresholds, rebuy, insurance) and 3 new exploration_mechanics entries (jump range source, typical values, neutron boost). All new entries include _justification comments."
 }

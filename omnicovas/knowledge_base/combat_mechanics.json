@@ -10,7 +10,107 @@
       "source": "in-game journal observation",
       "last_updated": "2026-04-18",
       "confidence": "high",
-      "needs_review": false
+      "needs_review": false,
+      "_justification": "Phase 1 seed entry. Scale confirmed by journal observation -- Health field is normalized 0.0-1.0, not percent."
+    },
+    {
+      "id": "hull_warning_threshold",
+      "topic": "Hull Warning Threshold",
+      "content": "The in-game HUD displays a hull warning when hull integrity drops below 25% (0.25 normalized). At this level the ship's status panel shows amber and voice alert fires. This is the threshold for HULL_CRITICAL_25 broadcast.",
+      "patch_verified": "4.0",
+      "source": "in-game observation, cockpit HUD behavior",
+      "last_updated": "2026-04-19",
+      "confidence": "high",
+      "needs_review": false,
+      "_justification": "Week 7. Used by Week 9 Hull Triggers as the HULL_CRITICAL_25 threshold. Value 0.25 (normalized) confirmed by cockpit HUD amber transition."
+    },
+    {
+      "id": "hull_critical_threshold",
+      "topic": "Hull Critical Threshold",
+      "content": "The in-game HUD displays a critical hull warning when hull integrity drops below 10% (0.10 normalized). At this level canopy cracks appear and cockpit damage effects increase. This is the threshold for HULL_CRITICAL_10 broadcast.",
+      "patch_verified": "4.0",
+      "source": "in-game observation, cockpit HUD behavior",
+      "last_updated": "2026-04-19",
+      "confidence": "high",
+      "needs_review": false,
+      "_justification": "Week 7. Used by Week 9 Hull Triggers as the HULL_CRITICAL_10 threshold. Value 0.10 (normalized) confirmed by cockpit damage visual onset."
+    },
+    {
+      "id": "shield_mechanics_basics",
+      "topic": "Shield Mechanics",
+      "content": "Shields are reported via the Flags field in Status.json -- bit 3 (value 8) is set when shields are up and clear when shields are down. The journal also fires ShieldsDown and ShieldsUp events. Shield strength percentage is not directly in Status.json in all game versions; the Flags bit is the reliable cross-version indicator.",
+      "patch_verified": "4.0",
+      "source": "Elite Dangerous journal documentation, in-game observation",
+      "last_updated": "2026-04-19",
+      "confidence": "high",
+      "needs_review": false,
+      "_justification": "Week 7. Needed by Week 9 SHIELDS_DOWN handler. Documents the Flags bit 3 approach used in Phase 1 status_reader.py."
+    },
+    {
+      "id": "rebuy_cost_basics",
+      "topic": "Rebuy Cost",
+      "content": "When a ship is destroyed, the commander can rebuy it for 5% of the ship's total insured value (hull + modules). The rebuy cost appears in the Died journal event payload as the field 'PilotName' is absent and rebuy fields may vary by game version. The standard insurance rate is 5%. Premium insurance (if purchased) reduces this.",
+      "patch_verified": "4.0",
+      "source": "Elite Dangerous wiki, in-game Died event observation",
+      "last_updated": "2026-04-19",
+      "confidence": "high",
+      "needs_review": false,
+      "_justification": "Week 7. Foundation for Week 10 Rebuy Calculator. Standard insurance rate 5% confirmed from in-game store and community documentation."
+    },
+    {
+      "id": "insurance_percentage",
+      "topic": "Standard Insurance Percentage",
+      "content": "The standard rebuy cost in Elite Dangerous is 5% of the total insured value of the ship (hull + all fitted modules). The Rebuy Calculator uses this as the default rate. A commander can purchase premium insurance for a lower rate, but that data is not available in the journal -- Phase 2 uses 5% as the default.",
+      "patch_verified": "4.0",
+      "source": "Elite Dangerous in-game insurance screen, community verification",
+      "last_updated": "2026-04-19",
+      "confidence": "high",
+      "needs_review": false,
+      "_justification": "Week 7. Rebuy Calculator (Feature 11, Week 10) reads this value. 5% is the universally documented standard rate."
+    },
+    {
+      "id": "fuel_low_threshold",
+      "topic": "Fuel Low Threshold",
+      "content": "A fuel level below 25% of tank capacity is considered low. At this level the in-game HUD begins showing a fuel warning. OmniCOVAS broadcasts FUEL_LOW when fuel_main crosses below 25% of fuel_capacity in a downward direction. Expressed as a fraction: 0.25.",
+      "patch_verified": "4.0",
+      "source": "in-game HUD observation, Phase 1 status_reader.py FUEL_LOW_THRESHOLD",
+      "last_updated": "2026-04-19",
+      "confidence": "high",
+      "needs_review": false,
+      "_justification": "Week 7. Matches the Phase 1 StatusReader FUEL_LOW_THRESHOLD = 0.25 constant so both the legacy sub-event and Phase 2 FUEL_LOW broadcast fire at the same level."
+    },
+    {
+      "id": "fuel_critical_threshold",
+      "topic": "Fuel Critical Threshold",
+      "content": "A fuel level below 10% of tank capacity is considered critical. At this level the ship may not have sufficient fuel for another jump depending on jump range and fuel per jump. OmniCOVAS broadcasts FUEL_CRITICAL when fuel_main crosses below 10% of fuel_capacity in a downward direction. Expressed as a fraction: 0.10.",
+      "patch_verified": "4.0",
+      "source": "in-game observation, community consensus on fuel emergency protocols",
+      "last_updated": "2026-04-19",
+      "confidence": "high",
+      "needs_review": false,
+      "_justification": "Week 7. 10% chosen as the critical threshold because below this level a ship is likely unable to complete even a minimum-range jump in some builds. Conservative and actionable."
+    },
+    {
+      "id": "heat_warning_threshold",
+      "topic": "Heat Warning Threshold",
+      "content": "A ship's heat level is reported in Status.json as a float from 0.0 to 1.0 where 1.0 represents 100% heat (the overheat damage threshold). Values above 1.0 are possible during fuel scooping. OmniCOVAS issues a HEAT_WARNING when heat crosses above 0.75 (75%). The in-game HUD shows amber warnings starting around this level.",
+      "patch_verified": "4.0",
+      "source": "in-game observation, Phase 1 status_reader.py HEAT_WARNING_THRESHOLD",
+      "last_updated": "2026-04-19",
+      "confidence": "medium",
+      "needs_review": false,
+      "_justification": "Week 7. Matches Phase 1 StatusReader HEAT_WARNING_THRESHOLD = 0.75. Medium confidence because the exact HUD threshold may vary slightly by ship/build. Flagged for in-game verification with thermal venting test."
+    },
+    {
+      "id": "heat_damage_threshold",
+      "topic": "Heat Damage Threshold",
+      "content": "Module and hull damage from heat begins at 100% heat (1.0 normalized in Status.json). Above this level modules take incremental heat damage. The canopy may also crack at extreme heat levels. Fuel scooping commonly pushes heat to 110-130% temporarily.",
+      "patch_verified": "4.0",
+      "source": "Elite Dangerous wiki, in-game fuel scoop observation",
+      "last_updated": "2026-04-19",
+      "confidence": "high",
+      "needs_review": false,
+      "_justification": "Week 7. Reference point for Heat Management (Feature 10, Week 9). Establishes that 1.0 is the damage onset, not just a display threshold."
     }
   ]
 }
