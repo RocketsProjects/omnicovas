@@ -167,3 +167,24 @@ async def test_inferred_never_overrides_journal() -> None:
 
     assert accepted is False
     assert state.snapshot.hull_health == 0.85
+
+
+def test_public_snapshot_excludes_private_fields() -> None:
+    """
+    public_snapshot() must not expose _field_sources or any other
+    private internal field. Law 8: inspectable but not leaking internals.
+    """
+    state = StateManager()
+    state.update_field("current_system", "Sol", TelemetrySource.JOURNAL)
+
+    snapshot = state.public_snapshot()
+
+    # Public field is present
+    assert snapshot["current_system"] == "Sol"
+
+    # No private fields leak through
+    private_keys = [k for k in snapshot if k.startswith("_")]
+    assert private_keys == [], f"Private fields leaked: {private_keys}"
+
+    # Result is a plain dict (safe to JSON-serialise)
+    assert isinstance(snapshot, dict)

@@ -29,7 +29,7 @@ See: Phase 1 Development Guide Week 3, Part A
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import IntEnum
 from typing import Any
 
@@ -83,6 +83,9 @@ class SessionState:
     fuel_capacity: float | None = None
     cargo_count: int | None = None
     cargo_capacity: int | None = None
+    # Tri-state: None = unknown (not yet confirmed by telemetry), True = docked,
+    # False = not docked. None is correct on startup per Law 5 — do not default
+    # to False, which would fabricate knowledge we don't have yet.
     is_docked: bool | None = None
     is_in_supercruise: bool | None = None
     target_cmdr: str | None = None
@@ -181,3 +184,21 @@ class StateManager:
         Return the source metadata for a field, for audit/explainability.
         """
         return self._state._field_sources.get(field_name)
+
+    def public_snapshot(self) -> dict[str, Any]:
+        """
+        Return session state as a plain dict with all private fields stripped.
+
+        Safe to serialise and send to the UI or API clients. Use this
+        everywhere state is serialised — never call asdict() directly on the
+        snapshot and then pop() private fields at each call site.
+
+        Law 8 (Sovereignty & Transparency): state is inspectable by the
+        commander, but internal audit metadata (_field_sources) is an
+        implementation detail that must not appear in the public API surface.
+
+        Returns:
+            Dict of all public SessionState fields. Keys starting with '_'
+            are excluded regardless of what future internal fields are added.
+        """
+        return {k: v for k, v in asdict(self._state).items() if not k.startswith("_")}

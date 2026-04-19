@@ -30,7 +30,6 @@ import logging
 import socket
 import time
 from collections import deque
-from dataclasses import asdict
 from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -164,10 +163,7 @@ class ApiBridge:
         @app.get("/state")  # type: ignore[misc,untyped-decorator,unused-ignore]
         async def get_state() -> dict[str, Any]:
             """Current StateManager snapshot."""
-            snap = self._state.snapshot
-            state_dict = asdict(snap)
-            state_dict.pop("_field_sources", None)
-            return state_dict
+            return self._state.public_snapshot()
 
         @app.get("/activity-log")  # type: ignore[misc,untyped-decorator,unused-ignore]
         async def get_activity_log() -> dict[str, Any]:
@@ -215,11 +211,8 @@ class ApiBridge:
             """Push live events to connected clients."""
             await self._broadcaster.connect(websocket)
             try:
-                snap = self._state.snapshot
-                state_dict = asdict(snap)
-                state_dict.pop("_field_sources", None)
                 await websocket.send_json(
-                    {"type": "initial_state", "state": state_dict}
+                    {"type": "initial_state", "state": self._state.public_snapshot()}
                 )
                 while True:
                     await websocket.receive_text()
