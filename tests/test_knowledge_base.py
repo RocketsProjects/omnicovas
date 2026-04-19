@@ -231,3 +231,43 @@ def test_non_boolean_needs_review_raises(tmp_path: Path) -> None:
     )
     with pytest.raises(KBSchemaError, match="non-boolean needs_review"):
         load_knowledge_base(tmp_path)
+
+
+def test_metadata_total_entries_matches_reality() -> None:
+    """
+    Principle 6 (KB Stewardship): _metadata.json total_entries must equal
+    the number of entries the loader actually finds. Prevents silent drift
+    when Phase 2 KB population tasks add entries without updating metadata.
+
+    This test will fail if you add entries to a category file without also
+    bumping total_entries in _metadata.json. That is intentional.
+    """
+    kb = load_knowledge_base(REAL_KB_DIR)
+    metadata = kb.metadata
+
+    actual = kb.total_entries
+    recorded = metadata.get("total_entries", -1)
+
+    assert actual == recorded, (
+        f"_metadata.json says total_entries={recorded} "
+        f"but the loader found {actual} entries. "
+        f"Update _metadata.json when adding or removing KB entries."
+    )
+
+
+def test_metadata_needs_review_count_matches_reality() -> None:
+    """
+    _metadata.json entries_needing_review must equal the count of entries
+    with needs_review=True. Same drift-prevention rationale as above.
+    """
+    kb = load_knowledge_base(REAL_KB_DIR)
+    metadata = kb.metadata
+
+    actual = len(kb.entries_needing_review())
+    recorded = metadata.get("entries_needing_review", -1)
+
+    assert actual == recorded, (
+        f"_metadata.json says entries_needing_review={recorded} "
+        f"but the loader found {actual}. "
+        f"Update _metadata.json when flagging or resolving entries."
+    )

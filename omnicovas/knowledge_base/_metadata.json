@@ -1,9 +1,9 @@
 {
   "kb_version": "0.1.0",
   "schema_version": 1,
-  "last_full_audit_date": "2026-04-18",
+  "last_full_audit_date": "2026-04-19",
   "game_version_at_last_audit": "unknown",
-  "total_entries": 0,
-  "entries_needing_review": 0,
-  "notes": "Phase 1 Knowledge Base scaffold. Entry validation pipeline active. Actual content populated in Phase 2+."
+  "total_entries": 8,
+  "entries_needing_review": 1,
+  "notes": "Phase 1 Knowledge Base scaffold — 8 seed entries across 8 categories. Entry validation pipeline active. Bulk content populated in Phase 2 (Weeks 7-10)."
 }
