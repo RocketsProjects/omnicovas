@@ -23,12 +23,13 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
-  permissions:
-  contents: read
-
   quality-gates:
     name: Code Quality Gates
     runs-on: windows-latest
+
+    # CodeQL Fix: Explicitly lock this job to read-only access
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout repository
