@@ -554,14 +554,15 @@ When walking through a Pillar 1 bug, always name the layer I'm examining. "I'm l
 ### File Locations
 
 ```
-/mnt/project/OmniCOVAS\_Master\_Blueprint\_v4\_1.txt       — Core architecture (v4.1)
-/mnt/project/OmniCOVAS\_Phase2\_Development\_Guide.docx   — Week-by-week tasks (Phase 2)
-/mnt/project/OmniCOVAS\_Roadmap\_v4\_1.txt                — Release priorities (v4.1)
-/mnt/project/OmniCOVAS\_Compliance\_Matrix\_v4\_1.txt      — Legal/compliance (v4.1)
-/mnt/project/OmniCOVAS\_Approval\_Applications\_v4\_0.txt  — External approval (unchanged)
-
+/mnt/project/OmniCOVAS_Master_Blueprint_v4_2.txt      — Core architecture + Roadmap (v4.2)
+/mnt/project/OmniCOVAS_Index.md                       — Document map + topic index
+/mnt/project/OmniCOVAS_Phase2_Development_Guide.docx  — Week-by-week tasks (Phase 2)
+/mnt/project/OmniCOVAS_Compliance_Matrix_v4_1.txt     — Legal/compliance (v4.1)
+/mnt/project/OmniCOVAS_Approval_Applications_v4_0.txt — External approval (unchanged)
 Archived (for reference only, not active):
-/mnt/project/OmniCOVAS\_Phase1\_Development\_Guide.docx   — Phase 1 complete
+/mnt/project/docs/archive/OmniCOVAS_Master_Blueprint_v4_1.txt — superseded by v4.2
+/mnt/project/docs/archive/OmniCOVAS_Roadmap_v4_1.txt          — merged into v4.2
+/mnt/project/OmniCOVAS_Phase1_Development_Guide.docx           — Phase 1 complete
 ```
 
 ### The Ten Laws (Shorthand)
