@@ -1,0 +1,1968 @@
+OmniCOVAS — Master Architecture Blueprint
+Version 4.2 — Consolidated Release
+Last updated: 2026-04-22
+Supersedes: OmniCOVAS_Master_Blueprint_v4_1.txt and OmniCOVAS_Roadmap_v4_1.txt
+
+The definitive source of truth for Project OmniCOVAS. All development flows from this document.
+
+
+================================================================================
+CHANGELOG — v4.1 TO v4.2
+================================================================================
+
+1. Consolidation (no constitutional change):
+   - Roadmap v4.1 content folded into this document. Roadmap is no longer a
+     separate file.
+   - Per-pillar feature lists, priorities, and phase mapping now live together
+     under each pillar in Part V, eliminating the prior Blueprint/Roadmap
+     overlap.
+   - Priority Framework and Release Strategy promoted to Part IV.
+   - Phase-by-phase execution plan consolidated into Part VI.
+   - Dependencies and Blockers consolidated into Part VII.
+
+2. Phase ordering clarification:
+   - Blueprint v4.1 and Roadmap v4.1 disagreed on phase order for Pillars 4, 6,
+     and 7. v4.2 adopts the Roadmap v4.1 "revised order" (Pillar 7 = Phase 7,
+     Pillar 6 = Phase 8, Pillar 4 = Phase 9) to match README and newer planning.
+
+3. Carried forward from v4.1:
+   - Phase 1 marked complete (Status Dashboard in Part IX fully updated).
+   - Phase 2 marked active with scope locked at 11 features.
+   - Phase 1 Retrospective (Part VIII) preserved.
+   - Latency Budget Enforcement formalized as CI hard-fail with 2x CI tolerance
+     multiplier.
+   - Ten Laws and Ten Architectural Principles unchanged.
+   - The Seven Pillars are unchanged.
+   - Phase 2 introduces no new dependencies.
+
+4. Formatting change:
+   - Plain text throughout. Numbered, lettered, and bullet-point structure only.
+     No tables, no emojis, no decorative markdown. Nothing substantive removed.
+
+
+================================================================================
+HISTORICAL CHANGELOG
+================================================================================
+
+Carried forward from prior versions so the reasoning chain is not lost.
+
+v4.0 — The Constitutional Maturity Release (from v3.2):
+   A. Constitutional framework restructured. 10 new Laws (v4.0) replacing v3.2
+      laws.
+   B. 10 Architectural Principles introduced as a guidance layer below the Laws.
+   C. Law 9 clarified with Interpretation B. Voice features require
+      EDDI/VoiceAttack; core features stand alone.
+   D. EDDN submission default changed to opt-in (Privacy-by-Default).
+   E. Knowledge Base Stewardship infrastructure added to Phase 1.
+   F. Resource Efficiency framework added to Phase 1.
+   G. Explainability UI for Tier 3 AI responses (synthesis of prior Options B
+      and C).
+   H. Contributor License Agreement (CLA) infrastructure added for future
+      monetization flexibility.
+   I. Defensive Update validation infrastructure added.
+   J. EDAstro and Elite BGS local caches added for Graceful Failure.
+   K. Attribution expanded to include contributors and dependencies (SBOM).
+   L. Accessibility framework added to Phases 3 and 4.
+   M. Companion Comprehensive Roadmap introduced with priority ranking.
+
+v4.1 — Phase 2 Active Release:
+   A. Phase 1 marked complete in the Status Dashboard.
+   B. Phase 2 marked active, scope locked at 11 features.
+   C. Phase 1 Retrospective added capturing timing reality and tribal knowledge.
+   D. Latency Budget Enforcement formalized as CI hard-fail with 2x CI
+      tolerance multiplier.
+   E. Companion documents version-bumped to v4.1 where relevant.
+   F. No constitutional changes. No pillar restructuring. No new dependencies.
+
+
+================================================================================
+PART I — THE CONSTITUTION
+================================================================================
+
+
+--------------------------------------------------------------------------------
+SECTION 1 — CORE PHILOSOPHY
+--------------------------------------------------------------------------------
+
+Event-driven. Async-first. Modular by design. Local-first for latency.
+Law-bound by constitution. Zero-budget by design. Built for the long term.
+
+OmniCOVAS is a single, portable, high-performance intelligence suite for Elite
+Dangerous. It replaces the fragmented ecosystem of third-party tools with one
+unified command deck, governed by the Ten Laws, shaped by the Ten Principles,
+and architected for zero-latency response to live game telemetry. The project
+operates at zero ongoing cost, sustained by volunteer effort and community
+trust.
+
+
+--------------------------------------------------------------------------------
+SECTION 2 — THE TEN LAWS OF OPERATION
+--------------------------------------------------------------------------------
+
+Every module, every line of code, every architectural decision is subordinate
+to these laws. They are not guidelines.
+
+Summary table (in list form):
+
+   1. Confirmation Gate. AI suggests. Commander decides. Always.
+   2. Legal Compliance Protocol. Every rule, license, EULA, ToS, and law is
+      absolute. No exceptions.
+   3. API Respect Protocol. Rate limits are hard constraints. Maintain
+      courteous relationships.
+   4. AI Provider Agnosticism. Gemini default. Anything or nothing by choice.
+   5. Zero Hallucination Doctrine. If it isn't verified, it isn't said.
+   6. Performance Priority. Zero lag. Function before flair. Always.
+   7. Telemetry Rigidity. Telemetry defines reality. Nothing else does.
+   8. Sovereignty and Transparency. Commander's data stays local. The system
+      is always auditable.
+   9. Original Integration. We build our own. We integrate compliantly.
+  10. Unified Intelligence, Independent Operation. Centralized suite. No
+      critical dependencies.
+
+
+Law 1 — Confirmation Gate
+
+Mandate: The AI will never perform, trigger, or initiate any in-game action
+without explicit commander confirmation.
+
+   - AI operates in "suggest, never act" mode at all times.
+   - Hard confirmation layer between every AI recommendation and executable
+     output.
+   - Voice acknowledgment, UI click, or bound keypress required.
+   - No background automation affecting game state without commander awareness.
+   - Cannot be overridden by settings, macros, or scripts.
+
+Phase 2 application: Pillar 1 is primarily read-only telemetry broadcasting.
+The few features that generate AI-style recommendations (Rebuy Calculator
+advice, Heat Management suggestions) must pass through ConfirmationGate before
+reaching the commander. Most Pillar 1 features are pure telemetry broadcasts
+and do not invoke the Gate.
+
+
+Law 2 — Legal Compliance Protocol
+
+Mandate: Every applicable real-world law, license, End User License Agreement,
+Terms of Service, and copyright is an absolute constraint. We do not
+interpret flexibility into compliance. When in doubt, we stop and verify.
+
+Phase 2 application: Pillar 1 operates entirely on local journal files and
+Status.json data. No new external API calls are introduced in Phase 2.
+Compliance posture is unchanged from Phase 1.
+
+
+Law 3 — API Respect Protocol
+
+Mandate: Rate limits are hard constraints. Maintain courteous relationships
+with every external service maintainer.
+
+Phase 2 application: No new external APIs. Rate Limit Registry unchanged.
+
+
+Law 4 — AI Provider Agnosticism
+
+Mandate: Gemini default. Anything or nothing by choice. Core brain never calls
+AI providers directly; all providers implement a common interface.
+
+Phase 2 application: Pillar 1 features default to Tier 1 (Pure Telemetry)
+wherever possible. NullProvider must deliver full Pillar 1 functionality. Only
+Heat Management and advanced Rebuy scenarios use Tier 2 (Light AI /
+Rule-Based). No Tier 3 (LLM-dependent) features in Phase 2.
+
+
+Law 5 — Zero Hallucination Doctrine
+
+Mandate: If it isn't verified, it isn't said. Every AI prompt must be grounded
+in Knowledge Base entries. Free-form knowledge is forbidden.
+
+Phase 2 application: Every hull, module, or shield analysis references
+verified KB entries. Any predictive output must be labeled with a confidence
+score and never presented as certainty. "Hull at 18%" is telemetry; "Your
+hull will fail in ~3 hits" is a prediction and must be marked as such.
+
+
+Law 6 — Performance Priority
+
+Mandate: Zero lag. Function before flair. Always.
+
+   - No blocking I/O in the core event loop.
+   - Local journal is the primary source (native parser).
+   - In-memory state cache for zero-latency reads.
+   - Debounced API calls.
+   - Modular isolation so one slow subscriber cannot block the broadcaster.
+
+Phase 2 application: Latency budgets are enforced and measured for the first
+time. Combat events (HullDamage, ShieldsDown) must dispatch in under 100 ms.
+Navigation events (FSDJump) must dispatch in under 200 ms. Every Pillar 1
+event type has a budget registered in the dispatcher. Budget violations are
+logged as warnings and surface in the Activity Log, and CI hard-fails on
+breach with a 2x tolerance multiplier (see Section 14).
+
+
+Law 7 — Telemetry Rigidity
+
+Mandate: Telemetry defines reality. Nothing else does. Source priority is
+enforced; local journal is ultimate truth. Missing fields stay missing until
+real telemetry arrives.
+
+Source priority (lowest number is highest priority):
+   1. Journal (local, authoritative game events)
+   2. Status.json (local, live hardware/UI state)
+   3. CAPI (remote, Frontier API)
+   4. EDDN (remote, crowdsourced)
+   5. Inferred (OmniCOVAS-derived, never overrides real telemetry)
+
+Phase 2 application: Pillar 1 IS the telemetry layer. Everything it publishes
+must be derived from the journal or Status.json. Inferred state (for example,
+"likely hot" before a ShipTargeted event fires) must be labeled as inferred,
+never as fact.
+
+
+Law 8 — Sovereignty and Transparency
+
+Mandate: Commander's data stays local. The system is always auditable. Every
+outbound data flow is opt-in. Every action the system takes is logged and
+accessible.
+
+Phase 2 application: Every Pillar 1 event is logged in the Activity Log.
+Every broadcast to a subscriber is auditable. Squadron telemetry sync is
+Phase 7, not Phase 2. Pillar 1 data stays local.
+
+
+Law 9 — Original Integration
+
+Mandate: We build our own. We integrate compliantly. EDDI/VoiceAttack remain
+external. Core features work without them.
+
+Interpretation B (locked in v4.0):
+   - Voice features require EDDI (installed separately, GPL-3.0) and
+     VoiceAttack (installed separately, commercial, approximately 10 to 15
+     USD).
+   - Core (non-voice) features must work entirely standalone.
+   - OmniCOVAS does not bundle EDDI or VoiceAttack. Users install them
+     under their own licenses.
+   - Documented migration path if a required integration partner becomes
+     unavailable.
+
+Phase 2 application: Pillar 1 is fully native. No EDDI or VoiceAttack required
+for any Pillar 1 feature. Voice output for ship-state queries is deferred
+until Phase 3+ UI work is done.
+
+
+Law 10 — Unified Intelligence, Independent Operation
+
+Mandate: Game intelligence is centralized in this suite. Fragmentation is a
+failure state. Critical dependencies on external tools are also a failure
+state; we work alongside them, never dependent on them for core functionality.
+
+   - Single source of truth for game intelligence during a session.
+   - No required external tool for core (non-voice) functionality.
+   - Optional external tool integrations for user convenience.
+   - System fully operates with only OmniCOVAS running (voice disabled).
+   - System integrates gracefully when users choose external tools.
+   - Core dependencies forbidden for non-voice features; voice dependencies
+     acceptable.
+
+Phase 2 application: Pillar 1 is the first demonstration of the "unified but
+independent" architecture. All Pillar 1 features must work with zero external
+dependencies. Optional EDDN contribution (heat, fuel telemetry) is Phase 6+,
+not Phase 2.
+
+
+--------------------------------------------------------------------------------
+SECTION 3 — THE TEN ARCHITECTURAL PRINCIPLES
+--------------------------------------------------------------------------------
+
+Principles guide implementation. They are not laws but shape every design
+decision. Unchanged since v4.0.
+
+   1. Accessibility — System usable by commanders with diverse abilities and
+      setups. Keyboard navigation, high contrast modes, and font sizing in the
+      UI phase.
+   2. Sustainability — Project operates at zero ongoing cost, sustainable by
+      volunteer effort. No subscriptions. Community-maintained.
+   3. Evolutionary — System adapts to game updates, community changes, and
+      user feedback. Defensive Update infrastructure supports this.
+   4. Attribution — Every data source, contributor, and dependency credited
+      visibly. SBOM generated per release. Contributors credited. Licenses
+      visible.
+   5. Graceful Failure — Every external dependency has a local fallback
+      (EDSM to cache, Inara to cache, Spansh to bulk dumps, etc.).
+   6. Knowledge Base Stewardship — KB treated as critical infrastructure;
+      every entry version-tagged and audited. Validation pipeline runs in CI.
+   7. Privacy-by-Default — Every default setting is the most
+      privacy-protective option. Outbound data: OFF unless enabled.
+   8. Defensive Update — Game patches and tool updates validated; assumptions
+      tested after every change. Schemas checked.
+   9. Explainability — Every AI recommendation traceable to source on demand.
+  10. Resource Efficiency — Memory, CPU, disk, and bandwidth use measured,
+      bounded, and transparent.
+
+Principles specifically exercised by Phase 2:
+
+   - Principle 5 (Graceful Failure): Pillar 1 subscribers degrade gracefully
+     if Pillar 1 fails. A subscriber exception never crashes the broadcaster.
+   - Principle 6 (KB Stewardship): Pillar 1 adds approximately 40 to 60 KB
+     entries; all must be version-tagged (patch_verified, source,
+     last_updated, confidence, needs_review) and audited by the existing
+     Phase 1 validation pipeline.
+   - Principle 9 (Explainability): Every Pillar 1 recommendation (Heat,
+     Rebuy) includes a reference to the KB entry that grounds it. Logged in
+     structlog. Accessible via Activity Log.
+   - Principle 10 (Resource Efficiency): Pillar 1 is the first pillar that
+     does sustained work; resource use must be measured via the existing
+     ResourceMonitor and stay within resource_budget.yaml limits.
+
+
+================================================================================
+PART II — ARCHITECTURE
+================================================================================
+
+
+--------------------------------------------------------------------------------
+SECTION 4 — DATA PIPELINE (LAYERED BY LATENCY)
+--------------------------------------------------------------------------------
+
+Seven data sources, ordered by latency and authority. Lower priority source
+cannot override higher.
+
+   1. Journal Files (local). Latency approximately 0 ms. Raw game events,
+      fastest possible. Phase 1 status: operational.
+   2. Status.json (local). Latency approximately 0 ms. Live pip, heat, and
+      flag state. Phase 1 status: operational.
+   3. EDDI (optional, voice only). Latency approximately 10 to 50 ms. Voice
+      event triggers. Phase 3+ status.
+   4. Local SQLite (bulk dumps). Latency approximately 1 to 10 ms.
+      Galaxy-wide data pre-loaded. Phase 5 status.
+   5. CAPI (Frontier, gated). Latency approximately 100 to 500 ms. Ship
+      loadouts, carriers. Phase 3+ status, pending approval.
+   6. EDDN (live feed). Latency approximately 200 to 800 ms. Crowdsourced
+      data. Phase 5+ status.
+   7. EDSM, Inara, EDAstro, Spansh, Elite BGS. Latency approximately
+      500 ms to 2 s. Supplementary data. Phase 5+ status.
+
+Key principle: Native journal parsing is primary. EDDI is the voice bridge,
+not the data source.
+
+
+--------------------------------------------------------------------------------
+SECTION 5 — TECH STACK AND SYSTEM ARCHITECTURE
+--------------------------------------------------------------------------------
+
+
+A. Layer diagram (top to bottom):
+
+   1. UI Layer
+      - Desktop App (Tauri v2) + Overlay
+      - Voice I/O (EDDI + VoiceAttack, Phase 3+)
+   2. Confirmation Gate Layer
+      - All AI actions require explicit confirmation.
+      - Operational from Phase 1.
+   3. Python Core Brain
+      - asyncio event loop, non-blocking.
+      - Module Dispatcher, State Manager, Cache.
+      - Phase 2 adds the Ship State Broadcaster here.
+   4. AI Abstraction Layer
+      - AIProvider interface, Knowledge Base.
+      - Hallucination Guard, Explainability Log.
+      - Operational from Phase 1.
+   5. Data Ingestion Layer
+      - Native Journal Parser, Status.json Reader.
+      - EDDI Voice Bridge (optional), API Clients.
+      - Rate Limit Registry, Bulk Dump Importer.
+      - Journal and Status operational from Phase 1.
+   6. Resource Budget Framework
+      - Memory, CPU, disk, bandwidth bounded and measured.
+      - Operational from Phase 1.
+
+
+B. Primary data path (textual diagram):
+
+     Game Journal Files + Status.json
+             |
+             | (PRIMARY DATA PATH — native parsing)
+             v
+     OmniCOVAS Native Journal Parser
+             |
+             v
+     Core Brain (asyncio event dispatcher)
+             |
+             v
+     Confirmation Gate  ->  Module  ->  Response
+             |                           |
+             v                           v
+     UI / Overlay               Optional Voice Output
+                                        ^
+                                        |
+                            (via EDDI + VoiceAttack bridge,
+                             only if voice features enabled)
+
+
+C. Voice features require:
+
+   - EDDI installed separately by commander (GPL-3.0).
+   - VoiceAttack installed separately by commander (commercial, approximately
+     10 to 15 USD).
+
+
+D. Without voice:
+
+   - Full OmniCOVAS functionality via overlay and keyboard/mouse.
+   - All pillars work.
+   - All telemetry works.
+   - All squadron features work.
+
+
+E. OmniCOVAS provides (to enable voice):
+
+   - Recommended EDDI configuration profile.
+   - Pre-built VoiceAttack profile for OmniCOVAS commands.
+   - Setup wizard for voice features (guides user through EDDI/VoiceAttack
+     install).
+   - Documentation on the voice feature dependency.
+
+
+F. Core technology stack (Phase 1 operational unless noted):
+
+   1. Python runtime
+      - Python 3.11 (pinned; 3.12 and 3.13 not yet supported).
+   2. Event and I/O
+      - asyncio, watchdog, aiofiles (journal monitoring).
+   3. Persistence
+      - SQLAlchemy 2.x, Alembic, aiosqlite.
+   4. Internal bridge
+      - FastAPI + uvicorn.
+   5. Logging
+      - structlog (with automatic API-key redaction).
+   6. AI SDK
+      - google-genai (Gemini).
+   7. Resource monitoring
+      - psutil.
+   8. Secrets
+      - pywin32 (DPAPI vault).
+   9. Config
+      - pyyaml.
+  10. Frontend
+      - Tauri v2 (Rust + WebView).
+      - Node.js LTS (tooling).
+  11. Quality gates (enforced in CI)
+      - pytest (84 passing at Phase 1 close; target >=80% coverage).
+      - mypy strict mode (zero errors).
+      - ruff (zero violations).
+      - pre-commit hooks (local enforcement).
+  12. Voice (Phase 3+, optional)
+      - EDDI (user-installed, GPL-3.0, external).
+      - VoiceAttack (user-purchased, commercial, external).
+
+Phase 2 introduces zero new dependencies.
+
+
+--------------------------------------------------------------------------------
+SECTION 6 — EXTERNAL DATA SERVICES
+--------------------------------------------------------------------------------
+
+OmniCOVAS consumes data from the following services. Full rate-limit,
+attribution, and compliance detail lives in the Compliance Matrix; this
+section summarizes the services and their architectural role.
+
+   A. EDDN (Elite Dangerous Data Network)
+      - Mode: subscriber (read) and opt-in submitter (write).
+      - Submission default: OFF (Privacy-by-Default).
+   B. EDSM (Elite Dangerous Star Map)
+      - System, body, station lookups.
+      - Cache TTLs: system 24 h, body 7 d, station 1 h.
+   C. Inara
+      - CMDR profiles, factions, Community Goals, engineer data.
+      - Whitelist required (application pending until Phase 3).
+   D. Spansh
+      - Bulk dumps (primary) and live API for route plotting.
+   E. EDAstro
+      - Astrometric data.
+      - Local cache layer for Graceful Failure.
+   F. Elite BGS
+      - Historical BGS data.
+      - Local historical snapshot for Graceful Failure.
+   G. BGS-Tally
+      - Optional outbound integration via published OpenAPI spec.
+   H. Frontier CAPI
+      - Ship loadouts, fleet carriers, profile data.
+      - Developer approval required, application deferred to end of Phase 3.
+
+
+--------------------------------------------------------------------------------
+SECTION 7 — AI ABSTRACTION LAYER
+--------------------------------------------------------------------------------
+
+
+A. Provider pattern
+
+Every AI provider implements a common interface so swaps are a config change,
+not a code change. Providers must never raise on typical failures; they log
+and return None.
+
+Concrete providers:
+
+   1. GeminiProvider   — default cloud AI. Operational.
+   2. OpenAIProvider   — optional cloud. Future.
+   3. OllamaProvider   — local LLM. Future.
+   4. NullProvider     — no AI mode. Operational.
+
+
+B. Four AI operating modes
+
+   1. Gemini Free Tier (Default)
+      - Aggressive caching, batched queries, stays within the free tier.
+      - Status: implemented.
+   2. Premium Cloud
+      - OpenAI, Claude, or paid Gemini. User pays.
+      - Status: future.
+   3. Local LLM
+      - Ollama runs on-device.
+      - Status: future.
+   4. No AI (NullProvider)
+      - Full functionality, pure telemetry.
+      - Status: implemented.
+
+
+C. Three AI integration tiers
+
+   1. Tier 1 — Pure Telemetry. Deterministic lookups. Works everywhere.
+      Most Pillar 1 features are Tier 1.
+   2. Tier 2 — Light AI (Rule-Based). KB rules, no LLM. Works everywhere.
+      Heat Management in Phase 2 is Tier 2.
+   3. Tier 3 — Full AI (LLM-Dependent). Natural language. Requires AI mode.
+      No Tier 3 features in Phase 2.
+
+
+D. Explainability implementation
+
+   - All tiers: logged in the Activity Log with full traceability (Phase 1
+     operational).
+   - Tier 3 responses: inline "Why?" button next to each recommendation
+     (Phase 3 UI).
+   - Future v1.1: expand inline buttons to Tier 2 based on user demand.
+
+
+E. Top Secret Mode AI behavior (Phase 7)
+
+When Top Secret Mode is active, the AI provider is forced to NullProvider
+regardless of user setting. The commander sees:
+
+    "AI queries disabled during Top Secret operations to prevent context
+     leakage. Configure Local LLM mode for AI during covert ops."
+
+
+F. Knowledge Base Stewardship (Principle 6)
+
+Directory layout (/omnicovas/knowledge_base):
+
+   1. combat_mechanics.json           — scaffold Phase 1, populated Phase 2.
+   2. engineering_materials.json      — scaffold Phase 1.
+   3. bgs_mechanics.json              — scaffold Phase 1.
+   4. powerplay2_mechanics.json       — scaffold Phase 1.
+   5. odyssey_mechanics.json          — scaffold Phase 1.
+   6. trading_mechanics.json          — scaffold Phase 1, populated Phase 2.
+   7. exploration_mechanics.json      — scaffold Phase 1.
+   8. exobiology_mechanics.json       — scaffold Phase 1.
+   9. api_limits.yaml                 — operational Phase 1.
+  10. _metadata.json                  — KB-wide version and last audit date.
+
+Every entry carries the following fields:
+
+   - patch_verified    — last ED game version the entry was verified against.
+   - source            — where the information came from.
+   - last_updated      — ISO timestamp.
+   - confidence        — high, medium, or low.
+   - needs_review      — boolean flag.
+   - _justification    — Phase 2 addition. Comment explaining value choice.
+
+KB Validation Pipeline (operational from Phase 1):
+
+   - Automated tests verify entries match expected schema.
+   - On game version detection, entries are flagged for review.
+   - Pull request template for community contributions.
+   - Audit dashboard shows KB health at a glance (UI: Phase 3).
+
+
+--------------------------------------------------------------------------------
+SECTION 8 — EDDI INTEGRATION STRATEGY (VOICE ONLY)
+--------------------------------------------------------------------------------
+
+Under Law 9 Interpretation B, EDDI is required for voice features and not
+for core operation.
+
+Behavior:
+
+   - EDDI is never bundled. AGPL-3.0 + GPL-3.0 bundling conflict prevents it.
+     Distribution remains as an external dependency that the user installs.
+   - EDDI is only required when voice features are enabled by the user.
+   - OmniCOVAS provides a recommended EDDI configuration profile and setup
+     wizard.
+   - If EDDI is not present, voice features are automatically unavailable and
+     all other features continue working.
+
+Phase 2 does not exercise this path. Full voice pipeline arrives in Phase 3+.
+
+
+--------------------------------------------------------------------------------
+SECTION 9 — LICENSING FRAMEWORK (AGPL-3.0 + CLA)
+--------------------------------------------------------------------------------
+
+
+A. Why AGPL-3.0
+
+   1. Copyleft protects against proprietary forks.
+   2. Network-use clause closes the SaaS loophole.
+   3. Protects the creator's commercial rights.
+   4. Allows personal and community use.
+   5. Compatible with GPL-3.0 community tools via out-of-process integration
+      (EDDI over socket).
+
+
+B. Why a Contributor License Agreement (CLA)
+
+   1. All contributors grant the project creator a license to their
+      contributions.
+   2. Preserves a future dual-licensing option.
+   3. Standard practice (Qt, MongoDB, Django all use CLAs).
+   4. Contributors retain their own copyright and can use their code
+      elsewhere.
+   5. Approximately 30 minutes to implement using the Apache ICLA template.
+
+
+C. Operational status from Phase 1
+
+   - LICENSE file (AGPL-3.0) committed.
+   - CLA.md committed.
+   - CLA Assistant integration documented (ready to enable when the first
+     external PR arrives).
+   - SECURITY.md committed with a responsible-disclosure policy.
+   - CONTRIBUTING.md committed.
+
+
+D. Commercial paths (preserved)
+
+   - Donations: GitHub Sponsors (enabled), Ko-fi, Patreon.
+   - Dual licensing: AGPL free plus commercial license for businesses.
+   - Paid services around the open source core (premium AI integrations,
+     cloud backup — future).
+
+
+================================================================================
+PART III — CROSS-CUTTING CONCERNS
+================================================================================
+
+
+--------------------------------------------------------------------------------
+SECTION 10 — UNIVERSAL PATTERNS
+--------------------------------------------------------------------------------
+
+
+A. Four-Tier Coaching Model
+
+   - Off
+   - Light
+   - Medium
+   - Heavy
+
+
+B. Three-Path Onboarding
+
+   1. Easy Mode — 60-second setup, NullProvider, Casual Pilot preset.
+   2. Custom Setup — 5 to 15 minute wizard.
+   3. Power User — full config access.
+
+
+C. Three-Tier Customization
+
+   1. Preset Profiles (Combat Pilot, Explorer, Trader, Miner).
+   2. Category Toggles.
+   3. Granular Settings.
+
+
+D. Privacy Hierarchy (most restrictive wins)
+
+   1. Top Secret Mode
+   2. Individual Opt-Out
+   3. Squadron Override
+   4. Global Default (OFF)
+
+
+E. Three Output Modes (per feature)
+
+   - Voice
+   - Overlay
+   - Both
+
+
+F. Three AI Integration Tiers
+
+Same tiers as Section 7.C. Repeated here because features are classified by
+tier during design.
+
+   1. Pure Telemetry
+   2. Light AI
+   3. Full AI
+
+
+--------------------------------------------------------------------------------
+SECTION 11 — RESOURCE BUDGET FRAMEWORK (PRINCIPLE 10)
+--------------------------------------------------------------------------------
+
+All resource use is bounded and transparent. resource_budget.yaml is
+operational from Phase 1.
+
+
+A. Disk budget
+
+   - max_galaxy_dump_size_gb: 5             (configurable)
+   - max_log_retention_days: 30
+   - log_rotation_size_mb: 100
+
+
+B. Memory budget
+
+   - max_cache_size_mb: 512                 (configurable)
+   - max_ai_context_tokens: 4000
+   - eviction_policy: LRU
+
+
+C. CPU budget
+
+   - max_background_task_cpu_percent: 10    (respects the gaming PC)
+   - journal_parse_priority: high
+   - ui_render_priority: high
+   - api_polling_priority: low
+
+
+D. Bandwidth budget
+
+   - max_eddn_submission_per_hour: 100
+   - max_api_calls_per_minute_total: 50
+
+
+E. Resource Dashboard UI (Phase 3)
+
+Shows current OmniCOVAS resource use in real time.
+
+
+F. Conservative Defaults (Phase 1 operational)
+
+First-run detects constrained systems (under 8 GB RAM, under 100 GB free disk)
+and applies lower defaults.
+
+
+--------------------------------------------------------------------------------
+SECTION 12 — OBSERVABILITY AND EXPLAINABILITY
+--------------------------------------------------------------------------------
+
+
+A. Logging infrastructure
+
+   1. Structured JSON via structlog.
+   2. Per-module channels.
+   3. Event trace log.
+   4. API call log.
+   5. Activity Log UI.
+   6. Explainability log (source traceability).
+   7. Squadron audit log (unless Burn active).
+
+
+B. Explainability UI
+
+   - Inline "Why?" button on Tier 3 AI recommendations (Phase 3 UI).
+   - Activity Log access for all tier explanations (Phase 1 operational).
+   - KB source visible on demand.
+   - AI model, prompt, and response all logged (Phase 1 operational).
+
+
+C. Phase 2 addition — Latency Telemetry
+
+   - Every event dispatch is measured and logged.
+   - Budget breaches surface as structlog warnings with event_type,
+     elapsed_ms, and budget_ms.
+   - Breach history is accessible via the Activity Log.
+
+
+--------------------------------------------------------------------------------
+SECTION 13 — RATE LIMIT REGISTRY (VERIFIED)
+--------------------------------------------------------------------------------
+
+No changes in v4.1 or v4.2. Phase 2 introduces no external APIs.
+
+Declarative configuration (flattened to list form for plain text):
+
+
+A. EDDN
+
+   - mode: subscriber
+   - submission_default: OFF (Privacy-by-Default)
+   - submission_mode: event_driven_when_enabled
+
+
+B. EDSM
+
+   - requests_per_hour: 360
+   - cache_ttl_system: 86400
+   - cache_ttl_body: 604800
+   - cache_ttl_station: 3600
+   - honors_rate_limit_headers: true
+
+
+C. Inara
+
+   - requests_per_minute: 2
+   - cache_ttl_cmdr: 86400
+   - cache_ttl_faction: 21600
+   - cache_ttl_cg: 1800
+   - cache_ttl_engineer: 604800
+   - batch_events: true
+   - whitelist_required: true
+
+
+D. Frontier CAPI
+
+   - requests_per_minute: 1
+   - cache_ttl_profile: 3600
+   - cache_ttl_fleetcarrier: 900
+   - oauth_pkce: true
+   - developer_approval_required: true
+   - approval_status: pending (updates with actual status)
+
+
+E. Spansh API
+
+   - requests_per_minute: 30
+   - cache_ttl: 1800
+   - verification_required: true
+
+
+F. Spansh Dumps
+
+   - refresh_schedule: weekly
+   - import_to_sqlite: true
+   - size_budget_gb: 5
+
+
+G. EDAstro
+
+   - requests_per_15min: 100
+   - cache_ttl: 3600
+   - local_cache_enabled: true
+
+
+H. Elite BGS
+
+   - requests_per_minute: 1
+   - cache_ttl: 21600
+   - local_historical_snapshot: true
+   - verification_required: true
+
+
+I. BGS-Tally
+
+   - integration_type: optional_outbound
+   - requires_user_configuration: true
+
+
+--------------------------------------------------------------------------------
+SECTION 14 — PERFORMANCE COMMITMENTS AND LATENCY BUDGETS
+--------------------------------------------------------------------------------
+
+
+A. Commitments
+
+   1. No blocking I/O in the core.
+   2. Local journal first (native parser).
+   3. In-memory state cache.
+   4. Debounced API calls.
+   5. Modular isolation.
+
+
+B. Latency budgets (enforced as CI hard-fail from Phase 2)
+
+Format: event category — local budget (CI budget with 2x tolerance).
+
+   1. Combat alerts (HullDamage, ShieldsDown):  under 100 ms (CI under 200 ms).
+   2. Navigation events (FSDJump, Docked):       under 200 ms (CI under 400 ms).
+   3. Trade queries (MarketBuy, MarketSell):     under 500 ms (CI under 1000 ms).
+   4. Loadout events:                            under 500 ms (CI under 1000 ms).
+   5. BGS analytics (Phase 8+):                  under 2 s    (CI under 4 s).
+
+
+C. Enforcement mechanism (Python, summarized)
+
+   - A BUDGETS dict maps event_type to a LatencyBudget(event_type, budget_ms).
+   - dispatch_with_budget(event_type, event) wraps every dispatch, records
+     elapsed_ms via time.perf_counter, and logs structlog warnings on breach.
+   - BUDGET_MS is the local value; CI_BUDGET_MS = BUDGET_MS * (2 if CI else 1).
+   - A dedicated test suite in tests/test_latency_budgets.py asserts
+     elapsed_ms <= CI_BUDGET_MS for representative events, failing CI on
+     breach.
+
+
+D. Rationale for the CI tolerance multiplier
+
+GitHub Actions shared runners have shown 2 to 3 times performance variance
+versus dedicated hardware. A 2x tolerance prevents CI flakes without loosening
+real discipline on local development.
+
+
+E. Rationale for hard-fail versus warning
+
+Law 6 is a law. Phase 1 enforced mypy, ruff, and pytest as hard fails.
+Latency matches that discipline. Warning-only enforcement would let real
+regressions ship.
+
+
+--------------------------------------------------------------------------------
+SECTION 15 — DEFENSIVE UPDATE INFRASTRUCTURE (PRINCIPLE 8)
+--------------------------------------------------------------------------------
+
+
+A. On startup (operational from Phase 1)
+
+   1. Detect current ED version from journal header.
+   2. Compare to last known good version.
+   3. Run schema validation tests for journal events.
+   4. Run endpoint tests for external APIs (when called).
+   5. Alert commander if a version change is detected.
+
+
+B. Known Breakage Registry
+
+   - Maintained list of patch/version combinations with known issues.
+   - Warnings surfaced to the commander when they run affected versions.
+   - Community contributions via GitHub issues.
+
+
+--------------------------------------------------------------------------------
+SECTION 16 — ZERO-BUDGET TRUST INFRASTRUCTURE
+--------------------------------------------------------------------------------
+
+
+A. Code signing
+
+   1. Phase 1 — unsigned, honest documentation.
+   2. Post-MVP — apply to SignPath Foundation (free OSS signing).
+   3. Fallback — continue unsigned, revisit annually.
+
+
+B. Trust mechanisms
+
+   1. Public GitHub repository from day one.
+   2. README with a plain-language "why trust this?" statement.
+   3. AGPL-3.0 guarantees source auditability.
+   4. No telemetry phones home.
+   5. Activity Log surfaces every action the system takes.
+   6. Degraded mode always available (NullProvider, offline caches).
+
+
+================================================================================
+PART IV — PRIORITY AND RELEASE FRAMEWORK
+================================================================================
+
+
+--------------------------------------------------------------------------------
+SECTION 17 — PRIORITY FRAMEWORK
+--------------------------------------------------------------------------------
+
+Unchanged.
+
+   1. P1 — Critical. Must exist for release to function. Blockers.
+   2. P2 — High. Must exist for release to be useful. Primary features.
+   3. P3 — Medium. Valuable. Stretch or next release target.
+   4. P4 — Low. Nice to have. Later release.
+   5. P5 — Deferred. Revisit after stabilization. v2.0+.
+
+
+--------------------------------------------------------------------------------
+SECTION 18 — RELEASE STRATEGY
+--------------------------------------------------------------------------------
+
+
+A. v1.0 — "Core Intelligence"
+
+Goal: Useful daily tool for commanders. Establishes architecture and trust.
+
+Scope:
+   1. Pillar 1 (Ship Telemetry) — complete.
+   2. Pillar 2 (Combat) — core features.
+   3. Pillar 3 (Exploration) — core features.
+   4. Pillar 5 (Trading/Mining) — core features.
+   5. Pillar 7 (Squadron) — basic P2P sync only.
+   6. UI shell with overlay.
+   7. Voice I/O (via EDDI/VoiceAttack) for basic queries.
+   8. Settings and privacy page.
+   9. First-run onboarding (Three-Path model).
+
+
+B. v1.1 — "Expansion"
+
+Goal: Pillar completion and Powerplay/BGS.
+
+Scope:
+   1. Pillar 4 (BGS/Powerplay 2.0) — core features.
+   2. Pillar 6 (Engineering) — core features.
+   3. Pillar 2–5 feature additions.
+   4. Tier 2 inline Explainability UI.
+   5. Accessibility enhancements.
+
+
+C. v1.2 — "Deep Features"
+
+Goal: Advanced features, illegal ops, squadron stretch.
+
+Scope:
+   1. Full Illegal Ops suite.
+   2. Squadron stretch features.
+   3. Build Template Library.
+   4. Advanced mining and BGS features.
+
+
+D. v1.5 — "Polish"
+
+Goal: Quality, performance optimization, remaining features.
+
+
+E. v2.0 — "Vision Complete"
+
+Goal: All 166+ features. Native voice option. Advanced integrations.
+
+
+================================================================================
+PART V — THE SEVEN PILLARS
+================================================================================
+
+Each pillar consolidates architecture, feature scope, priorities, release
+target, and phase mapping in one place. Feature totals mirror v4.0 Blueprint
+counts.
+
+
+--------------------------------------------------------------------------------
+SECTION 19 — PILLAR 1: SHIP TELEMETRY (FOUNDATION, PHASE 2 — ACTIVE)
+--------------------------------------------------------------------------------
+
+
+A. Architecture summary
+
+The foundation every other pillar depends on. Publishes events to all other
+pillars via the ShipStateBroadcaster (Phase 2 target). Native journal and
+Status.json only; no external APIs.
+
+
+B. Scope: 11 features locked for Phase 2
+
+The original Pillar 1 spec included 10 Core + 8 Additions (18 total). Phase 2
+delivers 8 Core + 3 Additions. The remaining 7 Additions are deferred with
+dependency rationale.
+
+
+C. P1 Core Features (8 of 8 required for Phase 2 complete)
+
+   1. Live Ship State tracking — P1, medium, Phase 2. Current ship type, hull,
+      shields, fuel, cargo tracked in real time.
+   2. Module Health Tracking — P1, low, Phase 2. Per-module health from
+      Loadout events.
+   3. Hull & Integrity Triggers — P1, low, Phase 2. Events fire at configurable
+      thresholds (25% and 10% defaults).
+   4. Loadout Awareness — P1, medium, Phase 2. Full ship configuration
+      captured from the Loadout event.
+   5. Fuel & Jump Range — P1, low, Phase 2. Current fuel level and max jump
+      range calculated.
+   6. Cargo Monitoring — P1, low, Phase 2. Cargo contents and capacity
+      tracked.
+   7. Critical Event Broadcaster — P1, medium, Phase 2. Hull, shield, and fuel
+      critical events published to subscribers.
+   8. Extended Event Broadcaster — P1, low, Phase 2. Docking, wanted,
+      destroyed, FSDJump events published.
+
+
+D. P2 Additions IN Phase 2 (3 of 8)
+
+   A. Power Distribution Intelligence — P2, low, Phase 2. Status.json already
+      provides pips; pure telemetry.
+   B. Heat Management Intelligence — P2, medium, Phase 2. Status.json already
+      provides heat; Tier 2 with KB rules.
+   F. Rebuy Calculator — P2, low, Phase 2. Pure math on the Loadout event;
+      Tier 1.
+
+
+E. P2 Additions DEFERRED to Phase 2.5 or v1.1 (5 of 8)
+
+   C. Shield Intelligence — P3, Phase 2.5. Needs combat event context from
+      Pillar 2.
+   D. Module Priority Mapping — P3, v1.1. Needs UI affordances (drag
+      assignments) from Phase 3.
+   E. Repair & Rearm Intelligence — P2, Phase 2.5. Needs station service data,
+      better paired with Pillar 5.
+   G. Ship Performance Logging — P3, v1.1. Analytical; more valuable after
+      months of data.
+   H. Voice Queries About The Ship — P2, Phase 3+. Requires voice I/O path
+      opened by Phase 3+.
+
+
+F. Additional deferred Pillar 1 work
+
+   1. Predictive Module-Targeting Alerts — P2 original, Phase 2.5. Needs
+      combat event stream from Pillar 2.
+   2. Tactical Threat Assessment — P2 original, Phase 2.5. Same dependency.
+   3. Multi-Ship State Tracking — P2 original, Phase 2.5. Valuable but not
+      blocking the Pillar 1 foundation.
+
+
+G. Phase 2 architectural deliverables
+
+   1. ShipStateBroadcaster pub/sub operational.
+   2. Latency Budget Enforcement (CI hard-fail, 2x CI tolerance).
+   3. StateManager extended with Pillar 1 fields.
+   4. KB populated with 40+ verified entries.
+   5. 130+ pytest tests (84 Phase 1 + approximately 50 Phase 2).
+
+
+H. Phase 2 duration estimate
+
+4 weeks nominal at 15 hrs/week = 60 hours. Actual pace may compress
+significantly if Phase 1's compression ratio holds.
+
+
+--------------------------------------------------------------------------------
+SECTION 20 — PILLAR 2: TACTICAL & COMBAT (PHASE 4)
+--------------------------------------------------------------------------------
+
+
+A. Architecture summary
+
+12 Core + 10 Additions. Covers AX Operations, PvP, Combat Zones, Pirate
+Hunting, and Odyssey Ground combat.
+
+
+B. Core Features v1.0
+
+   1. Target Intelligence — P2, v1.0.
+   2. Interdiction Warning & Response — P1, v1.0.
+   3. PvP Gank Database (local log + Inara lookup) — P2, v1.0.
+   4. Bounty & Combat Bond Tracking — P2, v1.0.
+   5. Combat Zone Intelligence — P2, v1.0.
+   6. Hostility & Threat Warnings — P2, v1.0.
+   7. Combat Rank Tracking — P2, v1.0.
+
+
+C. Core Features v1.1
+
+   1. Anti-Xeno Operations Suite (Off/Light coaching) — P3, v1.0 partial and
+      v1.1 complete.
+   2. Massacre Mission Stacker — P3, v1.1.
+   3. Sub-Module Scanner — P3, v1.1.
+   4. Fighter Crew Support — P4, v1.2.
+
+
+D. Odyssey Ground Combat
+
+   1. Basic on-foot state awareness — P3, v1.0.
+   2. Frontline Solutions tracking — P4, v1.2.
+   3. Settlement raid intelligence — P4, v1.2.
+
+
+E. Proposed Additions
+
+   A. Post-Combat Debrief — P3, v1.1.
+   B. Hardpoint & Utility Management — P3, v1.1.
+   C. Escape Planner — P2, v1.0.
+   D. Thermal Attack Intelligence — P4, v1.2.
+   E. Wake Scanning Intelligence — P3, v1.1.
+   F. Engagement Range Calculator — P3, v1.1.
+   G. PvP CMDR Intelligence — P2, v1.0 (basic).
+   H. Munitions Management — P2, v1.0.
+   I. Critical State Response (opt-in) — P3, v1.1.
+   J. Combat Difficulty Meter — P3, v1.1.
+
+
+F. Phase 4 duration estimate
+
+6 weeks at 15 hrs/week = 90 hours.
+
+
+--------------------------------------------------------------------------------
+SECTION 21 — PILLAR 3: EXPLORATION & NAVIGATION (PHASE 5)
+--------------------------------------------------------------------------------
+
+
+A. Architecture summary
+
+13 Core (including Bio Insights) + 12 Additions. Route plotting, exobiology,
+bookmarks.
+
+
+B. Core Features v1.0
+
+   1. Route Plotting (Spansh integration) — P2, v1.0.
+   2. System Intelligence on Arrival — P2, v1.0.
+   3. Scanning Intelligence (FSS/DSS) — P2, v1.0.
+   4. Bookmark System — P2, v1.0.
+   5. Fuel & Jump Range — P1, v1.0 (already in Pillar 1).
+   6. Fleet Carrier Navigation (basic) — P2, v1.0.
+   7. EDSM Integration (opt-in) — P2, v1.0.
+
+
+C. Bio Insights Engine (key differentiator)
+
+   1. Bio Insights Engine (native build) — P2, v1.0.
+   2. Exobiology sample distance tracker — P2, v1.0.
+   3. Exobiology value estimation — P2, v1.0.
+   4. Biome genus prediction (KB-based) — P3, v1.1.
+
+
+D. Other Features
+
+   1. SRV Survey Operations — P3, v1.0 (basic).
+   2. First Discovery Hunting — P3, v1.1.
+   3. Outfitting & Shipyard Search — P3, v1.1.
+   4. EDDiscovery Feature Integration — P4, v1.2.
+   5. ED Observatory deeper integration — P5, v2.0.
+
+
+E. Proposed Additions
+
+   A. Expedition Planner — P4, v1.2.
+   B. High-Value Target ID — P3, v1.1.
+   C. Lost Commander Assistance — P3, v1.1.
+   D. Jumponium Management — P4, v1.2.
+   E. Codex Integration — P5, v2.0.
+   F. Planetary Landing Intelligence — P3, v1.1.
+   G. Guardian/Thargoid Site Navigation — P4, v1.2.
+   H. Biome-Specific Exobiology Intelligence — P4, v1.2.
+   I. Earnings-Per-Hour Tracker — P3, v1.1.
+   J. Exploration Build Validator — P4, v1.2.
+   K. Data Redemption Optimizer — P2, v1.0.
+   L. Pretty System Finder — P5, v2.0.
+
+
+F. Data Infrastructure
+
+   1. Spansh bulk dump import pipeline — P2, v1.0.
+   2. EDAstro local cache layer — P2, v1.0.
+
+
+G. Phase 5 duration estimate
+
+6 weeks at 15 hrs/week = 90 hours.
+
+
+--------------------------------------------------------------------------------
+SECTION 22 — PILLAR 4: POWERPLAY 2.0 & BGS (PHASE 9, REVISED ORDER)
+--------------------------------------------------------------------------------
+
+
+A. Architecture summary
+
+12 Core + 12 Additions + 5 Audit. Merit Intelligence, Tick Monitoring,
+BGS-Tally API. Originally planned as Phase 8 in Blueprint v4.0; re-sequenced
+to Phase 9 in Roadmap v4.1 to ship after Pillar 6 (Engineering).
+
+
+B. Feature totals
+
+This pillar's detailed feature list (12 Core + 12 Additions + 5 Audit) is
+preserved from v4.0 Blueprint Part III and v4.0 Roadmap. Content unchanged in
+v4.1 and v4.2. Full expansion will be added to this section when Phase 9
+begins, to prevent drift against the current game patch. Until then, treat
+the v4.0 Roadmap (archived) as the detailed reference and this section as
+the count and sequencing.
+
+
+C. Phase 9 duration estimate
+
+Estimate carried forward from v4.0 Roadmap. Scope re-baselined at Phase 8
+close.
+
+
+--------------------------------------------------------------------------------
+SECTION 23 — PILLAR 5: TRADING, MINING & COLONIZATION (PHASE 6)
+--------------------------------------------------------------------------------
+
+
+A. Architecture summary
+
+12 Core + 13 Additions + 9 Illegal Ops. Full Fleet Carrier management,
+colonization, illegal gameplay.
+
+
+B. Core Features v1.0
+
+   1. Commodity Price Intelligence — P2, v1.0.
+   2. Trade Loop Optimizer (Inara-based) — P2, v1.0.
+   3. Mining Intelligence Core (hotspots) — P2, v1.0.
+   4. Cargo Intelligence — P2, v1.0.
+   5. Interdiction Awareness for Traders — P2, v1.0.
+   6. EDDN Market Data Submission (opt-in) — P2, v1.0.
+   7. Efficiency & Logistics Tracking (cr/hr) — P2, v1.0.
+   8. Mining Coaching (Off/Light tiers) — P3, v1.0.
+
+
+C. Fleet Carrier Command Center
+
+   1. FC Navigation — P2, v1.0 (covered in Pillar 3).
+   2. Tritium Manager — P2, v1.0.
+   3. FC Market basic — P3, v1.1.
+   4. FC Full Command Center — P3, v1.1.
+
+
+D. Colonization
+
+   1. Colonization Operations (basic) — P3, v1.0.
+   2. Colonization Full Operations — P3, v1.1.
+
+
+E. Proposed Additions
+
+   A. Profit Margin Validator — P3, v1.0.
+   B. Station Economy Intelligence — P3, v1.1.
+   C. Rare Commodity Run Tracker — P4, v1.2.
+   D. Price History Analytics — P4, v1.2.
+   E. Passenger Mission Intelligence — P4, v1.2.
+   F. Ship Transfer Logistics — P4, v1.2.
+   G. Trade Build Validator — P4, v1.2.
+   H. Limpet Controller Optimization — P3, v1.1.
+   I. Fleet Carrier Market Maker — P4, v1.2.
+   J. Deep Space Refueling Network — P4, v1.2.
+   K. Mining Yield Optimization — P3, v1.1.
+   L. Smuggling Intelligence (base) — P5, v1.2+.
+   M. Community Goal Trade Optimization — P3, v1.1.
+
+
+F. Illegal Ops Suite (mostly deferred)
+
+   N. Heat-Level Management — P4, v1.2.
+   O. Stealth Approach Coaching — P4, v1.2.
+   P. Piracy Target Selection — P5, v2.0.
+   Q. Contraband Underground — P5, v2.0.
+   R. Scan Evasion Tactics — P4, v1.2.
+   S. Power & Kill Warrant Intelligence — P5, v2.0.
+   T. Criminal Safe Haven Registry — P5, v2.0.
+   U. Criminal Session Tracker — P4, v1.2.
+   V. Crime Clearance Optimization — P4, v1.2.
+
+
+G. Phase 6 duration estimate
+
+8 weeks at 15 hrs/week = 120 hours.
+
+
+--------------------------------------------------------------------------------
+SECTION 24 — PILLAR 6: ENGINEERING & MATERIALS (PHASE 8, REVISED ORDER)
+--------------------------------------------------------------------------------
+
+
+A. Architecture summary
+
+12 Core + 12 Additions. Materials, blueprints, Guardian tech, tech brokers,
+suit engineering. Originally planned as Phase 7 in Blueprint v4.0;
+re-sequenced to Phase 8 in Roadmap v4.1 to ship after Squadron basics and
+before Powerplay/BGS.
+
+
+B. Feature totals
+
+This pillar's detailed feature list (12 Core + 12 Additions) is preserved
+from v4.0 Blueprint Part III and v4.0 Roadmap. Content unchanged in v4.1
+and v4.2. Full expansion will be added to this section when Phase 8 begins,
+to prevent drift against the current game patch. Until then, treat the v4.0
+Roadmap (archived) as the detailed reference and this section as the count
+and sequencing.
+
+
+C. Phase 8 duration estimate
+
+Estimate carried forward from v4.0 Roadmap.
+
+
+--------------------------------------------------------------------------------
+SECTION 25 — PILLAR 7: SQUADRON & SOCIAL (PHASE 7)
+--------------------------------------------------------------------------------
+
+
+A. Architecture summary
+
+8 Core + 6 Stretch. ChaCha20-Poly1305 P2P encryption, Top Secret Mode, Burn
+Command. Re-sequenced in Roadmap v4.1 to Phase 7 (was Phase 9 in Blueprint
+v4.0) so a basic squadron capability ships as part of v1.0.
+
+
+B. Core Features v1.0
+
+   1. ChaCha20-Poly1305 encryption — P1, v1.0.
+   2. STUN-based P2P — P2, v1.0.
+   3. Basic invite codes — P2, v1.0.
+   4. Secure P2P Telemetry Sync (hull, shields, fuel) — P2, v1.0.
+   5. Squadron Leader Authority — P2, v1.0.
+   6. Group Persistence (Permanent + Temporary) — P2, v1.0.
+
+
+C. Deferred to v1.1+
+
+   1. Peer-Relay Fallback — P3, v1.1.
+   2. Shared Sub-Module Target Painting — P3, v1.1.
+   3. Mission Synchronization — P3, v1.1.
+   4. Wing-Based Mining Coordination — P3, v1.1.
+   5. Top Secret Mode (full spec) — P3, v1.1.
+   6. Burn Command (full spec) — P3, v1.1.
+   7. Three-Tier Cross-Squadron Model — P4, v1.2.
+
+
+D. Stretch Features
+
+   1. Shared Bookmarks — P3, v1.1.
+   2. Role Assignments — P4, v1.2.
+   3. Squadron Log — P4, v1.2.
+   4. Emergency Broadcast — P3, v1.1.
+   5. Loot Coordination — P5, v2.0.
+   6. Discord Integration — P4, v1.2.
+
+
+E. Phase 7 duration estimate
+
+6 weeks at 15 hrs/week = 90 hours.
+
+
+================================================================================
+PART VI — PHASE-BY-PHASE EXECUTION
+================================================================================
+
+
+--------------------------------------------------------------------------------
+SECTION 26 — PHASE 1: THE CORE
+--------------------------------------------------------------------------------
+
+
+A. Status
+
+COMPLETE (delivered 2026-04-18). Nominal plan was Weeks 1 to 6.
+
+
+B. Goal
+
+Foundation infrastructure. No user-facing features.
+
+
+C. Delivered
+
+   1. GitHub repo initialization (AGPL-3.0 + CLA template) — P1.
+   2. README, SECURITY.md, CONTRIBUTING.md — P1.
+   3. Python 3.11+ project structure — P1.
+   4. Native journal file watcher (watchdog) — P1.
+   5. Native Status.json watcher — P1.
+   6. Native journal event parser (core event types) — P1.
+   7. Async event dispatcher (asyncio) — P1.
+   8. State manager (with source priority enforcement) — P1.
+   9. SQLite + SQLAlchemy schema + Alembic migrations — P1.
+  10. Module loader architecture — P1.
+  11. AIProvider interface + GeminiProvider — P1.
+  12. NullProvider — P1.
+  13. Rate Limit Registry — P1.
+  14. Structured logging (structlog) with API-key redaction — P1.
+  15. Confirmation Gate middleware — P1.
+  16. Knowledge Base scaffold (empty files, schema) — P1.
+  17. KB validation pipeline (Principle 6) — P1.
+  18. Local encrypted config vault (DPAPI) — P1.
+  19. Resource Budget Framework (Principle 10) — P1.
+  20. Tauri v2 application skeleton — P1.
+  21. Basic Activity Log UI skeleton — P1.
+  22. FastAPI + WebSocket bridge to Tauri — P1.
+
+Phase 1 outcome: 84/84 tests green, mypy strict clean, ruff clean, CI green,
+26 source files. See Part VIII for the full retrospective.
+
+
+D. Duration
+
+Nominal: 6 weeks at 15 hrs/week = 90 hours.
+Actual:  1 day of intensive AI-assisted development (approximately 8.5 hours
+         of commits) on 2026-04-18.
+
+
+--------------------------------------------------------------------------------
+SECTION 27 — PHASE 2: SHIP TELEMETRY (ACTIVE)
+--------------------------------------------------------------------------------
+
+
+A. Status
+
+ACTIVE. Nominal weeks 7 to 10.
+
+
+B. Goal
+
+Deliver Pillar 1. Stand up the broadcaster other pillars will subscribe to.
+
+
+C. Scope
+
+See Section 19. 11 features locked; 7 prior Pillar 1 items deferred with
+dependency rationale.
+
+
+D. Phase 2 does NOT deliver
+
+   1. The 5 deferred P2 additions (Shield Intelligence, Module Priority
+      Mapping, Repair & Rearm Intel, Ship Performance Logging, Voice
+      Queries).
+   2. Predictive Module-Targeting Alerts.
+   3. Tactical Threat Assessment.
+   4. Multi-Ship State Tracking.
+   5. Any Pillar 2 (Combat), Pillar 3 (Exploration), Pillar 5 (Trading), or
+      other pillar features.
+   6. UI for Pillar 1 (that is Phase 3).
+   7. Voice I/O for ship queries (requires UI Shell first).
+   8. CAPI integration (pending Frontier approval, Phase 3+ regardless).
+
+
+E. Duration
+
+4 weeks nominal at 15 hrs/week = 60 hours.
+
+
+--------------------------------------------------------------------------------
+SECTION 28 — PHASE 2.5: DEFERRED PILLAR 1 WORK
+--------------------------------------------------------------------------------
+
+
+A. Status
+
+Planned. Activated after Phase 4 Combat events exist.
+
+
+B. Scope
+
+   1. Shield Intelligence.
+   2. Repair & Rearm Intelligence (pairs with Pillar 5 station data).
+   3. Predictive Module-Targeting Alerts.
+   4. Tactical Threat Assessment.
+   5. Multi-Ship State Tracking.
+
+
+--------------------------------------------------------------------------------
+SECTION 29 — PHASE 3: UI SHELL
+--------------------------------------------------------------------------------
+
+
+A. Status
+
+Planned. 4 weeks nominal.
+
+
+B. Goal
+
+Commander-facing interface.
+
+
+C. Deliverables
+
+   1. Tauri desktop app full shell — P1, medium.
+   2. Game overlay (transparent always-on-top) — P1, high.
+   3. FastAPI bridge Python <-> Tauri — P1, medium.
+   4. First-Run Onboarding (Three-Path Model) — P1, medium.
+   5. Privacy Page with opt-in toggles — P1, low.
+   6. Settings panel (Three-Tier Customization) — P1, medium.
+   7. Activity Log UI (full) — P1, medium.
+   8. Data flow transparency map — P1, low.
+   9. Resource dashboard UI — P2, low.
+  10. Accessibility framework (Principle 1) — P1, medium.
+  11. Color-blind modes — P2, low.
+  12. Font size adjustments — P2, low.
+  13. Keyboard-only navigation — P2, medium.
+  14. Credits/Contributors page (Principle 4) — P2, low.
+  15. SBOM display — P2, low.
+
+
+D. Phase 3 milestone
+
+Prototype ready. Submit Frontier Developer application and Inara whitelisting
+request at Phase 3 close.
+
+
+E. Duration
+
+4 weeks at 15 hrs/week = 60 hours.
+
+
+--------------------------------------------------------------------------------
+SECTION 30 — PHASE 4: COMBAT PILLAR
+--------------------------------------------------------------------------------
+
+
+A. Scope
+
+See Section 20 (Pillar 2).
+
+
+B. Duration
+
+6 weeks at 15 hrs/week = 90 hours.
+
+
+--------------------------------------------------------------------------------
+SECTION 31 — PHASE 5: EXPLORATION PILLAR
+--------------------------------------------------------------------------------
+
+
+A. Scope
+
+See Section 21 (Pillar 3).
+
+
+B. Duration
+
+6 weeks at 15 hrs/week = 90 hours.
+
+
+--------------------------------------------------------------------------------
+SECTION 32 — PHASE 6: TRADING / MINING PILLAR
+--------------------------------------------------------------------------------
+
+
+A. Scope
+
+See Section 23 (Pillar 5).
+
+
+B. Duration
+
+8 weeks at 15 hrs/week = 120 hours.
+
+
+--------------------------------------------------------------------------------
+SECTION 33 — PHASE 7: SQUADRON PILLAR (BASIC)
+--------------------------------------------------------------------------------
+
+
+A. Scope
+
+See Section 25 (Pillar 7). Core v1.0 only.
+
+
+B. Duration
+
+6 weeks at 15 hrs/week = 90 hours.
+
+
+--------------------------------------------------------------------------------
+SECTION 34 — PHASE 8: ENGINEERING PILLAR
+--------------------------------------------------------------------------------
+
+
+A. Scope
+
+See Section 24 (Pillar 6).
+
+
+B. Duration
+
+Estimate carried forward from v4.0 Roadmap; re-baselined at Phase 7 close.
+
+
+--------------------------------------------------------------------------------
+SECTION 35 — PHASE 9: POWERPLAY 2.0 & BGS PILLAR
+--------------------------------------------------------------------------------
+
+
+A. Scope
+
+See Section 22 (Pillar 4).
+
+
+B. Duration
+
+Estimate carried forward from v4.0 Roadmap; re-baselined at Phase 8 close.
+
+
+--------------------------------------------------------------------------------
+SECTION 36 — POLISH & INTEGRATION (FINAL PRE-v1.0)
+--------------------------------------------------------------------------------
+
+
+A. Scope
+
+   1. Cross-pillar integration validation — P1, medium.
+   2. Performance profiling and latency audit — P1, medium.
+   3. Self security audit — P1, medium.
+   4. Hallucination Guard stress test — P1, low.
+   5. KB completion pass (for shipping features) — P1, medium.
+   6. Defensive Update validation framework — P1, medium.
+   7. Explainability UI (Tier 3 inline) — P1, medium.
+   8. Documentation (user guide, FAQ) — P1, medium.
+   9. SignPath Foundation application — P2, low.
+  10. Beta release preparation — P1, low.
+
+
+B. Duration
+
+4 weeks at 15 hrs/week = 60 hours.
+
+
+--------------------------------------------------------------------------------
+SECTION 37 — EFFORT SUMMARY
+--------------------------------------------------------------------------------
+
+
+A. Phase-by-phase (nominal vs actual)
+
+   1. Phase 1 — Core: 6 weeks nominal. Complete (1 day, 2026-04-18).
+   2. Phase 2 — Ship Telemetry (11 features): 4 weeks nominal. Active.
+   3. Phase 3 — UI Shell: 4 weeks nominal. Planned.
+   4. Phase 4 — Combat: 6 weeks nominal. Planned.
+   5. Phase 5 — Exploration: 6 weeks nominal. Planned.
+   6. Phase 6 — Trading/Mining: 8 weeks nominal. Planned.
+   7. Phase 7 — Squadron (basic): 6 weeks nominal. Planned.
+   8. Phase 8 — Engineering: TBD at Phase 7 close.
+   9. Phase 9 — Powerplay 2.0 & BGS: TBD at Phase 8 close.
+  10. Polish — Final pre-v1.0: 4 weeks nominal.
+
+Total nominal remaining (Phases 2 through Polish): approximately 38 weeks
+(Engineering and Powerplay not yet quantified). Roughly 9 months at
+15 hrs/week.
+
+
+B. Timeline by availability
+
+   - 10 hrs/week: approximately 14 months to v1.0.
+   - 15 hrs/week: approximately 9 months to v1.0.
+   - 20 hrs/week: approximately 7 months to v1.0.
+   - AI-accelerated pace (as Phase 1): substantially faster, variable.
+
+Realistic expectation: v1.0 within 6 to 12 months from Phase 2 start,
+depending on availability and whether AI-acceleration holds.
+
+
+================================================================================
+PART VII — DEPENDENCIES AND BLOCKERS
+================================================================================
+
+
+--------------------------------------------------------------------------------
+SECTION 38 — RESOLVED PHASE 1 DEPENDENCIES
+--------------------------------------------------------------------------------
+
+   1. Python 3.11 install + uv + venv — resolved.
+   2. Tauri v2 + Rust toolchain — resolved.
+   3. GitHub repo + CI — resolved.
+   4. DPAPI access for vault — resolved (Windows-only for v1.0).
+
+
+--------------------------------------------------------------------------------
+SECTION 39 — ACTIVE PHASE 2 DEPENDENCIES
+--------------------------------------------------------------------------------
+
+   1. Clean journal schema from current ED patch.
+      - Risk: low.
+      - Mitigation: Defensive Update framework catches schema changes.
+   2. Status.json stability.
+      - Risk: low.
+      - Mitigation: already exercised in Phase 1; well-documented.
+   3. KB verification (no external API needed for Pillar 1 mechanics).
+      - Risk: medium.
+      - Mitigation: most Pillar 1 mechanics verifiable via in-game testing.
+
+
+--------------------------------------------------------------------------------
+SECTION 40 — CRITICAL DEPENDENCIES FOR LATER PHASES
+--------------------------------------------------------------------------------
+
+   1. Frontier CAPI approval.
+      - Blocks: CAPI-dependent features in all pillars.
+      - Mitigation: features gated behind approval; rest ship regardless.
+   2. Inara whitelisting.
+      - Blocks: CMDR lookups, faction data.
+      - Mitigation: ship without; update when approved.
+   3. EDDI (user install).
+      - Blocks: voice features.
+      - Mitigation: documentation clear; core features work without.
+   4. VoiceAttack (user purchase).
+      - Blocks: voice commands.
+      - Mitigation: optional feature; documentation clear.
+   5. Spansh data dump availability.
+      - Blocks: route plotting, system intel.
+      - Mitigation: if unavailable, fall back to live API (slower).
+
+
+--------------------------------------------------------------------------------
+SECTION 41 — KNOWN RISKS
+--------------------------------------------------------------------------------
+
+   1. Frontier API schema changes (mitigated by Defensive Update framework).
+   2. External API rate limit tightening (mitigated by local caching and
+      Graceful Failure).
+   3. Community data partner withdrawal (mitigated by documented migration
+      path, Law 10).
+   4. Solo maintainer burnout (mitigated by scope discipline, volunteer
+      contributions, CLA infrastructure).
+
+
+================================================================================
+PART VIII — PHASE 1 RETROSPECTIVE
+================================================================================
+
+Phase 1 learnings captured here so they inform Phase 2 decisions and do not
+evaporate.
+
+
+--------------------------------------------------------------------------------
+SECTION 42 — TIMING REALITY
+--------------------------------------------------------------------------------
+
+   - Nominal plan: 6 weeks at approximately 15 hrs/week (approximately 90
+     hours total).
+   - Actual delivery: one day of intensive AI-assisted development
+     (2026-04-18, approximately 8.5 hours of commits).
+   - Compression factor: approximately 10x faster than nominal.
+   - What enabled this:
+       A. Disciplined infrastructure planning.
+       B. AI handling boilerplate.
+       C. Clear Blueprint to follow.
+       D. Test-first discipline.
+       E. Zero architectural ambiguity to resolve mid-work.
+
+
+--------------------------------------------------------------------------------
+SECTION 43 — WHAT WORKED
+--------------------------------------------------------------------------------
+
+   1. Blueprint-driven development. The v4.0 Blueprint gave Phase 1 a clear
+      target. Every decision was already made; implementation was execution,
+      not design.
+   2. Test-first CI gates. mypy strict + ruff + pytest on every commit caught
+      issues early. 84 of 84 tests green at Phase 1 close.
+   3. Companion docs strategy. Splitting Blueprint from Roadmap from
+      Compliance Matrix from Dev Guide kept each focused. (Note: v4.2 now
+      folds Roadmap into the Blueprint; the Compliance Matrix and Dev Guides
+      remain separate.)
+   4. Law-based architecture. When an implementation question came up, the
+      Ten Laws gave a framework for resolution (for example, "does this
+      violate Law 6 performance? Law 5 hallucination?").
+
+
+--------------------------------------------------------------------------------
+SECTION 44 — WHAT WE LEARNED (WINDOWS AND TOOLING)
+--------------------------------------------------------------------------------
+
+   1. OneDrive conflicts with Git. Background sync, case-sensitivity quirks,
+      and CRLF drift caused duplicate files (such as -TeamRocket.*) and
+      git-status confusion after a folder move. Permanently disable OneDrive
+      on project folders or use a non-synced path from the start.
+   2. "ruff check --fix" is the correct invocation, not "ruff --fix".
+   3. "UV_LINK_MODE=copy" is required on Windows when the uv cache and
+      project cross filesystems or OneDrive folders. Set permanently with
+      "setx UV_LINK_MODE copy".
+   4. "git fetch --prune" should be configured globally
+      ("git config --global fetch.prune true") so stale remote refs do not
+      accumulate.
+   5. Web-UI commits bypass pre-commit hooks. All code changes should go
+      through local git, not GitHub's web editor.
+   6. mypy type-checks untracked .py files in your package directory. The
+      source-file count is a useful sanity indicator that cruft is gone.
+   7. Test count is a proxy for feature count. 84 tests for Phase 1
+      infrastructure. Phase 2 target is 130+ tests.
+
+
+================================================================================
+PART IX — STATUS DASHBOARD
+================================================================================
+
+
+A. Constitutional foundations
+
+   1. Ten Laws (v4.0): locked.
+   2. Ten Architectural Principles: locked.
+   3. All pillar specifications: locked.
+   4. Law 9 Interpretation B: locked.
+
+
+B. Phase 1 infrastructure (operational)
+
+   1. Journal watcher + event dispatcher: operational (Phase 1).
+   2. StateManager + SQLite + Alembic: operational (Phase 1).
+   3. AIProvider abstraction + Gemini + Null: operational (Phase 1).
+   4. Confirmation Gate middleware: operational (Phase 1).
+   5. FastAPI bridge + WebSocket: operational (Phase 1).
+   6. DPAPI config vault: operational (Phase 1).
+   7. structlog with API-key redaction: operational (Phase 1).
+   8. Resource Budget Framework + ResourceMonitor: operational (Phase 1).
+   9. UI Framework (Tauri v2) skeleton: operational (Phase 1).
+  10. License (AGPL-3.0 + CLA): operational (Phase 1).
+  11. Zero-Budget Infrastructure: operational (Phase 1).
+  12. KB Stewardship infrastructure: operational (Phase 1).
+  13. Resource Efficiency framework: operational (Phase 1).
+  14. Defensive Update infrastructure: operational (Phase 1).
+
+
+C. Phase 2 targets (active)
+
+   1. Ship State Broadcaster (Pillar 1 pub/sub).
+   2. Latency Budget Enforcement (CI hard-fail).
+   3. Pillar 1: 8 P1 Core Features.
+   4. Pillar 1: Power Distribution (P2).
+   5. Pillar 1: Heat Management (P2).
+   6. Pillar 1: Rebuy Calculator (P2).
+
+
+D. Deferred to later phases
+
+   1. Privacy page + first-run toggles: Phase 3 UI.
+   2. Explainability (Tier 3 inline): Phase 3 UI. Activity Log already
+      operational from Phase 1.
+   3. Accessibility framework: Phase 3 UI.
+   4. EDDN default opt-in: locked; implementation Phase 5+.
+
+
+E. Companion documents
+
+   1. Compliance Matrix — v4.1, current.
+   2. Approval Applications — v4.0, unchanged. Submission deferred to end of
+      Phase 3.
+   3. CLAUDE.md v2.0 — active; engineering assistant operational parameters.
+   4. Phase 1 Development Guide — archived (Phase 1 complete).
+   5. Phase 2 Development Guide — active; week-by-week Pillar 1 execution.
+
+
+================================================================================
+PART X — COMPANION DOCUMENTS
+================================================================================
+
+
+A. OmniCOVAS_Compliance_Matrix_v4_1.txt
+   - Complete compliance audit covering every external service, legal
+     obligation, attribution requirement, and Phase 1 operational status.
+
+
+B. OmniCOVAS_Approval_Applications_v4_0.txt
+   - Pre-drafted application packages for Frontier Developer approval and
+     Inara whitelisting. Unchanged. Submission deferred to end of Phase 3.
+
+
+C. OmniCOVAS_Phase2_Development_Guide.docx
+   - Week-by-week execution guide for Pillar 1 Ship Telemetry
+     (Weeks 7 through 10).
+
+
+D. CLAUDE.md v2.0
+   - Engineering assistant operational parameters aligned to Phase 2 scope,
+     patterns, and success criteria. Scheduled for redesign after this
+     Blueprint consolidation.
+
+
+E. OmniCOVAS_Phase1_Development_Guide.docx (archived)
+   - Historical reference. Phase 1 work is complete; preserved for context
+     but no longer an active development guide.
+
+
+F. OmniCOVAS_Index.md (new in v4.2)
+   - Document map and topic index. Primary lookup tool to locate sections
+     and topics across all OmniCOVAS documents without manual search.
+
+
+--------------------------------------------------------------------------------
+END OF DOCUMENT
+--------------------------------------------------------------------------------
+
+OmniCOVAS Master Architecture Blueprint v4.2 — Consolidated Release
+Status: Phase 2 Active
+Last updated: 2026-04-22

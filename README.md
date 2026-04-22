@@ -1,217 +1,241 @@
-# OmniCOVAS
+OmniCOVAS
+=========
 
-**Intelligence suite for Elite Dangerous commanders.**
+One command deck for Elite Dangerous. Your intelligence, your data, your
+rules.
 
-OmniCOVAS is a single, portable, high-performance intelligence suite — one unified command deck replacing the fragmented ecosystem of third-party ED tools. Built for commanders who want precise, fast, law-bound intelligence during gameplay.
+Open source. AGPL-3.0. Windows 10/11.
 
-**COVAS:** Computer Operated Voice Assistance System — inspired by the ship computer voice in Elite Dangerous.
 
----
+--------------------------------------------------------------------------------
+1. WHAT IS OMNICOVAS?
+--------------------------------------------------------------------------------
 
-## 🎯 Project Status
+COVAS stands for Computer Operated Voice Assistance System, the in-game AI
+companion voice familiar to every Elite Dangerous commander. OmniCOVAS is the
+out-of-game version: a single desktop application that consolidates the work
+currently scattered across a dozen third-party tools (combat telemetry,
+navigation planning, BGS tracking, engineering progress, exobiology hunting,
+trade optimization, squadron coordination) into one unified command deck.
 
-| | |
-|---|---|
-| **Current Version** | Pre-alpha (0.1.0) |
-| **Active Phase** | 🟢 Phase 2 — Ship Telemetry Pillar (started 2026-04-19) |
-| **Completed Phases** | ✅ Phase 1 — Foundation Infrastructure (completed 2026-04-18) |
-| **Next Milestone** | Pillar 1 features operational + ship state broadcaster live |
-| **License** | AGPL-3.0 |
-| **Platform** | Windows 10 / Windows 11 (v1.0) |
-| **CI Status** | Green — 84/84 tests, mypy strict clean, ruff clean |
+Unlike the built-in COVAS, OmniCOVAS is:
 
----
+   A. Yours. Runs entirely on your machine. Your journal, your settings, your
+      API keys never leave your computer unless you explicitly opt in.
+   B. Honest. Every piece of state is traceable to a telemetry source. If the
+      system does not know something, it says so. Never invents data.
+   C. Agnostic. Works with Google Gemini (free tier), local LLMs via Ollama,
+      paid cloud AI, or no AI at all. All core features work without any AI.
+   D. Gated. The AI suggests. The commander decides. Always. No background
+      automation, ever.
+   E. Open. Full source code, fully auditable, zero paywalls, zero telemetry
+      back to us.
 
-## 🏗️ Development Status
 
-### ✅ What Works Today (Phase 1 Complete)
+--------------------------------------------------------------------------------
+2. WHAT IT DOES (AT MATURITY)
+--------------------------------------------------------------------------------
 
-The project's foundation is operational:
+OmniCOVAS is organized around seven pillars, each a complete domain the
+commander can lean on:
 
-- **Live journal and Status.json monitoring** — captures game events in real time with thread-safe async dispatch
-- **Async event dispatcher** — routes every ED event type to its handler with error isolation
-- **Commander state tracking** — current system, station, ship, dock state, and more, with source-priority conflict resolution (journal > status.json > CAPI > EDDN)
-- **SQLite persistence** — every journal event stored for history, with Alembic migrations for clean schema evolution
-- **AI abstraction layer** — AIProvider interface with GeminiProvider and NullProvider implementations. Swap providers (Gemini, future OpenAI/Claude, local Ollama, or none) with a single config entry
-- **Knowledge Base scaffold** — version-tagged entries with validation pipeline; AI responses must be KB-grounded (Law 5)
-- **Confirmation Gate** — every AI suggestion passes through a middleware layer; no game actions fire without explicit commander confirmation (Law 1)
-- **FastAPI internal bridge** — Python core talks to Tauri UI via REST + WebSocket on a dynamically-selected port with CORS for `tauri://localhost`
-- **DPAPI encrypted config vault** — API keys encrypted at rest, tied to the commander's Windows login
-- **structlog with API-key redaction** — API keys never appear in log files even if they leak into a log call
-- **Resource Budget Framework** — memory, CPU, disk, and bandwidth use measured and bounded via `resource_budget.yaml`
-- **Tauri v2 desktop application shell** — window launches, FastAPI sidecar starts, live data flows to the UI
+   1. Ship Telemetry. Live hull, shields, heat, fuel, cargo, modules. The
+      foundation every other pillar reads from.
+   2. Tactical & Combat. Target intel, interdiction warnings, bounty tracking,
+      CZ intelligence, PvP gank database, Anti-Xeno coaching.
+   3. Exploration & Navigation. Spansh route plotting, FSS/DSS scanning
+      intelligence, bookmark system, native exobiology sample tracking.
+   4. Powerplay 2.0 & BGS. Merit intelligence, tick monitoring, faction
+      influence analytics, squadron BGS coordination.
+   5. Trading, Mining & Colonization. Commodity price intelligence, trade
+      loop optimization, Fleet Carrier command center, colonization
+      logistics.
+   6. Engineering & Materials. Material tracking, blueprint management,
+      Guardian tech, tech broker planning, suit engineering.
+   7. Squadron & Social. Encrypted P2P telemetry sync between wing members,
+      shared bookmarks, coordinated operations.
 
-### 🟢 What's In Progress (Phase 2 Active)
+All pillars are telemetry-driven, powered by the Elite Dangerous journal
+files, Status.json, and the Frontier Companion API (with developer approval).
+External data services (EDDN, EDSM, Inara, Spansh, EDAstro) are consumed
+respectfully, within documented rate limits, with opt-in for every outbound
+data flow.
 
-**Pillar 1: Ship Telemetry** — 11 features locked for Phase 2:
 
-1. Live Ship State tracking
-2. Module Health Tracking
-3. Hull & Integrity Triggers
-4. Loadout Awareness
-5. Fuel & Jump Range
-6. Cargo Monitoring
-7. Critical Event Broadcaster
-8. Extended Event Broadcaster
-9. Power Distribution Intelligence
-10. Heat Management Intelligence
-11. Rebuy Calculator
+--------------------------------------------------------------------------------
+3. STATUS
+--------------------------------------------------------------------------------
 
-Plus the architectural backbone: **ShipStateBroadcaster** (the pub/sub foundation every future pillar will subscribe to) and **Latency Budget Enforcement** as a CI hard-fail.
+Pre-alpha. Phase 2 active (Ship Telemetry pillar). Not yet ready for end
+users.
 
-### ⏳ What's Coming (Phase 3+)
 
-- Phase 3: UI Shell + first-run privacy page + Frontier/Inara application submissions
-- Phase 4: Pillar 2 — Combat
-- Phase 5: Pillar 3 — Exploration & Navigation
-- Phase 6: Pillar 5 — Trading, Mining & Colonization
-- Phase 7: Pillar 7 — Squadron & Social (ChaCha20-Poly1305 P2P)
-- Phase 8: Pillar 6 — Engineering & Materials
-- Phase 9: Pillar 4 — Powerplay 2.0 & BGS
+--------------------------------------------------------------------------------
+4. KEY PRINCIPLES
+--------------------------------------------------------------------------------
 
-See [OmniCOVAS_Roadmap_v4_1.txt](OmniCOVAS_Roadmap_v4_1.txt) for the full feature list and priority ranking.
+   - The AI suggests. The commander decides. Always.
+   - Every rule, license, EULA, and ToS is absolute.
+   - Rate limits are hard constraints.
+   - Verified data only; the system never invents.
+   - Zero lag; function before flair.
+   - Commander owns their data; everything is auditable.
 
----
+The complete constitutional framework (Ten Laws, Ten Architectural Principles)
+lives in the Master Blueprint.
 
-## ⚖️ The Ten Laws (Governance)
 
-OmniCOVAS is governed by a constitutional framework. Every architectural decision flows from these:
+--------------------------------------------------------------------------------
+5. PRIVACY AT A GLANCE
+--------------------------------------------------------------------------------
 
-1. **Confirmation Gate** — AI suggests, commander confirms. Always.
-2. **Legal Compliance Protocol** — Every EULA, ToS, license is absolute.
-3. **API Respect Protocol** — Rate limits are hard constraints, not guidelines.
-4. **AI Provider Agnosticism** — Gemini default. Any AI, local, cloud, or none.
-5. **Zero Hallucination Doctrine** — Verified data only. KB-grounded.
-6. **Performance Priority** — Zero lag. Function before flair.
-7. **Telemetry Rigidity** — Reality equals telemetry received. No assumptions.
-8. **Sovereignty & Transparency** — Commander owns their data. System is always auditable.
-9. **Original Integration** — Build native ED features. Integrate compliantly.
-10. **Unified Intelligence, Independent Operation** — Centralized, no critical dependencies.
+OmniCOVAS is local-first by default. No data leaves your machine unless you
+explicitly enable an outbound data path.
 
-Full detail in [OmniCOVAS_Master_Blueprint_v4_1.txt](OmniCOVAS_Master_Blueprint_v4_1.txt).
+   A. All commander data stays on your computer.
+   B. API keys encrypted at rest (Windows DPAPI).
+   C. API keys redacted from logs automatically.
+   D. No telemetry, no analytics, no tracking.
+   E. Every external data flow is opt-in (Privacy-by-Default).
+   F. First-run privacy page with explicit toggles (coming in a later
+      release).
+   G. Activity Log exposes every action the system takes.
 
----
+Full compliance detail lives in the Compliance Matrix.
 
-## 🔐 Privacy & Trust
 
-OmniCOVAS is **local-first by default.** No data leaves your machine unless you explicitly enable an outbound data path.
+--------------------------------------------------------------------------------
+6. REQUIREMENTS
+--------------------------------------------------------------------------------
 
-- All commander data stays on your computer
-- API keys encrypted at rest (Windows DPAPI)
-- API keys redacted from logs automatically
-- No telemetry, no analytics, no tracking
-- Every external data flow is opt-in (Privacy-by-Default)
-- First-run privacy page with explicit toggles (coming in Phase 3)
-- Activity Log exposes every action the system takes
+   A. Operating system: Windows 10 or Windows 11.
+   B. Python: 3.11 (pinned; 3.12 and 3.13 not yet supported).
+   C. Rust toolchain + Microsoft C++ Build Tools (for Tauri).
+   D. Elite Dangerous installed (for live telemetry).
+   E. Optional for voice features in later phases: EDDI (GPL-3.0, installed
+      separately by commander) and VoiceAttack (commercial, installed
+      separately by commander). Core non-voice features work entirely
+      standalone.
 
-See [OmniCOVAS_Compliance_Matrix_v4_1.txt](OmniCOVAS_Compliance_Matrix_v4_1.txt) for the complete compliance audit.
 
----
+--------------------------------------------------------------------------------
+7. TECHNOLOGY STACK (SUMMARY)
+--------------------------------------------------------------------------------
 
-## 🛠️ Technology Stack
+   1. Python 3.11.
+   2. asyncio, watchdog, aiofiles for journal monitoring.
+   3. SQLAlchemy 2.x, Alembic, aiosqlite for persistence.
+   4. FastAPI + uvicorn for the internal bridge.
+   5. structlog for logging with automatic API-key redaction.
+   6. google-genai SDK for Gemini.
+   7. psutil for resource monitoring.
+   8. pywin32 for the DPAPI vault.
+   9. pyyaml for config.
+  10. Tauri v2 (Rust + WebView) for the desktop UI.
+  11. pytest, mypy strict, ruff, pre-commit enforced in CI.
 
-### Core (Phase 1 operational)
-- Python 3.11 (pinned)
-- asyncio + watchdog + aiofiles (journal monitoring)
-- SQLAlchemy 2.x + Alembic + aiosqlite (persistence)
-- FastAPI + uvicorn (internal bridge)
-- structlog (logging)
-- google-genai (Gemini SDK)
-- psutil (resource monitoring)
-- pywin32 (DPAPI vault)
-- pyyaml (config)
 
-### Frontend
-- Tauri v2 (Rust + WebView)
-- Node.js LTS (tooling)
+--------------------------------------------------------------------------------
+8. INSTALLATION (DEVELOPMENT)
+--------------------------------------------------------------------------------
 
-### Quality Gates (all enforced in CI)
-- pytest (84 tests passing, ≥80% coverage target)
-- mypy strict mode (zero errors)
-- ruff (zero violations)
-- pre-commit hooks (local enforcement)
+OmniCOVAS is in pre-alpha and not yet ready for end users. For developers
+following along:
 
-### Voice (Phase 3+ features, optional)
-- EDDI (user-installed, GPL-3.0, external)
-- VoiceAttack (user-purchased, commercial, external)
+Prerequisites:
+   - Windows 10 or Windows 11.
+   - Python 3.11.
+   - Git, Node.js LTS, Rust toolchain.
+   - uv Python package manager.
 
----
+Setup (PowerShell):
 
-## 📦 Installation (Development)
+   git clone https://github.com/RocketsProjects/omnicovas.git
+   cd omnicovas
+   uv venv --python 3.11
+   .venv\Scripts\activate
+   uv sync
+   setx UV_LINK_MODE copy   # one-time Windows setup
+   pre-commit install
 
-OmniCOVAS is in pre-alpha and not yet ready for end users. For developers following along:
+Verify:
 
-**Prerequisites:**
-- Windows 10 or Windows 11
-- Python 3.11 (exact version — 3.12/3.13 not yet supported)
-- Git, Node.js LTS, Rust toolchain
-- `uv` Python package manager
+   ruff check omnicovas/
+   mypy omnicovas/
+   pytest
 
-**Setup:**
-```powershell
-git clone https://github.com/RocketsProjects/omnicovas.git
-cd omnicovas
-uv venv --python 3.11
-.venv\Scripts\activate
-uv sync
-setx UV_LINK_MODE copy  # One-time Windows setup
-pre-commit install
+Expected result: ruff clean, mypy clean, all tests passing.
 
-# Verify
-ruff check omnicovas/
-mypy omnicovas/
-pytest
-```
 
-Expected result: ruff clean, mypy clean on 26 source files, 84/84 pytest tests passing.
-
----
-
-## 🤝 Contributing
+--------------------------------------------------------------------------------
+9. CONTRIBUTING
+--------------------------------------------------------------------------------
 
 OmniCOVAS welcomes contributions. A few things to know first:
 
-- All contributions require signing the Contributor License Agreement. See [CLA.md](CLA.md).
-- Code must pass pre-commit hooks locally (ruff + mypy) before PR.
-- All PRs run through GitHub Actions CI (ruff + mypy + pytest).
-- Please open an issue first for anything larger than a small fix, so we can align on scope.
+   A. All contributions require signing the Contributor License Agreement.
+      See CLA.md.
+   B. Code must pass pre-commit hooks locally (ruff + mypy) before PR.
+   C. All PRs run through GitHub Actions CI (ruff + mypy + pytest).
+   D. Please open an issue first for anything larger than a small fix, so we
+      can align on scope.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+See CONTRIBUTING.md for the full workflow.
 
-### Security
 
-Please report security issues privately via GitHub's Private Vulnerability Reporting. See [SECURITY.md](SECURITY.md) for details. Reporters are credited in the project's Hall of Fame.
+--------------------------------------------------------------------------------
+10. SECURITY
+--------------------------------------------------------------------------------
 
----
+Please report security issues privately via GitHub's Private Vulnerability
+Reporting. See SECURITY.md for details. Reporters are credited in the
+project's Hall of Fame.
 
-## 📜 License
 
-OmniCOVAS is licensed under AGPL-3.0. See [LICENSE](LICENSE).
+--------------------------------------------------------------------------------
+11. LICENSE
+--------------------------------------------------------------------------------
+
+OmniCOVAS is licensed under AGPL-3.0. See LICENSE for the full text.
 
 The AGPL-3.0 license means:
-- You can use, study, modify, and distribute OmniCOVAS freely
-- Modifications must be shared under the same license
-- If you run OmniCOVAS as a network service, you must publish your source
-- Commercial alternatives are preserved via the Contributor License Agreement
 
----
+   A. You can use, study, modify, and distribute OmniCOVAS freely.
+   B. Modifications must be shared under the same license.
+   C. If you run OmniCOVAS as a network service, you must publish your
+      source.
+   D. Commercial alternatives are preserved via the Contributor License
+      Agreement.
 
-## 🙏 Acknowledgments
 
-OmniCOVAS is built on the shoulders of the Elite Dangerous community tool ecosystem. Deep gratitude to the maintainers of EDDN, EDSM, Inara, Spansh, EDAstro, EDDI, Elite BGS, BGS-Tally, EDMC, VoiceAttack, and the many others who make the ED community what it is.
+--------------------------------------------------------------------------------
+12. ACKNOWLEDGMENTS
+--------------------------------------------------------------------------------
 
-When Phase 3 UI ships, these attributions will be visible throughout the application UI, not just in documentation.
+OmniCOVAS is built on the shoulders of the Elite Dangerous community tool
+ecosystem. Deep gratitude to the maintainers of EDDN, EDSM, Inara, Spansh,
+EDAstro, EDDI, Elite BGS, BGS-Tally, EDMC, VoiceAttack, and the many others
+who make the ED community what it is.
 
----
+When Phase 3 UI ships, these attributions will be visible throughout the
+application UI, not just in documentation.
 
-## ⚠️ Trademark Disclaimer
 
-*OmniCOVAS is not an official tool and is not affiliated with Frontier Developments. "Elite", "Elite Dangerous", and "Frontier" are trademarks of Frontier Developments plc.*
+--------------------------------------------------------------------------------
+13. TRADEMARK DISCLAIMER
+--------------------------------------------------------------------------------
 
----
+OmniCOVAS is not an official tool and is not affiliated with Frontier
+Developments. "Elite", "Elite Dangerous", and "Frontier" are trademarks of
+Frontier Developments plc.
 
-**Project:** OmniCOVAS
-**Maintainer:** [@RocketsProjects](https://github.com/RocketsProjects)
-**License:** AGPL-3.0
-**Status:** Pre-alpha, Phase 2 in progress
-**Last updated:** 2026-04-19
+
+--------------------------------------------------------------------------------
+14. PROJECT METADATA
+--------------------------------------------------------------------------------
+
+   - Project: OmniCOVAS
+   - Maintainer: @RocketsProjects (https://github.com/RocketsProjects)
+   - License: AGPL-3.0
+   - Status: Pre-alpha, Phase 2 in progress
+   - Last updated: 2026-04-22
