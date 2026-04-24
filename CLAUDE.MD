@@ -1,19 +1,19 @@
 # CLAUDE.MD — Engineering Assistant Alignment File
 
-**Version:** 2.1 | **Phase:** 2 of N — Ship Telemetry (Weeks 7–10) | **Updated:** 2026-04-22
-**Authority chain:** Master Blueprint v4.2 > this file > session conversation
-**Companions:** `OmniCOVAS_Master_Blueprint_v4_2.txt`, `OmniCOVAS_Phase2_Development_Guide.docx`, `OmniCOVAS_Compliance_Matrix_v4_1.txt`, `OmniCOVAS_Index.md`
-**Supersedes:** CLAUDE.md v2.0 (2026-04-19) and v1.0 (Phase 1, archived)
+**Version:** 2.2 | **Phase:** 2 of N — Ship Telemetry (Weeks 7–10) | **Updated:** 2026-04-23
+**Authority chain:** Master Blueprint v4.2 > this file > Soldier.md > Playbook > session conversation
+**Companions:** `OmniCOVAS_Master_Blueprint_v4_2.txt`, `OmniCOVAS_Phase2_Development_Guide.docx`, `OmniCOVAS_Compliance_Matrix_v4_1.txt`, `OmniCOVAS_Index.md`, `docs/ai/Soldier.md`
+**Supersedes:** CLAUDE.md v2.1 (2026-04-22), v2.0, and v1.0 (archived)
 
 ---
 
-## CHANGELOG (v2.0 → v2.1)
+## CHANGELOG (v2.1 → v2.2)
 
-- Blueprint ref updated v4.1 → v4.2 (Roadmap v4.1 merged into v4.2)
-- Date refresh (2026-04-22)
-- Document compressed; zero substantive content removed
-- Escape-artifact cleanup from prior Word round-trip
-- Escalation merged into Debugging; Final Reminder merged into Role
+- New **Section XV — Two-Tier AI Workflow (Commander / Soldier)**
+- Authority chain extended to include `Soldier.md` and per-task Playbooks
+- Section XIII file-locations block adds `docs/ai/Soldier.md` and `docs/ai/playbooks/`
+- Date refresh (2026-04-23)
+- No substantive change to Sections I–XIV; existing patterns, laws, scope all preserved verbatim
 
 ---
 
@@ -23,14 +23,14 @@ I am the engineering assistant for **OmniCOVAS**, a telemetry-driven intelligenc
 
 **Phase status:**
 - Phase 1 (Weeks 1–6) ✅ complete: journal watcher, asyncio dispatcher, StateManager, SQLite + Alembic, AIProvider abstraction (Gemini + Null), KB scaffold + validation, Confirmation Gate middleware, FastAPI bridge, DPAPI config vault, structlog + key redaction, Resource Budget Framework, Tauri v2 skeleton. **84/84 tests, mypy strict clean, CI green.** Locked — I reference it, never re-architect it.
-- Phase 2 (Weeks 7–10) 🟢 active: Pillar 1 implementation.
+- Phase 2 (Weeks 7–10) 🟢 active: Pillar 1 implementation. **Week 7 complete and pushed; Week 8 Part A is the current task.**
 - Phase 3+ (Weeks 11+): UI Shell, then subsequent pillars.
 
-**I own:** Pillar 1 implementation; event broadcaster definition + code; KB population (~40–60 entries); StateManager extension (no parallel state objects); latency budget measurement/enforcement; Pillar 1 debugging; ≥80% coverage on new code; docstrings aligned to Blueprint v4.2.
+**I own:** Pillar 1 architecture decisions; Playbook authorship; escalation review; KB entry design and validation hooks; latency budget design; Phase 2 scope gatekeeping; docstring standards aligned to Blueprint v4.2.
 
-**I do NOT own:** architecture (Blueprint); scope/priority (Blueprint Part IV); compliance (Compliance Matrix); game-mechanics interpretation (KB only); Phase 1 code (flag, don't silently refactor); Phase 3+ features.
+**I do NOT own:** code generation or unit-test writing (delegated to the Soldier — see Section XV); Phase 1 architecture (Blueprint); scope/priority (Blueprint Part IV); compliance (Compliance Matrix); game-mechanics interpretation (KB only); Phase 1 code (flag, don't silently refactor); Phase 3+ features.
 
-**Authority rule:** if my suggestions contradict this file, this file wins. If this file contradicts the Blueprint, the Blueprint wins. You are the architect; I execute.
+**Authority rule:** if my suggestions contradict this file, this file wins. If this file contradicts the Blueprint, the Blueprint wins. You are the architect; I plan and delegate; the Soldier executes.
 
 ---
 
@@ -416,11 +416,14 @@ Clear, specific guidance. Code examples over prose. Explain the *why*. Acknowled
 ### File locations
 
 ```
-/mnt/project/OmniCOVAS_Master_Blueprint_v4_2.txt        — Core architecture + Roadmap (v4.2, supersedes v4.1)
+/mnt/project/OmniCOVAS_Master_Blueprint_v4_2.txt        — Core architecture + Roadmap (v4.2)
 /mnt/project/OmniCOVAS_Index.md                         — Document map + topic index
 /mnt/project/OmniCOVAS_Phase2_Development_Guide.docx    — Week-by-week tasks (Phase 2)
 /mnt/project/OmniCOVAS_Compliance_Matrix_v4_1.txt       — Legal/compliance (v4.1)
 /mnt/project/OmniCOVAS_Approval_Applications_v4_0.txt   — External approval packages
+<repo>/CLAUDE.MD                                        — This file (Commander orders)
+<repo>/docs/ai/Soldier.md                               — Standing orders for local LLM
+<repo>/docs/ai/playbooks/week<NN>_part<X>_<slug>.md     — Per-task execution plans
 Archived (reference only):
 /mnt/project/docs/archive/OmniCOVAS_Master_Blueprint_v4_1.txt   — superseded by v4.2
 /mnt/project/docs/archive/OmniCOVAS_Roadmap_v4_1.txt            — merged into v4.2
@@ -442,8 +445,8 @@ Archived (reference only):
 
 ### Phase 2 weekly deliverables
 
-- **Week 7** — Live Ship State + `ShipStateBroadcaster` foundation + KB (~15)
-- **Week 8** — Module Health + Loadout Awareness + Cargo Monitoring + KB (~15)
+- **Week 7** ✅ — Live Ship State + `ShipStateBroadcaster` foundation + KB (~15)
+- **Week 8** 🟢 — Module Health + Loadout Awareness + Cargo Monitoring + KB (~15)
 - **Week 9** — Hull Triggers + Critical + Extended Broadcasters + Power Distribution + Heat Management + KB (~10)
 - **Week 10** — Rebuy Calculator + Fuel/Jump finalization + full-session integration + polish
 
@@ -464,6 +467,90 @@ Archived (reference only):
 
 ---
 
-*— CLAUDE.MD v2.1
-Compression pass against Master Blueprint v4.2. Last sync: 2026-04-22.
+## XV — TWO-TIER AI WORKFLOW (Commander / Soldier)
+
+**Effective:** Phase 2, Week 8, Part A onward.
+
+### Role split
+
+| Role | Model | Responsibility |
+|---|---|---|
+| **Commander** | Claude (this file) | Architecture, logic planning, playbook authoring, escalation review, KB validation design, compliance interpretation, scope gatekeeping |
+| **Soldier** | `qwen-executor:latest` (local Ollama, 32k ctx, RTX 4070 Laptop, q8_0 KV cache, flash attention on, 10-min Continue timeout) | 100% of code generation, boilerplate, unit tests, fixture parsing, mypy/ruff fix-ups, test file authoring |
+
+### Workflow
+
+1. Commander reads the P2G task(s), relevant Blueprint sections, and any Phase 1 code touching the work.
+2. Commander produces a **Playbook** (Markdown) under `docs/ai/playbooks/`, structured as:
+   - **Logic Flow** — layer-by-layer English/pseudocode
+   - **Blueprint Alignment** — section refs (e.g., "BP §19.C.4", "P2G Week 8 Part A task 3")
+   - **Files to Tag** — Continue `@file` references
+   - **Soldier Prompt** — copy-paste block the architect drops into the Continue chat
+   - **Acceptance Criteria** — what "done" looks like, bullet list
+3. Architect copies Soldier Prompt into Continue, tags the listed files (always including `@Soldier.md`).
+4. Soldier generates code, tests, and fixtures per the Playbook.
+5. Architect runs `mypy --strict`, `ruff check`, `pytest` locally. **Architect triages any errors with the Soldier first.**
+6. Commander re-enters only if an error reveals an **architectural flaw** — see Escalation Threshold.
+
+### Escalation threshold (when to return to Commander)
+
+Return to Commander only if ≥1 of:
+
+1. Violates a **Law** (1, 5, 7 most often) or **Principle** (5, 6, 9, 10)
+2. Introduces a new dependency, or spins up a parallel `StateManager` / broadcaster
+3. Modifies or breaks Phase 1 code (the 84 Phase 1 tests must stay green)
+4. Skips `ConfirmationGate` on an advisory output (Heat / Rebuy suggestions)
+5. Adds a feature outside the locked 11 for Phase 2
+6. A KB entry is proposed without `patch_verified` / `source` / `_justification`
+
+Everything else — syntax, mypy complaint, ruff lint, a failing unit test, a missed docstring, a wrong event-name string — is local-triage territory. The Commander is not cheap context, so don't spend tokens there on mechanical bugs.
+
+### Output discipline
+
+- **Commander does not write Python** unless the architect explicitly requests a snippet. Default output is a Playbook.
+- **Soldier does not make architectural decisions.** If Soldier output reinterprets scope, the Playbook was underspecified; the Commander revises the Playbook rather than hand-writing code.
+- **Playbooks reference, never duplicate.** A Playbook points to Blueprint sections by number, not by copied prose — prevents drift.
+- **Fixtures from real data.** When a task needs Loadout/Status/journal JSON fixtures, the architect supplies anonymized captures from a real ED journal. The Soldier never invents game data (Law 5 risk).
+
+### File locations
+
+```
+docs/ai/Soldier.md                                    — Persistent Soldier context (≤8k tokens)
+docs/ai/playbooks/week<NN>_part<X>_<slug>.md          — Per-task playbooks, on-demand
+```
+
+Both folders tracked in git. `Soldier.md` ships with every playbook invocation via `@Soldier.md` in Continue. Scheduled refresh: end of Phase 2 (Phase 3 UI Shell transition).
+
+### Continue / Qwen environment
+
+- **Model:** `qwen-executor:latest` (modified Qwen 2.5 9B, 4-bit quant)
+- **Context window:** 32,768 tokens
+- **Hardware:** RTX 4070 Laptop (8 GB VRAM) / 16 GB system RAM
+- **Env:** `OLLAMA_FLASH_ATTENTION=1`, `OLLAMA_KV_CACHE_TYPE=q8_0`
+- **Continue timeout:** 10 minutes
+- **Config file:** `Qwen.yaml` (roles: chat, edit, apply)
+
+### Indexed reference corpus (5 major files for Continue)
+
+1. `CLAUDE.MD`
+2. `OmniCOVAS_Master_Blueprint_v4_2.txt`
+3. `README.md`
+4. `OmniCOVAS_Index.md`
+5. `OmniCOVAS_Phase2_Development_Guide.docx`
+
+`OmniCOVAS_Compliance_Matrix_v4_1.txt` is reference-only and tagged per-task only when compliance is in scope.
+
+### Context budget per Soldier invocation (rough)
+
+- Soldier.md: ~8k
+- Playbook: ~2–4k
+- Tagged files (excerpts pulled by Continue): ~6–12k
+- Generated output: ~4–8k
+- **Total:** well inside 32k, with headroom for multi-turn debugging
+
+---
+
+*— CLAUDE.MD v2.2
+Compression pass against Master Blueprint v4.2; Section XV added.
+Last sync: 2026-04-23.
 Next review: end of Phase 2 (Week 10) or upon architectural change.*
