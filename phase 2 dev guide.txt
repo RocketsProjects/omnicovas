@@ -1,0 +1,2195 @@
+OmniCOVAS
+
+Phase 2 Development Guide
+
+Ship Telemetry Pillar — Weeks 7–10
+
+Companion to Master Blueprint v4.1
+
+Phase 1 complete. Every task explained.
+
+How to Use This Document
+
+This document is your step-by-step guide through Phase 2 of OmniCOVAS development. Phase 2 delivers the first user-facing pillar — Ship Telemetry — and the architectural backbone every future pillar will subscribe to. If Phase 1 was laying the concrete, Phase 2 is building the first floor.
+
+🧭 The Golden Rule:  Never start a new week until every checkbox from the previous week is ticked. Each week's tasks depend on the previous week being complete. The Ship State Broadcaster in Week 7 is the foundation for every broadcast feature that follows — get it right before moving on.
+
+The Three-Column Task Tables
+
+Every task in this guide appears in a table with three columns, plus a checkbox:
+
+• Task — What you are doing, in plain English.
+
+• Why It Matters — The architectural reason. Understanding why helps you ask better questions when you need help.
+
+• Notes / Watch Out For — Specific traps, warnings, and things to double-check.
+
+On Getting Help
+
+You will be asking for help with nearly every task — that is expected and fine. When you ask, always tell your assistant:
+
+• Which week and task you are on (e.g. "Week 7, Part A, ShipStateBroadcaster task 3")
+
+• The exact error message you are seeing, if any
+
+• What you already tried
+
+• Which layer of the Pillar 1 stack you suspect (watcher, dispatcher, handler, state, broadcaster, subscriber, KB)
+
+That context means the help you receive will be specific and correct rather than generic. The layer vocabulary is new in Phase 2 — use it.
+
+Phase 2 at a Glance
+
+Week
+
+Focus
+
+Est. Hours
+
+Key Output
+
+Week 7
+
+ShipStateBroadcaster foundation, Live Ship State, Fuel & Jump Range, initial KB (~15)
+
+~15 hrs
+
+Pub/sub backbone operational, first ship-state events broadcast
+
+Week 8
+
+Loadout Awareness, Module Health, Cargo Monitoring, KB (~15)
+
+~15 hrs
+
+Full loadout captured and hashed, cargo tracked
+
+Week 9
+
+Hull Triggers, Critical + Extended Broadcasters, Power Distribution, Heat Management, KB (~10)
+
+~15 hrs
+
+All critical events firing, latency budgets enforced in CI
+
+Week 10
+
+Rebuy Calculator, Fuel/Jump finalization, Integration + Polish
+
+~15 hrs
+
+All 11 features operational, full-session integration test green
+
+What Phase 2 Delivers
+
+Eleven features across four weeks, locked in the Master Blueprint v4.1. The features fall into three groups:
+
+8 P1 Core Features (all required for Phase 2 complete)
+
+1. Live Ship State tracking — current ship, hull, shields, fuel, cargo in real time
+
+2. Module Health Tracking — per-module health from Loadout events
+
+3. Hull & Integrity Triggers — events fire at 25% and 10% thresholds
+
+4. Loadout Awareness — full ship configuration captured from Loadout event
+
+5. Fuel & Jump Range — current fuel level, max jump range calculated
+
+6. Cargo Monitoring — cargo contents and capacity tracked
+
+7. Critical Event Broadcaster — hull / shield / fuel critical events published
+
+8. Extended Event Broadcaster — docking, wanted, destroyed, FSDJump events published
+
+3 P2 Additions (in Phase 2)
+
+9. Power Distribution Intelligence (Tier 1) — SYS/ENG/WEP pip state from Status.json
+
+10. Heat Management Intelligence (Tier 2) — heat level, trend, KB-grounded warnings
+
+11. Rebuy Calculator (Tier 1) — current rebuy cost from Loadout + KB insurance percentage
+
+Plus Two Architectural Deliverables
+
+• ShipStateBroadcaster — the pub/sub backbone every future pillar subscribes to
+
+• Latency Budget Enforcement — CI hard-fails when event dispatch exceeds its budget
+
+⚠️ Out of Scope:  Any Pillar 1 feature not in the list of 11 is deferred (Shield Intelligence, Module Priority Mapping, Repair & Rearm, Ship Performance Logging, Voice Queries, Predictive Module Targeting, Tactical Threat Assessment, Multi-Ship State). Any Pillar 2+ work is deferred. Any UI polish is Phase 3. If you feel a "just one more thing" itch — write it in the Roadmap backlog, not into Phase 2.
+
+Before You Write a Single Line of Phase 2 Code
+
+Phase 1 is complete: 84 tests green, mypy strict clean, ruff clean, CI green, 26 source files. Confirm that baseline before touching anything.
+
+✅ Phase 1 Baseline Verification:  In an activated venv at the project root, run each of these and confirm a clean result: ruff check omnicovas/ │ mypy omnicovas/ │ pytest. All three must be green before you add a single Phase 2 file. If any is not green, fix that first — do not layer Phase 2 onto broken foundations.
+
+No New Dependencies in Phase 2
+
+Phase 2 introduces zero new Python packages. Everything you need is already in pyproject.toml from Phase 1. If you find yourself wanting to uv add something, stop: either the architecture is wrong or the feature is out of scope. Flag it and discuss before installing.
+
+Tooling Reminders
+
+Reminder
+
+Why It Matters
+
+setx UV_LINK_MODE copy
+
+Required once on Windows if uv cache and project cross filesystems (including OneDrive). Phase 1 taught us this the hard way.
+
+git config --global fetch.prune true
+
+Keeps stale remote tracking refs from accumulating. Set once, forget.
+
+Never commit via GitHub web UI
+
+Web-UI commits bypass pre-commit hooks — ruff and mypy do not run. Use local git for every code change.
+
+No OneDrive-synced project folders
+
+OneDrive's case-sensitivity quirks + CRLF drift cause duplicate files and ghost conflicts. Use a non-synced path.
+
+ruff check --fix (not ruff --fix)
+
+The --fix flag belongs on the check subcommand. Phase 1 learning.
+
+Architecture Orientation for Phase 2
+
+Five new patterns anchor Phase 2. Read this section before Week 7 begins. When something goes wrong later, you will come back here to figure out which pattern is involved.
+
+Pattern 1 — Event Broadcasting (Publish/Subscribe)
+
+Pillar 1 is the Foundation that publishes to every other pillar. The ShipStateBroadcaster is the first concrete pub/sub mechanism in OmniCOVAS. Key invariants:
+
+• Broadcast is async fire-and-forget — one slow subscriber must not block others.
+
+• Subscriber exceptions are caught inside a safe-dispatch wrapper — they never crash the publisher (Principle 5 — Graceful Failure).
+
+• Task references are held in a set to prevent premature garbage collection.
+
+• Event types are strings registered in a single source of truth (omnicovas/core/event_types.py).
+
+Pattern 2 — Latency Budget Enforcement
+
+Every event type has a latency budget. The dispatcher measures actual elapsed time and logs warnings on breach. In CI, budget violations are hard fails (with a 2x tolerance multiplier to account for shared-runner variance). Local budgets: HullDamage <100ms, ShieldsDown <100ms, FSDJump <200ms, Docked <200ms, Loadout <500ms. CI budgets are doubled.
+
+Pattern 3 — StateManager Extension (No Parallel State)
+
+Pillar 1 adds many new state fields — current_ship_type, hull_health, shield_up, fuel_current, jump_range_ly, modules, sys/eng/wep pips, heat_level, and more. These go into the existing StateManager dataclass from Phase 1. Never create a parallel ShipStateManager — that would give you two sources of truth. Source priority from Phase 1 (journal > status_json > capi > eddn) applies to every new field.
+
+Pattern 4 — KB-Grounded Analysis
+
+Every judgment — "hull critical," "heat dangerous," "rebuy expensive" — references a Knowledge Base entry, not a magic number. A magic number like 20.0 has no provenance. A KB lookup like kb.lookup("combat_mechanics", "hull_critical_threshold") is verifiable, versioned, and documented. Every new KB entry in Phase 2 carries patch_verified, source, last_updated, confidence, needs_review, and a new _justification comment explaining the value choice.
+
+Pattern 5 — Tier-Aware Feature Implementation
+
+Every feature explicitly declares its AI tier and degrades gracefully. Tier 1 (Pure Telemetry) features work everywhere — Rebuy Calculator, Power Distribution. Tier 2 (Light AI / Rule-Based) uses KB rules without LLMs — Heat Management. Tier 3 (LLM-Dependent) is forbidden in Phase 2. Every feature must work in NullProvider mode.
+
+ℹ️ The Seven-Layer Debugging Vocabulary:  When a Phase 2 feature misbehaves, name the layer you are examining: (1) watcher, (2) dispatcher, (3) handler, (4) state, (5) broadcaster, (6) subscriber, (7) KB. "I am looking at the handler" is clearer than "let me check the code." Bugs hide in the transitions between layers more often than within a layer.
+
+
+
+WEEK 7
+
+ShipStateBroadcaster, Live Ship State, Fuel & Jump Range
+
+~15 hours
+
+This week establishes the pub/sub backbone and delivers the first two user-facing features. The ShipStateBroadcaster you write in Part A will be subscribed to by every pillar from Phase 4 onward — this is the single most leveraged week of Phase 2. Get the pattern right now and the rest of the phase falls into place.
+
+⚠️ Architectural Weight:  Every feature you add after Week 7 — Module Health, Hull Triggers, Heat Management, everything — consumes the broadcaster you build this week. Design flaws here compound for the rest of the project. Do not speed through Part A.
+
+Part A — ShipStateBroadcaster Foundation
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Create omnicovas/core/event_types.py
+
+Single source of truth for every Pillar 1 event type name. Prevents typos in subscribe() calls that would silently never fire.
+
+Define string constants: SHIP_STATE_CHANGED, HULL_DAMAGE, HULL_CRITICAL_25, HULL_CRITICAL_10, SHIELDS_DOWN, FUEL_LOW, FUEL_CRITICAL, FSD_JUMP, DOCKED, UNDOCKED, WANTED, DESTROYED, HEAT_WARNING, PIPS_CHANGED, LOADOUT_CHANGED, CARGO_CHANGED. Ask assistant to generate the full list.
+
+☐
+
+Create omnicovas/core/broadcaster.py with ShipStateBroadcaster class
+
+This is the pub/sub mechanism every other feature depends on.
+
+Methods: subscribe(event_type, handler), publish(event_type, event), and internal _safe_dispatch(). Use asyncio.create_task for fire-and-forget dispatch. Hold task references in a set (self._tasks) to prevent GC. Attach done_callback to remove completed tasks.
+
+☐
+
+Implement per-subscriber error isolation
+
+Principle 5 (Graceful Failure). One crashing subscriber must not cascade into silence for all others.
+
+_safe_dispatch wraps each await in try/except Exception. On exception, logger.exception with subscriber.__name__. Never let a subscriber exception propagate to publish().
+
+☐
+
+Define ShipStateEvent dataclass
+
+Typed events give mypy and subscribers a contract. Untyped dicts leak implicit assumptions across subscribers.
+
+Use @dataclass(frozen=True). Fields: event_type (str), timestamp (datetime), payload (dict), source (str — 'journal' or 'status_json'). Every broadcast payload conforms to this shape.
+
+☐
+
+Wire ShipStateBroadcaster into the dispatcher
+
+Broadcaster must be instantiated once and shared by every handler. Multiple instances = missed subscriptions.
+
+Create a single broadcaster in main() alongside the StateManager. Pass it to the dispatcher. Every handler receives the same broadcaster reference. Do not create broadcasters inside handlers.
+
+☐
+
+Write pytest tests for broadcaster
+
+The broadcaster is foundational. Silent bugs here poison every downstream feature.
+
+Test: (1) subscribers receive published events, (2) multiple subscribers of the same event type all fire, (3) a subscriber raising an exception does not prevent other subscribers from firing, (4) slow subscriber does not block fast subscriber (use asyncio.sleep to simulate), (5) publish with no subscribers is a no-op.
+
+Part B — StateManager Extension
+
+ℹ️ Do Not Create a ShipStateManager:  Extend the existing omnicovas/core/state.py StateManager dataclass with new fields. A parallel state object gives you two sources of truth — that is a Law 7 violation in waiting. Phase 1 established source-priority conflict resolution; new fields inherit it for free.
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Add ship identity fields to StateManager
+
+Required by Live Ship State feature. Every downstream feature asks "what ship is the commander in?"
+
+New fields: current_ship_type (str | None), current_ship_id (int | None), current_ship_ident (str | None — the 'Ident' field), current_ship_name (str | None — user-assigned name).
+
+☐
+
+Add hull and shield fields
+
+Required by Hull Triggers and Shield monitoring.
+
+hull_health (float | None, 0.0–100.0), shield_up (bool | None), shield_strength_pct (float | None). Leave None until the first relevant event fires — do not default to 100.0.
+
+☐
+
+Add fuel fields
+
+Required by Fuel & Jump Range feature.
+
+fuel_current (float | None, tons), fuel_capacity (float | None, tons), fuel_reservoir (float | None — small cache that feeds the main tank), jump_range_ly (float | None).
+
+☐
+
+Add cargo fields
+
+Required by Cargo Monitoring feature.
+
+cargo_count (int | None), cargo_capacity (int | None), cargo_inventory (dict[str, int] — commodity name to count). Inventory populated from Cargo.json, not the Loadout event.
+
+☐
+
+Add module and loadout fields
+
+Required by Module Health and Loadout Awareness features (Week 8).
+
+modules (dict[str, ModuleInfo]) and loadout_hash (str | None). Define ModuleInfo dataclass in state.py: slot (str), item (str), health (float), power (float), priority (int), on (bool). Populate in Week 8 — field exists from Week 7 so mypy is happy.
+
+☐
+
+Add power distribution fields
+
+Required by Power Distribution Intelligence feature (Week 9).
+
+sys_pips (int | None, 0–8), eng_pips (int | None, 0–8), wep_pips (int | None, 0–8). Populated from Status.json.
+
+☐
+
+Add heat field
+
+Required by Heat Management Intelligence (Week 9).
+
+heat_level (float | None, 0.0–1.0 — the 'Heat' field in Status.json is 0.0 to 1.0, NOT a percentage).
+
+☐
+
+Update source_priority to include new fields
+
+Law 7 source priority is per-field. New fields inherit it only if you wire them in.
+
+Confirm the source-priority decorator or logic from Phase 1 automatically covers all dataclass fields, or extend explicitly. Ask assistant to verify Phase 1 implementation before extending.
+
+Part C — Live Ship State Tracking (Feature 1)
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Create omnicovas/features/ship_state.py
+
+Per-feature modules keep Pillar 1 navigable. One file per feature.
+
+Module contains: handlers for LoadGame, Loadout, ShipyardSwap events. Each handler updates StateManager and publishes SHIP_STATE_CHANGED through the broadcaster.
+
+☐
+
+Implement handle_load_game(event, state, broadcaster)
+
+LoadGame is the first event of every session — establishes current ship identity.
+
+LoadGame payload contains: Ship, ShipID, ShipName, ShipIdent. Update StateManager; publish SHIP_STATE_CHANGED. Some fields (like fuel) come separately in the event — extract them if present, leave None otherwise.
+
+☐
+
+Implement handle_loadout(event, state, broadcaster)
+
+Loadout fires whenever the ship configuration changes (outfitting, repair, module swap). Re-grounds ship state.
+
+Parse full Loadout structure: Ship, ShipID, ShipName, ShipIdent, HullHealth, MaxJumpRange, FuelCapacity (Main + Reserve), Modules array. Update StateManager. Compute loadout_hash (stable hash of Modules array — SHA-256 of sorted JSON). Publish LOADOUT_CHANGED.
+
+☐
+
+Implement handle_shipyard_swap(event, state, broadcaster)
+
+Commander swapped ships. Identity changed — reset ship-specific state until next Loadout.
+
+Payload contains ShipType, ShipID. Update state; clear modules dict (will be re-populated by next Loadout event that always follows a swap). Publish SHIP_STATE_CHANGED.
+
+☐
+
+Register all three handlers with the dispatcher
+
+A handler that is not registered never runs. Silent failure mode.
+
+In dispatcher initialization, map 'LoadGame' → handle_load_game, 'Loadout' → handle_loadout, 'ShipyardSwap' → handle_shipyard_swap. Confirm with a pytest that registration is present.
+
+☐
+
+Write pytest tests for Live Ship State
+
+Feature tests prove the feature works in isolation. Integration test in Week 10 proves it works with everything else.
+
+tests/test_live_ship_state.py. Use pytest fixtures that construct a StateManager and broadcaster. Feed recorded LoadGame/Loadout JSON payloads (capture from your own journal for realism). Assert state fields and broadcast calls.
+
+Part D — Fuel & Jump Range (Feature 5)
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Create omnicovas/features/fuel.py
+
+Fuel tracking is its own concern — fuel events fire constantly during supercruise and scooping.
+
+Handlers for: FuelScoop, RefuelAll, RefuelPartial, StartJump. Status.json also writes Fuel (Main + Reservoir) on every update — subscribe to status_json updates, not just journal events.
+
+☐
+
+Implement fuel capacity capture
+
+Capacity only appears in the Loadout event. Must be captured there, not derived later.
+
+Loadout.FuelCapacity is a dict with Main and Reserve keys. Sum them for total capacity, or keep separate. Store fuel_capacity on state during Loadout handler, read it elsewhere. Do not re-read Loadout for capacity later.
+
+☐
+
+Implement fuel level tracking
+
+Fuel level updates come from both Status.json (live) and journal events (discrete).
+
+Status.json Fuel field: {FuelMain, FuelReservoir}. Update state from Status.json as primary source during active play. FuelScoop event gives incremental Scooped; RefuelAll gives Amount. Use source-priority — journal wins for discrete refuel events, status_json wins for live gauge.
+
+☐
+
+Implement jump range calculation
+
+Max jump range depends on ship type, FSD class/rating, current mass, cargo, fuel. Reading it from the Loadout event's MaxJumpRange field is correct for Phase 2.
+
+Loadout.MaxJumpRange is the max range at current load. Store as jump_range_ly. Do NOT try to recompute from physics in Phase 2 — the game already gives you the number. Recalculation from first principles is Pillar 3 exploration work.
+
+☐
+
+Implement fuel threshold detection
+
+FuelLow (below 25%) and FuelCritical (below 10%) are broadcast events the UI and AI eventually react to.
+
+After every fuel update, compute percentage = (fuel_current / fuel_capacity) * 100. If crosses below 25 and last state was above 25, broadcast FUEL_LOW. If crosses below 10, broadcast FUEL_CRITICAL. Do not broadcast every tick — only on threshold crossing. Thresholds come from KB entries (Part E).
+
+☐
+
+Write pytest tests for Fuel & Jump Range
+
+Threshold-crossing logic is where off-by-one bugs live.
+
+Test cases: fuel drops from 30% to 20% broadcasts FUEL_LOW once (not twice). Dropping from 15% to 8% broadcasts FUEL_CRITICAL once. Refueling from 5% to 80% does not re-broadcast anything. jump_range_ly populated from Loadout.
+
+Part E — Initial KB Population (~15 entries)
+
+ℹ️ KB Entry Format:  Every new KB entry carries six fields: value, patch_verified, source, last_updated, confidence, needs_review. Phase 2 adds a seventh — _justification — as a comment explaining why the value was chosen. Entries are rejected by the CI validation pipeline if any required field is missing.
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Add fuel threshold entries to combat_mechanics.json
+
+Law 5 (Zero Hallucination) — thresholds are policy, not magic numbers.
+
+Entries: fuel_low_threshold (25.0), fuel_critical_threshold (10.0), hull_warning_threshold (25.0), hull_critical_threshold (10.0), shield_regen_broken_threshold (30 seconds after ShieldsDown). Each with _justification documenting the source.
+
+☐
+
+Add ship hull max values to combat_mechanics.json
+
+Hull percentages are relative to ship type. Raw hull values differ by ship.
+
+Entries for common ships: Sidewinder, Eagle, Hauler, Cobra Mk III, Python, Anaconda, etc. Include hull_max_raw per ship. Confidence 'medium' pending verification during Week 7 in-game testing. Focus on popular ships; exhaustive list comes later.
+
+☐
+
+Add insurance/rebuy data to trading_mechanics.json
+
+Rebuy Calculator (Week 10) reads the insurance percentage from here.
+
+Entry: insurance_percentage (5.0 — standard insurance in percent of hull value). Entry: rebuy_calculation (formula doc). This is one of Frontier's more stable mechanics but still verify current patch.
+
+☐
+
+Add jump range baseline references to exploration_mechanics.json
+
+Week 7 only reads jump_range_ly from Loadout, but KB entries document for later use.
+
+Entries: fsd_class_definitions, jump_range_factors, mass_lock_factor. Confidence 'low' until deeper verification in Phase 5.
+
+☐
+
+Populate _metadata.json with Phase 2 KB version bump
+
+Principle 6 (KB Stewardship). Every KB change bumps _metadata so the Defensive Update framework notices.
+
+Increment kb_version. Set last_full_audit_date to today. total_entries reflects new count. Confirm the KB validation pipeline still passes in CI.
+
+☐
+
+Verify KB validation pipeline covers new entries
+
+New KB format with _justification must not break the Phase 1 validation.
+
+Run pytest tests/test_knowledge_base.py. All existing tests pass. Add one new test: every entry created this week has _justification set. If tests pass with _justification as an unknown field, add a schema assertion that it is present for Phase 2+ entries.
+
+Part F — Latency Budget Framework (Infrastructure)
+
+ℹ️ Budget Infrastructure vs. Enforcement:  Week 7 adds the framework (dataclass, budget dict, measurement wrapper). Week 9 flips the switch to CI hard-fail. This split exists so you can write and tune features in Weeks 7 and 8 without CI fighting you — budgets become warnings this week, errors in Week 9.
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Create omnicovas/core/latency.py with LatencyBudget dataclass
+
+Typed budgets give the enforcement path something to check against.
+
+@dataclass(frozen=True) with event_type (str) and budget_ms (int). Populate BUDGETS dict: HullDamage 100, ShieldsDown 100, FSDJump 200, Docked 200, Loadout 500. Add more in Week 9.
+
+☐
+
+Implement dispatch_with_budget(event_type, event) wrapper
+
+Centralizes timing logic. Every dispatched event passes through this wrapper.
+
+Use time.perf_counter() before and after await dispatcher.handle(event). Compute elapsed_ms. Look up budget in BUDGETS. On breach, logger.warning with event_type, elapsed_ms, budget_ms (rounded to 2 decimals).
+
+☐
+
+Wire dispatch_with_budget into the main event path
+
+The wrapper is useless if the dispatcher bypasses it.
+
+The existing Phase 1 dispatcher.handle() now wraps with dispatch_with_budget. Every journal event routes through it. Confirm with a test that adds a slow handler (asyncio.sleep) and sees the warning log appear.
+
+☐
+
+Add environment detection helper
+
+CI runs with 2x tolerance vs local. Code must know which environment it is in.
+
+in_ci_environment() returns True if os.environ.get('CI') is set (GitHub Actions sets this automatically). Budget multiplier is 1 locally, 2 in CI.
+
+☐
+
+Write pytest tests for latency framework
+
+Phase 2 and Phase 3 will add many events. Broken budget logic silently lets slowness ship.
+
+Test: (1) fast handler under budget produces no warning, (2) slow handler produces a warning with correct fields, (3) unknown event type passes through without error, (4) CI mode doubles the budget.
+
+Week 7 — Milestone Checklist
+
+☐
+
+omnicovas/core/event_types.py created with all Pillar 1 event name constants
+
+☐
+
+ShipStateBroadcaster class implemented with subscribe(), publish(), _safe_dispatch()
+
+☐
+
+Per-subscriber error isolation verified — one crashing subscriber does not affect others
+
+☐
+
+ShipStateEvent dataclass defined and used by every broadcast
+
+☐
+
+Broadcaster wired into main() and shared across all handlers
+
+☐
+
+StateManager extended with ship identity, hull/shield, fuel, cargo, modules, pip, and heat fields (all nullable)
+
+☐
+
+Source priority verified to apply to all new StateManager fields
+
+☐
+
+Live Ship State handlers (LoadGame, Loadout, ShipyardSwap) implemented and registered
+
+☐
+
+Fuel & Jump Range handlers implemented with threshold-crossing logic
+
+☐
+
+jump_range_ly populated from Loadout.MaxJumpRange (not recomputed)
+
+☐
+
+loadout_hash computed as stable SHA-256 of sorted Modules JSON
+
+☐
+
+~15 new KB entries added with patch_verified, source, last_updated, confidence, needs_review, and _justification
+
+☐
+
+_metadata.json kb_version bumped, total_entries updated
+
+☐
+
+KB validation pipeline still green in CI
+
+☐
+
+LatencyBudget dataclass and BUDGETS dict created
+
+☐
+
+dispatch_with_budget wrapper wired into main event path
+
+☐
+
+Latency warnings observed (intentional slow test handler) in log output
+
+☐
+
+pytest tests for broadcaster, Live Ship State, Fuel, and latency framework all pass
+
+☐
+
+mypy strict clean, ruff clean, CI green
+
+☐
+
+Phase 1 tests still passing (no regressions)
+
+
+
+WEEK 8
+
+Loadout Awareness, Module Health, Cargo Monitoring
+
+~15 hours
+
+Week 7 gave you the pub/sub backbone and the simplest ship-state features. Week 8 builds out the three features that require the most data structure: parsing the full Loadout into per-module state, tracking cargo from two complementary sources, and adding ~15 more KB entries to cover modules and commodities.
+
+⚠️ Loadout Is Bigger Than It Looks:  The Loadout event is the single richest journal event Elite Dangerous emits. It contains every module, every modification, every engineered effect, power priority, and hull health. Parsing it correctly is where most first-attempt Pillar 1 implementations struggle. Take the time to read a real Loadout event from your own journal before you start writing parsing code.
+
+Part A — Loadout Awareness (Feature 4)
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Study a real Loadout event from your own journal
+
+Documentation is abstract. Your actual Loadout is concrete. Bugs become obvious when you know the real shape.
+
+Open the most recent Journal.*.log in your ED saves folder. Search for "event":"Loadout". Copy one entry into a scratch file. Pretty-print it. Read every field. Note which fields are optional (Engineering, Ident) vs required (Modules, Ship).
+
+☐
+
+Define ModuleInfo dataclass in omnicovas/core/state.py
+
+Every module in every handler gets the same typed shape. No dicts of dicts.
+
+@dataclass fields: slot (str), item (str), item_localised (str | None), health (float, 0.0–1.0), power (float | None), priority (int | None), on (bool), engineering (dict | None — raw engineering block, parsed later).
+
+☐
+
+Implement parse_modules(loadout_event) helper
+
+Parsing logic lives in one place. Handler code stays readable.
+
+Return dict[str, ModuleInfo] keyed by Slot. Loadout event Modules field is a list — convert to dict. Missing optional fields become None. Engineering block passed through raw for Phase 6+ to parse properly.
+
+☐
+
+Implement loadout hash for change detection
+
+Detecting "is this really a new loadout?" prevents redundant LOADOUT_CHANGED broadcasts.
+
+Hash input: sorted list of (slot, item, engineering.blueprint_name_if_any). SHA-256 of JSON-encoded sorted list. Store in state.loadout_hash. Only broadcast LOADOUT_CHANGED when the hash actually differs from previous value. Repair events do not change loadout hash (only module health).
+
+☐
+
+Handle engineered modules in parse_modules
+
+Engineering is a nested block with Modifiers list. Getting this wrong crashes Pillar 6 later.
+
+If Engineering key present: capture BlueprintName, Level, Quality, Modifiers list. Store raw for now; do not compute effects. Pillar 6 (Phase 8) is the correct place for effect computation. Phase 2 only preserves the data.
+
+☐
+
+Write pytest tests for Loadout Awareness
+
+Realistic test fixtures catch parsing errors before they ship.
+
+Create tests/fixtures/loadout_samples/ with 3+ anonymized Loadout JSON files covering: simple ship (Sidewinder, no engineering), engineered ship (Python with several grade 5 mods), large ship (Anaconda, 30+ modules). Assert ModuleInfo fields are parsed correctly.
+
+Part B — Module Health Tracking (Feature 2)
+
+ℹ️ Two Sources of Module Health:  Module health is populated initially by the Loadout event (every module's Health field, 0.0–1.0 float). During combat, ModuleInfo events fire with partial updates — one module's health changed. Both sources must update the same StateManager.modules dict. Loadout is ground truth at checkpoints; ModuleInfo is delta between them.
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Implement handle_module_info(event, state, broadcaster)
+
+ModuleInfo.json updates can fire during combat as modules take damage.
+
+ModuleInfo is a file (ModuleInfo.json) written by the game. Read it from the saves directory. Schema: Modules array with Slot, Item, Health, Power. Update state.modules entries matching slot. If a module goes below a health threshold, broadcast MODULE_DAMAGED event with slot + new health.
+
+☐
+
+Add ModuleInfo.json watcher
+
+Like Status.json, ModuleInfo.json is written by the game and must be watched, not polled on-demand.
+
+Extend the existing watchdog FileSystemEventHandler from Phase 1 to also watch ModuleInfo.json in the saves folder. Apply the same duplicate-event deduplication pattern (compare timestamps) as Status.json.
+
+☐
+
+Define module damage thresholds in KB
+
+Broadcast when a module's health crosses a threshold, not on every tiny change.
+
+KB entries (combat_mechanics.json): module_damaged_threshold (0.80 — 80% health), module_critical_threshold (0.20). _justification: match in-game cockpit warning behavior. Add in Part D.
+
+☐
+
+Implement threshold-crossing broadcast for modules
+
+Same pattern as Fuel thresholds in Week 7. Broadcast on crossing, not every update.
+
+For each module update, compare previous health to new health. If prev >= 0.80 and new < 0.80, broadcast MODULE_DAMAGED. If prev >= 0.20 and new < 0.20, broadcast MODULE_CRITICAL. Repairs (new > prev) do not re-broadcast — just update state.
+
+☐
+
+Write pytest tests for Module Health
+
+Tracking N modules with threshold crossings is where subtle bugs live.
+
+Test: ModuleInfo update reduces one module's health and leaves others alone. Crossing 80% → broadcast once. Crossing 20% → broadcast once. Repair does not broadcast. Loadout after repair resets the baseline cleanly.
+
+Part C — Cargo Monitoring (Feature 6)
+
+ℹ️ Two Sources of Cargo:  Cargo.json is a file the game writes when cargo changes (mining, trading, mission pickups). CargoTransfer and CargoDepot journal events also fire. Cargo count alone (total units) is updated from Status.json. Full inventory comes from Cargo.json. Capacity comes from Loadout. Three sources, one StateManager dict.
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Extend file watcher to Cargo.json
+
+Same reason as Status.json and ModuleInfo.json — game writes it, we read it.
+
+Add Cargo.json to the watchdog paths. Parse schema: Count, Vessel (Ship or SRV), Inventory array of {Name, Count, Stolen, MissionID}. Dispatch as CARGO_UPDATED event.
+
+☐
+
+Implement handle_cargo_updated(event, state, broadcaster)
+
+Central place for cargo state updates from any source.
+
+Update state.cargo_count (sum of Inventory counts). Update state.cargo_inventory (dict by Name). Distinguish between Ship cargo and SRV cargo — Phase 2 tracks Ship only; SRV is Odyssey/Pillar 2 territory.
+
+☐
+
+Implement cargo capacity capture from Loadout
+
+Cargo.json does not include capacity. Loadout does — in the CargoBay modules.
+
+During Loadout parsing, sum the CargoCapacity field of every module with Item containing 'cargorack' or 'seismiccharge' (specialty capacity). Store as state.cargo_capacity. Handle zero-capacity ships (combat loadouts with no racks).
+
+☐
+
+Broadcast CARGO_CHANGED on inventory changes
+
+Subscribers (future Trading pillar, mission tracker) need notification, not just state changes.
+
+Compare previous inventory dict to new. Broadcast when: a new commodity appears, an existing one changes count, one disappears. Payload includes delta (added/removed/changed per commodity name).
+
+☐
+
+Write pytest tests for Cargo Monitoring
+
+Cargo arithmetic is boring and that is exactly where bugs hide.
+
+Test: empty Cargo.json → count 0, inventory empty. Add 5 palladium → state updates, delta fires. Sell 3 palladium → state updates, delta fires. Capacity of 128 with 45 units free = 83 used. SRV cargo ignored.
+
+Part D — KB Population for Modules and Commodities (~15 entries)
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Add module damage thresholds to combat_mechanics.json
+
+Module Health handlers read thresholds from here, not hardcoded.
+
+Entries: module_damaged_threshold, module_critical_threshold, module_offline_threshold. Confidence 'high' — these match in-game cockpit behavior.
+
+☐
+
+Add core module slot definitions to combat_mechanics.json
+
+Future features will need to know which slots are required (Power Plant, Thrusters, etc.) vs optional.
+
+Entry: core_module_slots — list of {PowerPlant, MainEngines, FrameShiftDrive, LifeSupport, PowerDistributor, Radar, FuelTank}. Entry: module_criticality_ranking — ordered list for Pillar 2 (Phase 4). Phase 2 just stores the data.
+
+☐
+
+Add hardpoint slot definitions to combat_mechanics.json
+
+Hardpoint/utility slot naming is Frontier-specific and easy to get wrong.
+
+Entries: hardpoint_slot_sizes (Tiny, Small, Medium, Large, Huge) with approximate damage scale. hardpoint_slot_naming_convention (Small01, Medium01, etc. — game uses numbered suffixes). Sources: Frontier knowledgebase and in-game outfitting.
+
+☐
+
+Add commodity categories to trading_mechanics.json
+
+Cargo inventory gets grouped for display and later for trading analysis.
+
+Entry: commodity_categories — dict mapping category name (Chemicals, Metals, Minerals, etc.) to list of commodity internal names. Phase 2 only needs the mapping; Trading pillar (Phase 6) will add prices, legality, etc.
+
+☐
+
+Add common commodity display-name mappings
+
+Internal names ("palladium") differ from display names ("Palladium"). Inconsistent capitalization in journals.
+
+Entry: commodity_display_names — dict of internal name to display name for the 30+ most common commodities. Used by CARGO_CHANGED subscribers to format messages.
+
+☐
+
+Add rare commodity list to trading_mechanics.json
+
+Rare commodities have special trading rules (station-bound, 100-unit cap). Pillar 5 needs this.
+
+Entry: rare_commodities — list of rare commodity names and their source stations. Phase 2 only records the list; rule enforcement is Phase 6.
+
+☐
+
+Add cargo capacity module entries to trading_mechanics.json
+
+Cargo capacity parsing in Loadout handler reads these names.
+
+Entries: cargo_rack_internal_names (list of prefixes like 'cargorack'), special_capacity_modules (e.g. 'seismiccharge' for mining). Keep the list complete enough that Loadout parser doesn't miss any rack.
+
+☐
+
+Update _metadata.json with Week 8 entries
+
+KB version discipline.
+
+Bump kb_version, update last_full_audit_date, update total_entries. Confirm validation pipeline still green.
+
+Week 8 — Milestone Checklist
+
+☐
+
+Real Loadout event from personal journal inspected and understood
+
+☐
+
+ModuleInfo dataclass defined in state.py
+
+☐
+
+parse_modules(loadout_event) helper implemented with engineered module support
+
+☐
+
+loadout_hash computed deterministically; LOADOUT_CHANGED broadcast only on real changes
+
+☐
+
+3+ Loadout fixture files in tests/fixtures/loadout_samples/ covering simple, engineered, and large ships
+
+☐
+
+ModuleInfo.json watcher extended from Phase 1 file-watching pattern
+
+☐
+
+handle_module_info implemented with threshold-crossing broadcasts (MODULE_DAMAGED, MODULE_CRITICAL)
+
+☐
+
+Repair events update state but do not re-broadcast damage
+
+☐
+
+Cargo.json watcher extended from Phase 1 file-watching pattern
+
+☐
+
+handle_cargo_updated implemented; state.cargo_count, cargo_inventory, cargo_capacity all populated
+
+☐
+
+CARGO_CHANGED broadcasts include delta (added/removed/changed commodities)
+
+☐
+
+SRV cargo distinguished from Ship cargo and ignored in Phase 2
+
+☐
+
+~15 new KB entries added across combat_mechanics.json and trading_mechanics.json
+
+☐
+
+All new entries include _justification comments
+
+☐
+
+_metadata.json kb_version bumped, total_entries now ≥30 Phase 2 entries
+
+☐
+
+pytest tests for Loadout, Module Health, and Cargo Monitoring all pass
+
+☐
+
+Test count at approximately 105+ (84 Phase 1 + Week 7 + Week 8 additions)
+
+☐
+
+mypy strict clean, ruff clean, CI green
+
+☐
+
+Phase 1 tests still passing (no regressions)
+
+
+
+WEEK 9
+
+Hull Triggers, Critical + Extended Broadcasters, Power Distribution, Heat Management
+
+~15 hours
+
+Week 9 is the densest week of Phase 2 — five features ship, the Critical Event Broadcaster goes live, and the latency framework from Week 7 flips from warning to CI hard-fail. By the end of Week 9, every Pillar 1 feature except the Rebuy Calculator is operational.
+
+⚠️ The Enforcement Flip:  At the end of Week 9, latency budgets stop being warnings and become CI failures. Any event dispatch that exceeds 2x its local budget in GitHub Actions will fail the build. Tune your handlers this week so the flip does not break CI.
+
+Part A — Hull & Integrity Triggers (Feature 3)
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Create omnicovas/features/hull_triggers.py
+
+Hull damage logic is safety-adjacent — deserves its own file.
+
+Handlers for HullDamage and ShieldsDown journal events. Hull health also updates from Status.json during supercruise. Threshold thresholds come from KB — hull_warning_threshold (25.0), hull_critical_threshold (10.0) from Week 7.
+
+☐
+
+Implement handle_hull_damage(event, state, broadcaster)
+
+HullDamage fires when the hull takes damage in combat. The event payload includes Health (float 0.0–1.0 — note: NOT percent).
+
+Convert event Health × 100 to get percent. Update state.hull_health. Broadcast HULL_DAMAGE every time (for combat subscribers later). Additionally, if percent crosses below 25, broadcast HULL_CRITICAL_25. If crosses below 10, broadcast HULL_CRITICAL_10. Use previous state to detect crossing, not absolute check.
+
+☐
+
+Implement handle_shields_down(event, state, broadcaster)
+
+ShieldsDown is a distinct event type — broadcast immediately with no threshold logic.
+
+Set state.shield_up = False. Broadcast SHIELDS_DOWN. Note: there is also a ShieldsUp event for when shields regenerate. Handle both so state is accurate.
+
+☐
+
+Implement Status.json hull-percentage fallback
+
+HullDamage events fire in combat. In non-combat, hull can still change (collisions, fuel scoop overheating). Status.json carries current hull.
+
+When Status.json updates with a Hull value that differs from state.hull_health, treat it as a hull update. Apply source priority: journal wins if both sources updated in the same second, status_json wins if no recent journal event. Use the Phase 1 source_priority framework; do not build new conflict logic.
+
+☐
+
+Write pytest tests for Hull Triggers
+
+Threshold-crossing arithmetic is the bug zone.
+
+Test: hull 100 → 30 broadcasts HULL_DAMAGE but no threshold. Hull 30 → 20 broadcasts HULL_CRITICAL_25 once. Hull 20 → 8 broadcasts HULL_CRITICAL_10 once. Hull 8 → 50 (after repair) does not re-broadcast. Hull drops from 35 directly to 5 in one event — both thresholds broadcast in order.
+
+Part B — Critical Event Broadcaster (Feature 7)
+
+ℹ️ "Broadcaster" Is Still the Same Broadcaster:  Critical Event Broadcaster is not a new class. It is the collected set of hull/shield/fuel CRITICAL-tier events your features publish through the existing ShipStateBroadcaster. Feature 7 is about making sure these critical broadcasts are: distinct from non-critical ones, logged to Activity Log, and reach every subscriber reliably.
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Audit critical event coverage
+
+The feature is defined by its completeness, not by writing new publisher code.
+
+Confirm these events are published by Week 9 end: HULL_CRITICAL_25, HULL_CRITICAL_10, SHIELDS_DOWN, FUEL_LOW, FUEL_CRITICAL, MODULE_CRITICAL. Write a single integration test that exercises each and asserts the broadcast fired.
+
+☐
+
+Add activity-log integration for critical events
+
+Law 8 (Sovereignty & Transparency) — commander sees every critical event.
+
+Every critical broadcast also appends to the Phase 1 Activity Log ring buffer with event_type, timestamp, and a human summary. Do this via a subscriber registered in main() — not via modifying each feature's handler. One subscriber, all critical events.
+
+☐
+
+Add structlog event category tag
+
+Makes it possible to filter for critical events in log analysis.
+
+Critical broadcast helper attaches category='critical' to structlog context. Example: logger.info('critical_event_broadcast', event_type='HULL_CRITICAL_10', category='critical', hull_health=8.2).
+
+☐
+
+Write pytest test for the critical event broadcaster contract
+
+A single test that proves all six critical events reach subscribers is the most leveraged test in Phase 2.
+
+tests/test_critical_broadcaster.py fires mock journal events that trigger each of the six criticals. Asserts the subscriber receives each exactly once and Activity Log contains each entry.
+
+Part C — Extended Event Broadcaster (Feature 8)
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Define extended event list
+
+Scope the feature precisely. "Extended" otherwise creeps into everything.
+
+Phase 2 extended events: DOCKED (from Docked), UNDOCKED (from Undocked), WANTED (from CommitCrime or FactionKillBond flagging), DESTROYED (from ShipDestroyed / Died), FSD_JUMP (from FSDJump — different from StartJump which is still-in-supercruise).
+
+☐
+
+Implement handle_docked(event, state, broadcaster)
+
+Docked is a high-frequency reality check — ship refuels, rearms, loadout may change.
+
+Payload fields of interest: StationName, StationType, SystemName, DistFromStarLS, MarketID, StationFaction. Update state.is_docked=True, current_station, station_market_id. Broadcast DOCKED with payload.
+
+☐
+
+Implement handle_undocked(event, state, broadcaster)
+
+Undocked means new combat or nav context. Subscribers reset.
+
+state.is_docked=False, current_station=None, station_market_id=None. Broadcast UNDOCKED.
+
+☐
+
+Implement wanted/crime detection
+
+Wanted state changes risk assessment for every downstream feature (combat, exploration, trading).
+
+Multiple journal events contribute: CommitCrime, CrimeVictim, FactionKillBond, Bounty, Interdicted. For Phase 2, a simple flag state.is_wanted_in_system is enough. Set True on CommitCrime/Bounty against a system faction. Clear on FSDJump to different system (wanted state is per-system).
+
+☐
+
+Implement handle_ship_destroyed(event, state, broadcaster)
+
+The single most important event to get right. Subscribers will reset hard.
+
+ShipDestroyed or Died events fire. Broadcast DESTROYED with the previous ship state as payload (current_ship_type, value, rebuy cost — useful for Rebuy Calculator validation in Week 10). Reset state.hull_health=None, modules={}, current_ship_id=None. Next LoadGame/Loadout re-establishes state.
+
+☐
+
+Implement handle_fsd_jump(event, state, broadcaster)
+
+FSDJump fires on arrival in a new system. Exploration, BGS, combat all subscribe.
+
+Payload: StarSystem, SystemAddress, StarPos, SystemFaction, Population. Update state.current_system. Broadcast FSD_JUMP. Note: StartJump fires as you enter supercruise countdown — different event, do not confuse. Phase 2 only broadcasts FSD_JUMP (arrival).
+
+☐
+
+Write pytest tests for extended events
+
+Extended events are less critical than criticals but broader surface area.
+
+Test each of DOCKED, UNDOCKED, WANTED (simulated CommitCrime), DESTROYED, FSD_JUMP. Assert state updates and broadcasts fire.
+
+Part D — Power Distribution Intelligence (Feature 9, Tier 1)
+
+ℹ️ Status.json Pips:  Status.json contains a Pips array like [4, 2, 2] where the values are SYS, ENG, WEP (in that order), each on a 0–8 scale (half-pips are 0 or 4, full pips are 0, 2, 4, 6, 8). The total is always 12 when in a flyable ship. When on foot in Odyssey, pips are absent. Handle absence gracefully.
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Create omnicovas/features/power_distribution.py
+
+Pip state is a distinct feature with its own update cadence.
+
+Subscribes to Status.json updates (already wired from Week 7). Reads Pips array when present.
+
+☐
+
+Implement handle_status_pips(status_event, state, broadcaster)
+
+Pips change constantly during gameplay. Broadcast only on meaningful changes.
+
+Compare Pips array to previous (state.sys_pips, eng_pips, wep_pips). Only broadcast PIPS_CHANGED when one or more pip values change. Status.json updates every ~1 second — if you broadcast every update you flood subscribers with no-ops.
+
+☐
+
+Handle on-foot / non-ship pip absence
+
+Odyssey on-foot has no pips. Code must not crash when Pips key is missing.
+
+If Pips absent from Status.json: do not clear state.sys/eng/wep_pips (commander may return to ship with same pips). Do not broadcast. Log at DEBUG level once per on-foot transition.
+
+☐
+
+Write pytest tests for Power Distribution
+
+Pip arithmetic is deterministic — simple to test thoroughly.
+
+Test: first Pips update populates state and broadcasts. Identical next update does not broadcast. Changed Pips broadcasts. Missing Pips key does not crash. Pip total other than 12 is logged (future Defensive Update check).
+
+Part E — Heat Management Intelligence (Feature 10, Tier 2)
+
+ℹ️ Tier 2 Means KB-Grounded Rules, Not LLM Calls:  Heat Management is the only Tier 2 feature in Phase 2. It uses structured rules from the KB to classify heat state and suggest responses. No LLM is invoked. The feature works fully in NullProvider mode — Tier 2 is not a degraded Tier 3. It is a distinct, complete tier.
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Add heat thresholds to combat_mechanics.json
+
+Every threshold is KB-grounded (Law 5).
+
+Entries: heat_warning_threshold (0.80 — 80% of max), heat_critical_threshold (0.95), heat_damage_threshold (1.20 — hull damage begins). _justification: match in-game cockpit warning audio cues.
+
+☐
+
+Add heat rule catalog to combat_mechanics.json
+
+Tier 2 rules live in the KB, not in Python code. Updating rules means updating KB, not redeploying.
+
+Entry: heat_response_rules — array of rules like {"when": "heat > warning_threshold AND trend == rising", "suggestion": "consider deploying heatsink or retracting hardpoints", "confidence": "medium"}. Start with 5–8 rules covering common cases (supercruise in hot star, weapon spam, fuel scoop).
+
+☐
+
+Create omnicovas/features/heat_management.py
+
+Feature module containing heat state tracking and rule evaluation.
+
+Subscribes to Status.json Heat field. Maintains rolling window of last 10 heat readings to compute trend (rising/steady/falling). Rule engine evaluates KB rules against current state and trend.
+
+☐
+
+Implement heat trend calculation
+
+Some rules depend on direction of change, not just absolute value.
+
+Ring buffer of last 10 readings. Trend = 'rising' if last 3 > first 3 by ≥0.05. 'falling' if inverse. Otherwise 'steady'. Simple and good enough for Phase 2.
+
+☐
+
+Implement KB-grounded rule evaluator
+
+Rules come from KB, suggestions are generated by matching rules against state.
+
+For each rule in heat_response_rules, evaluate the 'when' expression against current state. Matches produce suggestions. Match once per threshold crossing — do not spam. Suggestions go through ConfirmationGate (Law 1) before reaching the UI.
+
+☐
+
+Write pytest tests for Heat Management
+
+Rule evaluation logic needs test coverage per rule.
+
+For each of the 5–8 rules, test with synthetic state that should match and state that should not. Confirm NullProvider mode works — heat analysis produces suggestions with no AI calls. Confirm suggestions are funneled through ConfirmationGate.
+
+Part F — Latency Budget Enforcement (CI Hard-Fail Flip)
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Expand BUDGETS dict to cover all Phase 2 event types
+
+Unbudgeted events silently bypass enforcement.
+
+Add: HullDamage 100, ShieldsDown 100, FSDJump 200, Docked 200, Undocked 100, Loadout 500, CargoChanged 200, PipsChanged 50, HeatWarning 100, ModuleDamaged 150. Every event type published in Phase 2 gets a budget. Update via KB entry in latency_budgets.yaml or keep in Python — team preference.
+
+☐
+
+Convert latency warnings to test assertions
+
+Warning logs do not fail CI. Test assertions do.
+
+Create tests/test_latency_budgets.py. Each event type gets a test: dispatch a representative event, measure elapsed_ms, assert elapsed_ms ≤ budget_ms × tolerance_multiplier. tolerance_multiplier = 2 in CI, 1 locally. Use os.environ.get('CI') for detection.
+
+☐
+
+Wire latency tests into CI
+
+Tests that don't run in CI enforce nothing.
+
+Confirm pytest discovers tests/test_latency_budgets.py. Confirm GitHub Actions workflow runs them. Break one budget temporarily to prove CI fails. Restore and confirm CI green.
+
+☐
+
+Document the 2x tolerance multiplier
+
+Future contributors need to understand why CI budget differs from local.
+
+Comment block in omnicovas/core/latency.py and a line in CONTRIBUTING.md explain: GitHub Actions shared runners show 2-3x variance vs dedicated hardware. 2x keeps real discipline while preventing flaky CI. Do not raise the multiplier to mask actual slowness.
+
+Part G — KB Population for Week 9 (~10 entries)
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Add heat thresholds and rules to combat_mechanics.json
+
+Heat Management reads these.
+
+Per Part E: heat_warning_threshold, heat_critical_threshold, heat_damage_threshold, heat_response_rules (5–8 rules). All with _justification.
+
+☐
+
+Add station service entries to trading_mechanics.json
+
+Docked events include station services. Future pillars query them.
+
+Entry: station_service_types (list — Refuel, Repair, Rearm, Outfitting, Shipyard, Missions, etc.). Entry: station_type_service_availability (which services at which station types — Outpost vs Starport vs Fleet Carrier).
+
+☐
+
+Add pip distribution archetypes to combat_mechanics.json
+
+Future Combat pillar (Phase 4) will reference named pip configurations.
+
+Entry: pip_archetypes — named configurations like {"balanced": [4,4,4], "combat_shields": [6,2,4], "evasive": [2,6,4]}. Phase 2 only stores the data.
+
+☐
+
+Update _metadata.json for Week 9 additions
+
+KB discipline.
+
+Bump kb_version, update audit date and total_entries. Confirm total is now 40+ Phase 2 entries.
+
+Week 9 — Milestone Checklist
+
+☐
+
+Hull Triggers implemented with threshold-crossing at 25% and 10%
+
+☐
+
+ShieldsDown and ShieldsUp handlers update state and broadcast
+
+☐
+
+Status.json hull-percentage fallback wired via Phase 1 source_priority
+
+☐
+
+Critical Event Broadcaster audit passes: all six critical events verified firing
+
+☐
+
+Critical events append to Activity Log via single dedicated subscriber
+
+☐
+
+Structlog category='critical' tag on all critical broadcasts
+
+☐
+
+Extended Event Broadcaster covers: DOCKED, UNDOCKED, WANTED, DESTROYED, FSD_JUMP
+
+☐
+
+handle_ship_destroyed resets ship-specific state cleanly; next LoadGame re-establishes
+
+☐
+
+Wanted state is per-system; clears on FSD jump to a different system
+
+☐
+
+Power Distribution handler reads pips from Status.json; broadcasts only on change
+
+☐
+
+On-foot pip absence handled without crashes or spurious broadcasts
+
+☐
+
+Heat Management Tier 2 rule engine operational with 5–8 KB rules
+
+☐
+
+Heat trend calculation (rising / steady / falling) working on 10-sample rolling window
+
+☐
+
+Heat suggestions pass through ConfirmationGate before reaching UI
+
+☐
+
+Heat Management works in NullProvider mode with zero AI calls
+
+☐
+
+BUDGETS dict expanded to cover all Phase 2 event types
+
+☐
+
+tests/test_latency_budgets.py runs in CI with 2x tolerance multiplier
+
+☐
+
+Proved CI fails on intentional budget breach, then restored
+
+☐
+
+~10 new KB entries added; total Phase 2 entries now 40+
+
+☐
+
+pytest test count approximately 125+ (84 Phase 1 + ~41 Phase 2)
+
+☐
+
+mypy strict clean, ruff clean, CI green
+
+☐
+
+Phase 1 tests still passing (no regressions)
+
+
+
+WEEK 10
+
+Rebuy Calculator, Fuel/Jump Finalization, Integration & Polish
+
+~15 hours
+
+Final week. Ship the last feature, finalize the ones started earlier, run full-session integration, and sign off Phase 2. By Friday of Week 10, the 130+ test target is hit, all 11 features are green, and the ShipStateBroadcaster has proven itself ready for Phase 3's UI Shell to subscribe to.
+
+⚠️ Resist Scope Creep:  Week 10 is when "just one more thing" feels irresistible. The Roadmap already has a backlog (Shield Intelligence, Module Priority Mapping, Repair & Rearm, Performance Logging, Voice Queries, Predictive Module Targeting, Tactical Threat, Multi-Ship). If a deferred feature suddenly seems quick — write it into the Phase 2.5 list, not into this week. Ship Phase 2 clean.
+
+Part A — Rebuy Calculator (Feature 11, Tier 1)
+
+ℹ️ Rebuy Is Pure Math:  Rebuy = ship hull value × insurance percentage + sum(module rebuy cost) × insurance percentage. Insurance percentage is 5% standard (3.75% with advanced insurance, but Frontier removed that tier years ago — confirm current patch). All inputs live in the Loadout event and the KB. Zero AI needed.
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Create omnicovas/features/rebuy.py
+
+Feature isolation. Rebuy math is entirely deterministic — keep it tidy.
+
+Module contains: calculate_rebuy(state) function that returns rebuy cost in credits. Uses state.current_ship_type, state.modules, state.loadout (if stored), and KB insurance_percentage.
+
+☐
+
+Add ship hull values to combat_mechanics.json
+
+Rebuy depends on hull value per ship type. Pull from KB, not hardcoded.
+
+Entry: ship_hull_values — dict of ship_type → hull_value_credits. Cover the top 20 ships by community usage. Source: Inara shipyard prices (verify per patch). confidence 'high' for current patch; 'medium' for older ships with recent balance passes.
+
+☐
+
+Implement module rebuy extraction from Loadout
+
+Loadout event includes module Value field per module. Use it directly.
+
+Iterate state.modules. Each ModuleInfo entry has or can look up its value. If Loadout.Modules includes a Value field per module, capture it during parse_modules (Week 8). If not, look up module price from KB (Phase 2 only needs a few — stubs for unknown modules with confidence 'low').
+
+☐
+
+Implement calculate_rebuy()
+
+The core feature logic.
+
+Sum: ship hull value (from KB or Loadout.HullValue if present) + sum of module values. Multiply by KB insurance_percentage / 100. Return integer credits. Handle None state (no ship loaded) by returning None.
+
+☐
+
+Add /rebuy endpoint to FastAPI bridge
+
+UI will query current rebuy — give it a simple endpoint.
+
+GET /rebuy returns {rebuy_cost: int | null, ship_type: str | null, calculated_at: iso_timestamp}. Keep it stateless — compute on each call from current state.
+
+☐
+
+Write pytest tests for Rebuy Calculator
+
+Deterministic math deserves deterministic tests.
+
+Test: Sidewinder stock (~1,000 cr hull) → 50 cr rebuy at 5%. Well-engineered Python → 1M+ cr rebuy. Ship not loaded (state.current_ship_type None) → None. Match calculation against an in-game-verified rebuy from your own journal (Died event payload often includes the rebuy — cross-check).
+
+Part B — Fuel & Jump Range Finalization
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Verify jump_range_ly refresh on loadout changes
+
+Cargo, engineering, module swaps all change max jump range.
+
+Every Loadout event should update state.jump_range_ly from MaxJumpRange. Test: load up a Python with full cargo → jump_range_ly drops. Offload cargo → next Loadout restores range. Confirm flow works end to end.
+
+☐
+
+Add /fuel and /jump_range endpoints
+
+UI wants the numbers; expose them.
+
+GET /fuel returns {current: float, capacity: float, percentage: float, reservoir: float}. GET /jump_range returns {max_ly: float, ship_type: str, loadout_hash: str}. loadout_hash included so UI knows if cached result is stale.
+
+☐
+
+Document jump range is from-Loadout in Phase 2
+
+Future maintainers must understand the intentional boundary.
+
+Docstring on jump_range_ly: "Max jump range at current load, sourced from Loadout.MaxJumpRange. Phase 2 does not recompute from physics — that is Pillar 3 (Exploration) work in Phase 5."
+
+Part C — Full-Session Integration Test
+
+ℹ️ What "Full Session" Means:  A real Elite Dangerous session has a characteristic shape: launch → LoadGame → optional Loadout → Undocked → supercruise → FSDJump → arrival → maybe combat → dock → logout. The integration test replays this full arc against your Phase 2 code and confirms every feature reacts correctly. Use a recorded journal from your own play — no synthesized events.
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Record a representative session journal
+
+Real journals catch edge cases synthetic ones miss.
+
+Launch ED, fly a full session: dock somewhere, change loadout, undock, jump, take some damage (low-threat bounty works), scoop fuel, jump again, dock. Copy the resulting Journal.*.log and Status.json snapshots to tests/fixtures/session_replay/.
+
+☐
+
+Write the integration test
+
+Proves every Phase 2 feature works together, not just in isolation.
+
+tests/test_phase2_integration.py. Feed the recorded journal line-by-line to the dispatcher at 10x speed. Subscribe to every Phase 2 event type. Assert: all 11 features produced expected state updates and broadcasts. Hull, shields, fuel, cargo, modules, pips, heat, rebuy, jump range all reflect end-of-session state.
+
+☐
+
+Assert latency budgets under replay load
+
+Replay is a mild stress test. If budgets hold under replay, they hold in real gameplay.
+
+During replay, capture every dispatch's elapsed_ms. Assert no event exceeded its budget × CI tolerance. This is the true validation of the latency framework.
+
+☐
+
+Assert Activity Log contains every critical and extended event
+
+Law 8 (Sovereignty & Transparency). Every event visible to the commander.
+
+After replay, query the activity-log ring buffer. Assert it contains at least one entry per critical and extended event type that fired during the session. Assert no duplicates (threshold-crossing logic correct).
+
+☐
+
+Assert Phase 1 infrastructure untouched
+
+Phase 1 tests green at end of Phase 2 is a hard success criterion.
+
+pytest -v runs all 84 Phase 1 tests plus all Phase 2 tests. Zero regressions. If any Phase 1 test fails, revert and re-inspect the Phase 2 change that broke it.
+
+Part D — Resource Budget Compliance
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Measure Pillar 1 resource use during session replay
+
+Principle 10 (Resource Efficiency). Pillar 1 is the first pillar that does sustained work.
+
+Run the session replay integration test with psutil sampling memory and CPU every 500ms. Log results to tests/fixtures/resource_sample.json. Inspect: peak RSS, average CPU.
+
+☐
+
+Assert resource use stays within resource_budget.yaml limits
+
+Limits exist to be enforced.
+
+Pillar 1 contribution should be well under limits (max_cache_size_mb 512, max_background_task_cpu_percent 10). If over: investigate the ring buffer sizes, subscriber implementations, hash calculations. Likely culprit: keeping full event history in memory instead of recent window.
+
+☐
+
+Confirm /resources endpoint reports correctly
+
+Phase 1 built the endpoint; Phase 2 gives it real data to report.
+
+During integration test, hit GET /resources. Confirm response shape and values match what psutil sees. This proves the endpoint Phase 3 UI will consume is accurate.
+
+Part E — Phase 2 Documentation and Sign-Off
+
+✓
+
+Task
+
+Why It Matters
+
+Notes / Watch Out For
+
+☐
+
+Update README with Phase 2 status
+
+Public transparency. Commanders see the project is alive.
+
+Move Phase 2 from 'in progress' to 'complete'. List every operational feature. Mention ShipStateBroadcaster is live and ready to subscribe to. Link to any release notes.
+
+☐
+
+Write Phase 2 release notes
+
+Captures what shipped for future reference and potential users.
+
+docs/releases/phase2.md. Structure: What shipped (11 features), what deferred (to Phase 2.5 — name them), architectural additions (broadcaster, latency enforcement), known limitations, test count, KB entry count, links to Compliance Matrix confirmation.
+
+☐
+
+Confirm Compliance Matrix Phase 2 line items
+
+Compliance Matrix v4.1 Section 12 listed Phase 2 items. Confirm each.
+
+Tick: Ship State Broadcaster no external transmission. Latency enforcement strengthens Law 6 auditability. Every KB entry has all required fields plus _justification. Heat Management uses KB rules only. Rebuy is pure telemetry + KB.
+
+☐
+
+Docstring pass on all new code
+
+Every function added this phase needs Args/Returns/Raises docstrings per Phase 1 standard.
+
+Grep for new def and async def introduced since Phase 2 start. Confirm each has a docstring. Missing docstrings are a quality-gate violation — CI should eventually catch these, but for now, manual pass.
+
+☐
+
+Final CI green verification
+
+The definition of done.
+
+git push a final Phase 2 commit. Confirm GitHub Actions CI is green. Confirm test count is 130+. Confirm no warnings or flakes. Tag the commit phase2-complete.
+
+☐
+
+Update CLAUDE.md if Phase 2 learnings warrant
+
+Phase 1 captured tribal knowledge in CLAUDE.md Section XV. Phase 2 will have its own.
+
+Note anything surprising — broadcaster patterns that needed iteration, KB entries that required multiple in-game verification passes, latency budget tuning discoveries. This becomes the next retrospective.
+
+Week 10 — Final Phase 2 Milestone Checklist
+
+☐
+
+Rebuy Calculator operational (Tier 1, KB-grounded insurance percentage)
+
+☐
+
+/rebuy FastAPI endpoint returns correct data
+
+☐
+
+Jump range refreshes on every Loadout event
+
+☐
+
+/fuel and /jump_range FastAPI endpoints return correct data
+
+☐
+
+Recorded session journal in tests/fixtures/session_replay/
+
+☐
+
+Full-session integration test passing: launch → load → undock → jump → damage → scoop → dock → logout
+
+☐
+
+All 11 Phase 2 features produce expected state updates and broadcasts during replay
+
+☐
+
+Latency budgets hold under replay load with no breaches
+
+☐
+
+Activity Log contains every critical and extended event fired during replay
+
+☐
+
+Phase 1's 84 tests still passing with zero regressions
+
+☐
+
+Pillar 1 resource use measured during replay and confirmed within resource_budget.yaml limits
+
+☐
+
+/resources endpoint validated with real data
+
+☐
+
+README updated: Phase 2 marked complete
+
+☐
+
+docs/releases/phase2.md written with what shipped / what deferred / architectural additions
+
+☐
+
+Compliance Matrix v4.1 Section 12 Phase 2 items all confirmed
+
+☐
+
+All new functions have Args/Returns/Raises docstrings
+
+☐
+
+GitHub Actions CI green on final Phase 2 commit
+
+☐
+
+Test count ≥130 (target was 130+; 84 Phase 1 + ~50 Phase 2)
+
+☐
+
+Commit tagged phase2-complete
+
+☐
+
+CLAUDE.md updated with Phase 2 learnings (if warranted)
+
+☐
+
+Phase 2 complete — ready to begin Phase 3: UI Shell + Frontier/Inara applications
+
+
+
+Appendix — Quick Reference
+
+Commands You Will Use Every Day
+
+Command
+
+What It Does
+
+.venv\Scripts\activate
+
+Activate Python virtual environment (run first in every new terminal session)
+
+uv add <package>
+
+Install a new Python package (Phase 2 should need zero of these — flag if you're reaching for one)
+
+pytest
+
+Run all tests
+
+pytest -v
+
+Run all tests with verbose output
+
+pytest tests/test_phase2_integration.py
+
+Run the full-session integration test
+
+pytest -k latency
+
+Run only latency budget tests
+
+pytest --cov=omnicovas
+
+Run tests with coverage report (target ≥80% on new code)
+
+mypy omnicovas/
+
+Check for type errors across the whole project (strict mode)
+
+ruff check omnicovas/
+
+Check for lint violations
+
+ruff check --fix omnicovas/
+
+Auto-fix lint violations where safe
+
+ruff format omnicovas/
+
+Auto-format all code
+
+git add .
+
+Stage all changes
+
+git commit -m 'message'
+
+Commit staged changes (triggers pre-commit hooks locally)
+
+git push
+
+Push commits to GitHub (kicks off CI)
+
+git tag phase2-complete
+
+Tag Phase 2 sign-off commit
+
+Pillar 1 Event Type Reference
+
+Event Type
+
+When It Fires / Source
+
+SHIP_STATE_CHANGED
+
+Any Ship identity change (LoadGame, Loadout, ShipyardSwap)
+
+HULL_DAMAGE
+
+Every HullDamage journal event
+
+HULL_CRITICAL_25
+
+Hull crosses below 25% (once per crossing)
+
+HULL_CRITICAL_10
+
+Hull crosses below 10% (once per crossing)
+
+SHIELDS_DOWN
+
+ShieldsDown journal event
+
+SHIELDS_UP
+
+Shield regeneration complete
+
+FUEL_LOW
+
+Fuel crosses below 25%
+
+FUEL_CRITICAL
+
+Fuel crosses below 10%
+
+FSD_JUMP
+
+FSDJump (system arrival, NOT StartJump)
+
+DOCKED
+
+Docked journal event
+
+UNDOCKED
+
+Undocked journal event
+
+WANTED
+
+CommitCrime or Bounty in current system
+
+DESTROYED
+
+ShipDestroyed or Died
+
+HEAT_WARNING
+
+Heat crosses configured threshold
+
+PIPS_CHANGED
+
+Status.json Pips differ from previous
+
+LOADOUT_CHANGED
+
+Loadout event with a different loadout_hash
+
+MODULE_DAMAGED
+
+A module's health crosses 80%
+
+MODULE_CRITICAL
+
+A module's health crosses 20%
+
+CARGO_CHANGED
+
+Cargo inventory delta (added, removed, or changed commodity)
+
+Latency Budget Reference
+
+Event Type
+
+Local Budget (CI = 2x)
+
+HullDamage
+
+100 ms
+
+ShieldsDown
+
+100 ms
+
+FSDJump
+
+200 ms
+
+Docked
+
+200 ms
+
+Undocked
+
+100 ms
+
+Loadout
+
+500 ms
+
+CargoChanged
+
+200 ms
+
+PipsChanged
+
+50 ms
+
+HeatWarning
+
+100 ms
+
+ModuleDamaged
+
+150 ms
+
+The Seven-Layer Debugging Vocabulary
+
+When a Pillar 1 feature misbehaves, trace through these layers in order. Bugs hide in transitions between layers more often than within a layer.
+
+Layer
+
+What It Does / How to Check
+
+1. Watcher
+
+watchdog sees a journal file change. Check: does logger.debug in the watcher fire when you jump in game?
+
+2. Dispatcher
+
+Routes event type to handlers. Check: is the event type in your handler registration dict?
+
+3. Handler
+
+Feature-specific logic. Check: is it registered? Does it crash silently? (structlog exception log)
+
+4. State
+
+StateManager field updates. Check: is source_priority blocking the update? Is the field nullable?
+
+5. Broadcaster
+
+Pub/sub dispatch to subscribers. Check: is the event type a registered string constant? Are tasks being created?
+
+6. Subscriber
+
+Handler code reacting to broadcasts. Check: was the subscriber registered before the first broadcast fired?
+
+7. KB
+
+Knowledge Base grounding. Check: is the entry present? Schema-valid? Does _justification explain the value choice?
+
+Architecture Decisions Locked in Phase 2
+
+Decision
+
+Why It Matters / Notes
+
+ShipStateBroadcaster pub/sub
+
+Every future pillar subscribes. Async fire-and-forget, per-subscriber error isolation, task references held to prevent GC.
+
+Event types as string constants
+
+Single source of truth in omnicovas/core/event_types.py. Prevents typos that silently break subscriptions.
+
+StateManager extension, no parallel state
+
+Adds fields to existing dataclass. Never a ShipStateManager. Source priority inherited from Phase 1.
+
+Latency budgets as CI hard-fail
+
+Matches mypy/ruff/pytest discipline. 2x tolerance multiplier for CI runner variance. Real regression catches real regressions.
+
+Tier 1 and Tier 2 only
+
+No LLM-dependent features in Phase 2. Everything works in NullProvider mode. Tier 3 waits for Phase 3+ when UI exists to show "Why?" inline.
+
+KB-grounded thresholds
+
+No magic numbers in Phase 2 handlers. Every threshold lives in KB with _justification. Makes changes reviewable and auditable.
+
+jump_range_ly from Loadout.MaxJumpRange
+
+Do not recompute from physics in Phase 2. Exploration pillar (Phase 5) owns first-principles math.
+
+Feature modules one-per-file
+
+omnicovas/features/{live_ship_state,fuel,hull_triggers,...}.py. Keeps Pillar 1 navigable. New contributors find code fast.
+
+Integration test uses real recorded journal
+
+Synthesized events miss edge cases. A real session captured to tests/fixtures/ is ground truth.
+
+Critical Event Broadcaster is a contract, not a class
+
+The six critical event types are the feature. A single audit test confirms they all fire. No new code class is needed.
+
+Where Things Live
+
+Path
+
+Purpose
+
+omnicovas/core/event_types.py
+
+All Pillar 1 event name constants
+
+omnicovas/core/broadcaster.py
+
+ShipStateBroadcaster class
+
+omnicovas/core/state.py
+
+StateManager dataclass (extended in Phase 2) + ModuleInfo dataclass
+
+omnicovas/core/latency.py
+
+LatencyBudget framework, BUDGETS dict, dispatch wrapper
+
+omnicovas/features/ship_state.py
+
+Feature 1 — Live Ship State handlers
+
+omnicovas/features/fuel.py
+
+Feature 5 — Fuel & Jump Range
+
+omnicovas/features/loadout.py
+
+Feature 4 — Loadout Awareness
+
+omnicovas/features/module_health.py
+
+Feature 2 — Module Health Tracking
+
+omnicovas/features/cargo.py
+
+Feature 6 — Cargo Monitoring
+
+omnicovas/features/hull_triggers.py
+
+Feature 3 — Hull & Integrity Triggers
+
+omnicovas/features/power_distribution.py
+
+Feature 9 — Power Distribution Intelligence
+
+omnicovas/features/heat_management.py
+
+Feature 10 — Heat Management (Tier 2)
+
+omnicovas/features/rebuy.py
+
+Feature 11 — Rebuy Calculator
+
+omnicovas/knowledge_base/combat_mechanics.json
+
+Hull, shield, heat, module thresholds
+
+omnicovas/knowledge_base/trading_mechanics.json
+
+Cargo, commodity, insurance data
+
+omnicovas/knowledge_base/exploration_mechanics.json
+
+Jump range baseline entries
+
+omnicovas/knowledge_base/_metadata.json
+
+KB version, audit date, total entries
+
+tests/fixtures/loadout_samples/
+
+Recorded Loadout events for parser tests
+
+tests/fixtures/session_replay/
+
+Full-session journal for integration test
+
+tests/test_phase2_integration.py
+
+Full-session integration test
+
+tests/test_latency_budgets.py
+
+Latency budget CI hard-fail tests
+
+tests/test_critical_broadcaster.py
+
+Critical Event Broadcaster audit test
+
+docs/releases/phase2.md
+
+Phase 2 release notes
+
+Out-of-Scope List (Deferred Beyond Phase 2)
+
+If any of these come up during Phase 2 — write them down, do not build them. They are tracked in the Roadmap v4.1 with dependency rationale.
+
+Feature
+
+Deferred To / Why
+
+Shield Intelligence
+
+Phase 2.5 — needs combat event context from Pillar 2
+
+Module Priority Mapping
+
+v1.1 — needs UI drag affordances from Phase 3
+
+Repair & Rearm Intelligence
+
+Phase 2.5 — better paired with Pillar 5 station data
+
+Ship Performance Logging
+
+v1.1 — analytical; more valuable after months of data
+
+Voice Queries About The Ship
+
+Phase 3+ — requires voice I/O path
+
+Predictive Module-Targeting Alerts
+
+Phase 2.5 — needs Pillar 2 combat event stream
+
+Tactical Threat Assessment
+
+Phase 2.5 — same as above
+
+Multi-Ship State Tracking
+
+Phase 2.5 — valuable but not blocking Pillar 1 foundation
+
+Pillar 1 UI
+
+Phase 3 — UI Shell phase
+
+Voice I/O for ship queries
+
+Phase 3+ — requires EDDI/VoiceAttack integration
+
+CAPI ship loadout fetch
+
+Phase 3+ — pending Frontier approval
+
+EDDN heat/fuel telemetry contribution
+
+Phase 6+ — optional, opt-in
+
+OmniCOVAS Phase 2 Development Guide — Companion to Master Blueprint v4.1
+
+Phase 2 Active — Weeks 7–10 — 11 features locked — No new dependencies

@@ -1,0 +1,16 @@
+name: OmniCOVAS Config
+version: 1.0.0
+schema: v1
+
+models:
+  - name: Qwen Executor
+    provider: ollama
+    model: qwen-executor:latest
+    apiBase: http://localhost:11434
+    contextLength: 32768
+    requestOptions:
+      timeout: 600000
+    roles:
+      - chat
+      - edit
+      - apply
