@@ -1,3 +1,4 @@
+# omnicovas/core/handlers.py
 """
 omnicovas.core.handlers
 
@@ -128,23 +129,28 @@ def make_handlers(
         print(f"[EVENT] DockingGranted -> {station or 'Unknown'}")
 
     async def handle_status(event: dict[str, Any]) -> None:
-        """Handle Status -- synthetic event from Status.json poll."""
+        """Handle Status -- synthetic event from Status.json poll.
+
+        Status.json provides fuel data mapped to our dual-field structure.
+        Journal events use fuel_capacity_main, Status.json uses the same.
+        """
         flags = event.get("Flags", 0)
         heat = event.get("Heat", 0.0)
-        fuel = event.get("Fuel", {})
-        fuel_main = fuel.get("FuelMain", 0.0) if isinstance(fuel, dict) else 0.0
-        fuel_reservoir = (
-            fuel.get("FuelReservoir", 0.0) if isinstance(fuel, dict) else 0.0
-        )
+        fuel: dict[str, Any] = event.get("Fuel", {})
+        fuel_main = float(fuel.get("FuelMain", 0.0))
+        fuel_reservoir = float(fuel.get("FuelReservoir", 0.0))
         pips = event.get("Pips")
         ts = event.get("timestamp")
 
         # Status.json is lower priority than journal
         state.update_field(
-            "fuel_main", float(fuel_main), TelemetrySource.STATUS_JSON, ts
+            "fuel_capacity_main", float(fuel_main), TelemetrySource.STATUS_JSON, ts
         )
         state.update_field(
-            "fuel_reservoir", float(fuel_reservoir), TelemetrySource.STATUS_JSON, ts
+            "fuel_capacity_reserve",
+            float(fuel_reservoir),
+            TelemetrySource.STATUS_JSON,
+            ts,
         )
         state.update_field("heat_level", float(heat), TelemetrySource.STATUS_JSON, ts)
 
