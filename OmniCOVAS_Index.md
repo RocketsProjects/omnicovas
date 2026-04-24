@@ -1,7 +1,7 @@
 OmniCOVAS — Document Index and Manifest
 ========================================
-Version 1.0
-Last updated: 2026-04-22
+Version 1.1
+Last updated: 2026-04-23
 
 Purpose: Single-stop reference for locating any project topic, section, or
 decision across all OmniCOVAS documents. Use this file first when looking up
@@ -37,7 +37,7 @@ information instead of searching individual documents.
         license obligations.
    4. OmniCOVAS_Approval_Applications_v4_0.txt
       - Pre-drafted Frontier and Inara application packages.
-   5. OmniCOVAS_Phase2_Development_Guide.docx
+   5. phase_2_dev_guide.txt
       - Week-by-week Phase 2 execution guide (Pillar 1, Weeks 7-10).
    6. CLAUDE.md
       - Engineering assistant operational parameters. Scheduled for
@@ -154,7 +154,7 @@ D. OmniCOVAS_Approval_Applications_v4_0.txt structure
    Part IV  — Submission Checklist
 
 
-E. OmniCOVAS_Phase2_Development_Guide.docx structure
+E. phase_2_dev_guide.txt structure
 
    Parts A-G — Per-week task tables (Weeks 7-10)
    Week 7, 8, 9, 10 milestone checklists
@@ -166,8 +166,8 @@ E. OmniCOVAS_Phase2_Development_Guide.docx structure
 --------------------------------------------------------------------------------
 
 Topic to location mapping. "BP" = Master_Blueprint_v4_2. "CM" = Compliance_
-Matrix_v4_1. "AA" = Approval_Applications_v4_0. "P2G" = Phase2_Development_
-Guide. "RM" = README.
+Matrix_v4_1. "AA" = Approval_Applications_v4_0. "P2G" = phase_2_dev_guide.
+"RM" = README.
 
 
 A. Accessibility
