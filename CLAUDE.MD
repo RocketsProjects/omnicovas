@@ -1,11 +1,20 @@
 # CLAUDE.MD — Engineering Assistant Alignment File
 
-**Version:** 2.2 | **Phase:** 2 of N — Ship Telemetry (Weeks 7–10) | **Updated:** 2026-04-23
+**Version:** 2.3 | **Phase:** 2 of N — Ship Telemetry (Weeks 7–10) | **Updated:** 2026-04-25
 **Authority chain:** Master Blueprint v4.2 > this file > Soldier.md > Playbook > session conversation
 **Companions:** `OmniCOVAS_Master_Blueprint_v4_2.txt`, `OmniCOVAS_Phase2_Development_Guide.docx`, `OmniCOVAS_Compliance_Matrix_v4_1.txt`, `OmniCOVAS_Index.md`, `docs/ai/Soldier.md`
-**Supersedes:** CLAUDE.md v2.1 (2026-04-22), v2.0, and v1.0 (archived)
+**Supersedes:** CLAUDE.MD v2.2 (2026-04-23), v2.1 (2026-04-22), v2.0, and v1.0 (archived)
 
 ---
+
+## CHANGELOG (v2.2 → v2.3)
+
+- §VII Pattern 3 — ModuleInfo.json caveat added (vehicle-context filtering rule)
+- §XIV Learning #1 — Windows CRLF specifics + permanent `.gitattributes` fix
+- §XII Success Criteria — end-of-Week-7 test posture noted (157/157)
+- Date refresh (2026-04-25)
+- Source: `docs/Testing data/session_findings_2026-04-19_caspian_guardian.md`
+- No substantive change to Laws, Principles, scope, or Pattern semantics
 
 ## CHANGELOG (v2.1 → v2.2)
 
@@ -14,7 +23,6 @@
 - Section XIII file-locations block adds `docs/ai/Soldier.md` and `docs/ai/playbooks/`
 - Date refresh (2026-04-23)
 - No substantive change to Sections I–XIV; existing patterns, laws, scope all preserved verbatim
-
 ---
 
 ## I — ROLE & SCOPE
@@ -245,6 +253,8 @@ class ShipStateManager: ...
 
 Phase 1 source priority (`journal > status_json > capi > eddn`) applies to all new fields.
 
+**ModuleInfo.json caveat (Phase 2).** ModuleInfo.json is a valid live source for module-health deltas (Phase 2 Dev Guide §C, lines 419–433), but the file is rewritten on vehicle-context transitions (in-ship → in-SRV → on-foot). Captured evidence: 2026-04-19 session, ModuleInfo.json read at `02:46:18Z` (89 s before DockSRV) reflected Scarab SRV modules (`testbuggy_cockpit`, `vehicle_turretgun`, `scarab_armour_grade1`) — not the active Caspian Explorer loadout. The handler MUST filter incoming ModuleInfo updates against the ship-slot set populated by the most recent `Loadout` event; updates whose slots do not intersect with that set are non-ship context and must be dropped. Detection heuristic: presence of any `Slot##_Size##` slot or `FrameShiftDrive` slot indicates ship context; absence indicates SRV/buggy/on-foot context.
+
 ### Pattern 4 — KB-Grounded Analysis
 
 Every judgment ("hull critical," "heat dangerous," "rebuy expensive") references a KB entry, never a magic number.
@@ -399,7 +409,7 @@ Clear, specific guidance. Code examples over prose. Explain the *why*. Acknowled
 
 ## XII — PHASE 2 SUCCESS CRITERIA (Week 10)
 
-**Code quality:** zero mypy errors (strict); zero ruff violations; all pytest tests pass (target 130+ total, up from Phase 1's 84); CI green; ≥80% coverage on new Pillar 1 code.
+**Code quality:** zero mypy errors (strict); zero ruff violations; all pytest tests pass (target 130+ total, up from Phase 1's 84; **end-of-Week-7 posture: 157/157 — target already exceeded; consider raising bar at Week 10 review**); CI green; ≥80% coverage on new Pillar 1 code.
 
 **Features (all 11 operational):** Live Ship State; Module Health; Hull & Integrity Triggers at 25%/10%; Loadout Awareness (hashed); Fuel & Jump Range; Cargo; Critical Broadcaster (hull/shield/fuel); Extended Broadcaster (dock/wanted/destroyed/FSDJump); Power Distribution; Heat Management (Tier 2, KB-grounded); Rebuy Calculator (Tier 1, KB-grounded).
 
@@ -456,7 +466,8 @@ Archived (reference only):
 
 ## XIV — PHASE 1 LEARNINGS (Shape Phase 2 Work Habits)
 
-1. **Windows FS is squirrelly.** OneDrive conflict copies, CRLF endings, case-insensitive paths. Diff before assuming content differs. Prefer local commits over GitHub web-UI uploads.
+
+1. **Windows FS is squirrelly.** OneDrive conflict copies, CRLF endings, case-insensitive paths. Diff before assuming content differs. Prefer local commits over GitHub web-UI uploads. **Recurring offender:** `.github/workflows/ci.yml` re-introduces CRLF on every Windows-side edit (observed twice in the Week 7 final commit cycle; pre-commit caught both). Permanent fix: add a `.gitattributes` line `*.yml text eol=lf` (scoped to `.github/workflows/` if preferred), then run `git add --renormalize . && git commit -m "chore: normalise YAML line endings"` once.
 2. **`ruff check --fix`** — the `--fix` flag goes on the `check` subcommand, not bare `ruff`.
 3. **`UV_LINK_MODE=copy`** is required on Windows where cache and project cross filesystems or OneDrive folders. Set permanently with `setx UV_LINK_MODE copy`.
 4. **`git fetch --prune origin`** kills stale tracking refs. Make it automatic: `git config --global fetch.prune true`.
@@ -476,7 +487,7 @@ Archived (reference only):
 | Role | Model | Responsibility |
 |---|---|---|
 | **Commander** | Claude (this file) | Architecture, logic planning, playbook authoring, escalation review, KB validation design, compliance interpretation, scope gatekeeping |
-| **Soldier** | `qwen-executor:latest` (local Ollama, 32k ctx, RTX 4070 Laptop, q8_0 KV cache, flash attention on, 10-min Continue timeout) | 100% of code generation, boilerplate, unit tests, fixture parsing, mypy/ruff fix-ups, test file authoring |
+| **Soldier** | `qwen-executor:latest` (local Ollama, 20480k ctx, RTX 4070 Laptop, q8_0 KV cache, flash attention on, 10-min Continue timeout) | 100% of code generation, boilerplate, unit tests, fixture parsing, mypy/ruff fix-ups, test file authoring |
 
 ### Workflow
 
@@ -524,7 +535,8 @@ Both folders tracked in git. `Soldier.md` ships with every playbook invocation v
 ### Continue / Qwen environment
 
 - **Model:** `qwen-executor:latest` (modified Qwen 2.5 9B, 4-bit quant)
-- **Context window:** 32,768 tokens
+- **Context window:** 20,480 tokens (chosen for inference speed on 8 GB VRAM;
+  trades headroom for latency, see Context Budget below)
 - **Hardware:** RTX 4070 Laptop (8 GB VRAM) / 16 GB system RAM
 - **Env:** `OLLAMA_FLASH_ATTENTION=1`, `OLLAMA_KV_CACHE_TYPE=q8_0`
 - **Continue timeout:** 10 minutes
@@ -540,13 +552,19 @@ Both folders tracked in git. `Soldier.md` ships with every playbook invocation v
 
 `OmniCOVAS_Compliance_Matrix_v4_1.txt` is reference-only and tagged per-task only when compliance is in scope.
 
-### Context budget per Soldier invocation (rough)
+### Context budget per Soldier invocation (20,480 ceiling)
 
-- Soldier.md: ~8k
-- Playbook: ~2–4k
-- Tagged files (excerpts pulled by Continue): ~6–12k
-- Generated output: ~4–8k
-- **Total:** well inside 32k, with headroom for multi-turn debugging
+- Soldier.md: ~4–5k (shorter than the 8k v2.2 estimate; current file is leaner)
+- Playbook: ~2–3k
+- Tagged files (excerpts pulled by Continue): ~6–8k
+- Generated output: ~4k (reduce `maxTokens` in `Qwen.yaml` to 4096)
+- **Total:** ~16–20k. Tight. Multi-file Playbooks may need to drop
+  read-only reference files from the tag list and rely on the Soldier
+  reading them via Continue's filesystem tool instead.
+
+Sizing guard: if a Playbook's tagged files exceed ~8k tokens, split the
+Playbook into two phases. Do not raise the context window — that path was
+considered and rejected for inference latency reasons.
 
 ---
 

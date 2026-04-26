@@ -1,0 +1,10 @@
+FROM C:\Users\zakar\.ollama\models\blobs\sha256-dec52a44569a2a25341c4e4d3fee25846eed4f6f0b936278e3a3c900bb99d37c
+TEMPLATE {{ .Prompt }}
+RENDERER qwen3.5
+PARSER qwen3.5
+PARAMETER num_ctx 20480
+PARAMETER num_gpu 35
+PARAMETER presence_penalty 1.5
+PARAMETER temperature 1
+PARAMETER top_k 20
+PARAMETER top_p 0.95

@@ -218,3 +218,17 @@ Cargo.lock
 
 # Alembic development database
 alembic_dev.db
+
+# OmniCOVAS-specific ===================================================
+
+# Local AI tooling state -- machine-specific, do not commit
+.continue/
+.ollama/
+*.Modelfile
+qwen-executor.Modelfile
+
+# Continue agent configs -- track templates, ignore live configs
+.continue/agents/Qwen.yaml
+
+# Local documentation drafts that haven't been promoted yet
+docs/Testing data/

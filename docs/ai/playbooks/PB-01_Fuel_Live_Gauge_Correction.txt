@@ -1,0 +1,710 @@
+OMNICOVAS PLAYBOOK PB-01 — FUEL LIVE GAUGE CORRECTION
+Version: 1.0
+Issued: 2026-04-24
+Issued by: Architect
+Target executor: Soldier
+Precedes: Week 8 Part A (Loadout Awareness)
+Effort estimate: 2-3 focused hours
+
+
+================================================================================
+1. MISSION
+================================================================================
+
+Correct the fuel telemetry pipeline so that state.ship reflects the live fuel
+level during a session instead of locking to the fuel capacity at session
+start. This closes a Law 7 (Telemetry Rigidity) defect identified in the
+2026-04-20 Core Brain Test, where state output printed fuel=128.0 for 997
+events while the journal showed fuel burning from 128.0 down to 12.1 and back
+via ReservoirReplenished and FuelScoop events.
+
+This Playbook is a pre-Week 8 correction. It must land before Week 8 Part A
+begins, because Week 8 Part A re-touches the Loadout event's FuelCapacity
+parsing and will compound the defect if this fix is deferred.
+
+The fix is surgical. You are not refactoring anything beyond what is
+enumerated below. If you identify a structural issue not covered here, stop
+and escalate per Section 15.
+
+
+================================================================================
+2. SCOPE
+================================================================================
+
+IN SCOPE:
+
+   1. omnicovas/core/state_manager.py — add or normalise the four fuel fields
+      defined in Section 6.
+   2. omnicovas/core/event_types.py — add RESERVOIR_REPLENISHED event
+      constant if absent.
+   3. omnicovas/features/fuel.py — add ReservoirReplenished handler; correct
+      existing handlers per Section 7.
+   4. omnicovas/features/ship_state.py — correct the Loadout handler's
+      FuelCapacity parsing per Section 7.B.
+   5. omnicovas/core/status_reader.py — publish Fuel block to state.ship on
+      every poll per Section 8.
+   6. omnicovas/knowledge_base/combat_mechanics.json — verify fuel threshold
+      entries exist with correct schema (Section 10). Add if missing.
+   7. tests/test_fuel.py — add regression tests per Section 11.
+   8. tests/fixtures/ — add the two fuel-fixture JSON files per Section 12.
+   9. Any minor log-string cleanup directly adjacent to modified lines
+      (specifically the "25%%" double-percent noted in Section 7.E).
+
+OUT OF SCOPE — DO NOT TOUCH:
+
+   1. The broadcaster event taxonomy. Do not add new broadcast event types.
+      Continue using the existing FUEL_LOW and FUEL_CRITICAL broadcasts.
+   2. The Loadout modules array parsing. That work is Week 8 Part A.
+   3. Module Health, Cargo Monitoring, Hull/Integrity Triggers. Week 8 B+C.
+   4. The journal watcher, dispatcher, broadcaster internals. These are
+      Phase 1 infrastructure; Week 7 did not modify them.
+   5. Latency budgets. No budget changes needed — fuel events remain under
+      the existing "navigation" and "trade" classes.
+   6. Any test file other than test_fuel.py. Do not edit test_live_ship_state
+      even if fuel-adjacent, unless a test there explicitly breaks from your
+      changes — in which case, escalate before editing.
+   7. UI, FastAPI bridge payload shape, WebSocket clients. All downstream.
+
+
+================================================================================
+3. ROOT CAUSE SUMMARY
+================================================================================
+
+Two defects interact to produce the observed symptom:
+
+Defect 1 — Schema confusion on the Loadout event.
+
+   The field "FuelCapacity" has two different shapes depending on the event:
+
+      LoadGame   : FuelCapacity is a scalar float (e.g. 128.0) and there is
+                   a separate FuelLevel scalar (e.g. 128.0 at session start).
+      Loadout    : FuelCapacity is an object {"Main": float, "Reserve": float}
+                   describing tank geometry. There is NO FuelLevel field.
+
+   The current Loadout handler appears to treat FuelCapacity uniformly as
+   if it were a scalar carrying current fuel. The result is that state.ship
+   receives the capacity value (128.0) and treats it as the live level.
+
+Defect 2 — Missing live-gauge subscription.
+
+   The Core Brain boot log emits:
+
+      "Fuel handlers registered (FuelScoop, RefuelAll, RefuelPartial,
+       StartJump)"
+
+   ReservoirReplenished is not registered. This is the dominant live-gauge
+   event during supercruise and normal flight. In the 2026-04-20 session it
+   fired 45 times in 40 minutes. Without this handler, the only updates to
+   fuel_level between station refuels are FuelScoop events, and those only
+   fire during active scooping.
+
+   StatusReader DOES read Status.json Fuel and DOES trigger FUEL_LOW and
+   FUEL_CRITICAL broadcasts on threshold crossing, but it writes the reading
+   into a transient comparison variable rather than persisting it to
+   state.ship. The threshold logic works; the state hydration does not.
+
+Result: state.ship.fuel_level (or its equivalent) is seeded from
+Loadout.FuelCapacity at session start and is never corrected.
+
+
+================================================================================
+4. TELEMETRY CONTRACT (THE GROUND TRUTH)
+================================================================================
+
+The canonical fuel payload shape across every relevant source, verified from
+the 2026-04-20 session journal. Treat this table as the source of truth.
+Reject any implementation that deviates from these types.
+
+   Source                      Field                  Type     Semantic
+   --------------------------  ---------------------  -------  ------------
+   LoadGame                    FuelLevel              float    live main
+   LoadGame                    FuelCapacity           float    capacity main
+   Loadout                     FuelCapacity.Main      float    capacity main
+   Loadout                     FuelCapacity.Reserve   float    capacity rsv
+   Loadout                     (no FuelLevel)         --       --
+   FSDJump                     FuelUsed               float    delta
+   FSDJump                     FuelLevel              float    live main
+   FuelScoop                   Scooped                float    delta
+   FuelScoop                   Total                  float    live main
+   ReservoirReplenished        FuelMain               float    live main
+   ReservoirReplenished        FuelReservoir          float    live reservoir
+   RefuelAll                   Cost                   int      --
+   RefuelAll                   Amount                 float    delta
+   RefuelPartial               Cost                   int      --
+   RefuelPartial               Amount                 float    delta
+   StartJump                   (no fuel payload)      --       --
+   Status.json                 Fuel.FuelMain          float    live main
+   Status.json                 Fuel.FuelReservoir     float    live reservoir
+
+Reference literals for unit tests (from the real Loadout at 2026-04-20
+02:10:35Z):
+
+   ship                        : explorer_nx
+   FuelCapacity.Main           : 128.000000
+   FuelCapacity.Reserve        : 1.140000
+   MaxJumpRange                : 76.170654
+
+Reference literals for the ReservoirReplenished live-gauge regression test:
+
+   02:13:18Z FuelMain=113.649406 FuelReservoir=1.140000
+   02:13:25Z FuelMain=112.509407 FuelReservoir=1.140000
+   02:24:18Z FuelMain=12.131409  FuelReservoir=1.140000
+
+
+================================================================================
+5. PRE-FLIGHT VERIFICATION
+================================================================================
+
+Before writing any code, confirm the following against the current HEAD of
+main. Report each finding back in your commit message or as a comment block
+in the fuel.py docstring.
+
+[ ] V1. Read omnicovas/core/state_manager.py. Enumerate the existing
+       fuel-related fields on the Ship dataclass (or equivalent). Record
+       their exact names and types. If they match Section 6 canonical
+       names, proceed. If they differ, proceed with a rename and note the
+       rename in the commit body.
+
+[ ] V2. Read omnicovas/features/fuel.py. Confirm that exactly these four
+       handlers are registered today: FuelScoop, RefuelAll, RefuelPartial,
+       StartJump. Note the signature and return shape of each.
+
+[ ] V3. Read omnicovas/features/ship_state.py. Find the Loadout handler's
+       FuelCapacity read. Record the exact line. This is Defect 1 ground
+       zero.
+
+[ ] V4. Read omnicovas/core/status_reader.py. Confirm whether the Fuel block
+       of Status.json is (a) read but not written to state, (b) read and
+       written to state under a different field name, or (c) not read at
+       all. Base Section 8's implementation on what you find.
+
+[ ] V5. Read omnicovas/core/event_types.py. Confirm whether a constant for
+       ReservoirReplenished exists. If absent, you will add one in Section 7.A.
+
+[ ] V6. Run the existing test suite and confirm 157/157 green. If any test
+       is red before you touch anything, escalate. Do not proceed.
+
+[ ] V7. Read omnicovas/knowledge_base/combat_mechanics.json. Confirm the
+       presence of fuel_low_threshold (0.25) and fuel_critical_threshold
+       (0.10) KB entries with the 7-field Principle 6 schema. If missing,
+       Section 10 adds them.
+
+
+================================================================================
+6. STATE CONTRACT — REQUIRED FIELDS ON state.ship
+================================================================================
+
+After this Playbook lands, state.ship must expose exactly these four fuel
+fields. Types are concrete, Optional where the field has no ground-truth
+until a source has fired at least once.
+
+   fuel_main              : float | None    live main tank (tonnes)
+   fuel_reservoir         : float | None    live reservoir (tonnes)
+   fuel_capacity_main     : float | None    main tank geometry (tonnes)
+   fuel_capacity_reserve  : float | None    reservoir geometry (tonnes)
+
+Rules:
+
+   A. Initial value on a fresh Ship instance: all four None.
+
+   B. None means "not yet observed". Do not coerce to 0.0. Do not coerce to
+      the capacity value. Law 5 (Zero Hallucination): unknown stays unknown
+      until a real source fires.
+
+   C. If state.ship currently carries a scalar field called fuel_level or
+      fuel_capacity (confirmed in V1), resolve as follows:
+
+          - If fuel_level exists and is used ONLY by fuel.py and the [STATE]
+            print: remove it. Replace all reads with (fuel_main or 0.0) +
+            (fuel_reservoir or 0.0) for display, and None-check for any
+            logic that needs a live gauge.
+          - If fuel_level exists and is read by code outside fuel.py, status
+            print, or tests: STOP. Escalate per Section 15. Do not rename.
+
+   D. The [STATE] periodic print in main.py may continue to display a single
+      "fuel=" value. Compute it as (fuel_main or 0.0) + (fuel_reservoir or
+      0.0). When both are None, print "fuel=?" instead of a number. This
+      makes the zero-hallucination posture visible in logs.
+
+   E. Comment each new field with a one-line reference to this Playbook
+      (e.g. # PB-01 fuel live gauge) and to Blueprint Section 19.C.5.
+
+
+================================================================================
+7. HANDLER CONTRACTS (omnicovas/features/fuel.py)
+================================================================================
+
+This section defines, per event, exactly what the handler reads and exactly
+what it writes to state. Handlers are async, type-annotated, and conform to
+the existing Week 7 handler shape in ship_state.py and fuel.py.
+
+A. ReservoirReplenished (NEW HANDLER — highest priority)
+
+   Event schema:
+      { "event":"ReservoirReplenished",
+        "FuelMain": float,
+        "FuelReservoir": float }
+
+   Reads:   event["FuelMain"], event["FuelReservoir"]
+   Writes:  state.ship.fuel_main       = FuelMain
+            state.ship.fuel_reservoir  = FuelReservoir
+   Broadcasts: call the existing threshold evaluator (Section 10) AFTER the
+               write. Do not emit any new event type.
+
+   Implementation note: this event fires every few seconds during supercruise.
+   It is the dominant live-gauge signal. Handler must complete well under the
+   combat-alert budget of 100 ms. Typical execution should be under 1 ms —
+   two scalar writes plus a threshold check.
+
+   event_types.py: add RESERVOIR_REPLENISHED = "ReservoirReplenished" if
+   absent (confirmed in V5).
+
+B. Loadout (CORRECT EXISTING HANDLER — in ship_state.py, not fuel.py)
+
+   Event schema:
+      { "event":"Loadout",
+        "FuelCapacity": { "Main": float, "Reserve": float },
+        ... }
+
+   Reads:   event["FuelCapacity"]["Main"], event["FuelCapacity"]["Reserve"]
+   Writes:  state.ship.fuel_capacity_main    = FuelCapacity.Main
+            state.ship.fuel_capacity_reserve = FuelCapacity.Reserve
+   DO NOT WRITE fuel_main or fuel_reservoir from Loadout. Loadout carries no
+   live fuel level — this is the core of Defect 1.
+   Broadcasts: none (existing LOADOUT_CHANGED broadcast stays as-is).
+
+   Defensive parsing: if event["FuelCapacity"] is a float rather than a
+   dict, log a structlog warning tagged schema.fuel_capacity.shape and treat
+   it as {"Main": value, "Reserve": 0.0}. This is belt-and-braces against
+   Frontier changing the schema back in a future patch.
+
+C. LoadGame (CORRECT EXISTING HANDLER — in ship_state.py)
+
+   Event schema:
+      { "event":"LoadGame",
+        "FuelLevel": float,
+        "FuelCapacity": float,
+        ... }
+
+   Reads:   event["FuelLevel"], event["FuelCapacity"]
+   Writes:  state.ship.fuel_main           = FuelLevel
+            state.ship.fuel_capacity_main  = FuelCapacity
+   LoadGame does not provide reservoir information. Do not touch
+   fuel_reservoir or fuel_capacity_reserve here — they will be populated by
+   the Loadout event that always follows LoadGame within seconds.
+   Broadcasts: none.
+
+D. FSDJump (NEW OR CORRECT EXISTING HANDLER — in fuel.py or ship_state.py)
+
+   Event schema:
+      { "event":"FSDJump",
+        "FuelUsed": float,
+        "FuelLevel": float,
+        "StarSystem": str, ... }
+
+   Reads:   event["FuelLevel"]
+   Writes:  state.ship.fuel_main = FuelLevel
+   Broadcasts: call the threshold evaluator after the write.
+
+   Note: if ship_state.py already handles FSDJump for system-name updates,
+   extend that handler with one additional line rather than registering a
+   second FSDJump handler. Two handlers on the same event is allowed but
+   adds dispatcher overhead; prefer in-place extension.
+
+E. FuelScoop (CORRECT EXISTING HANDLER)
+
+   Event schema:
+      { "event":"FuelScoop",
+        "Scooped": float,
+        "Total": float }
+
+   Reads:   event["Total"]
+   Writes:  state.ship.fuel_main = Total
+   Broadcasts: call the threshold evaluator after the write. FuelScoop
+   crossing UP through a threshold must not re-broadcast FUEL_LOW or
+   FUEL_CRITICAL — the threshold-crossing state machine already handles
+   this correctly per existing Week 7 logic; verify it still does after
+   your changes.
+
+   Secondary cleanup: locate the "fuel dropped below 25%%" log string and
+   fix the double-percent. This is the cosmetic defect in the [STATE]
+   channel of the FUEL_LOW broadcast. Change "25%%" to "25%".
+
+F. RefuelAll, RefuelPartial (CORRECT EXISTING HANDLERS)
+
+   Event schema (both):
+      { "event":"RefuelAll" | "RefuelPartial",
+        "Cost": int,
+        "Amount": float }
+
+   These events do not carry a post-refuel fuel level. The correct behaviour
+   is to increment state.ship.fuel_main by event["Amount"], capped at
+   state.ship.fuel_capacity_main if that value is known.
+   Broadcasts: threshold evaluator after write. RefuelAll will almost always
+   cross the FUEL_LOW threshold upward; that must not re-broadcast.
+
+G. StartJump (NO CHANGE)
+
+   StartJump has no fuel payload. Existing handler, whatever it does with
+   StartJump, is out of scope for this Playbook.
+
+
+================================================================================
+8. STATUS.JSON POLLING CONTRACT (omnicovas/core/status_reader.py)
+================================================================================
+
+StatusReader polls Status.json at 2 Hz (every 0.5 s per Week 7).
+
+On each poll, if the parsed payload contains a "Fuel" key with a dict value,
+apply the following writes:
+
+   state.ship.fuel_main      = payload["Fuel"]["FuelMain"]
+   state.ship.fuel_reservoir = payload["Fuel"]["FuelReservoir"]
+
+Rules:
+
+   A. Do this write unconditionally when the Fuel key is present. No
+      threshold evaluation on the status_reader path; thresholds are
+      evaluated only on journal events (Section 10 + Section 9).
+
+   B. Absence of the Fuel key means the game is in a state where fuel is
+      undefined (main menu, loading screens — Status.json Flags:0 in the
+      uploaded sample confirms this). In that case, do not modify
+      fuel_main or fuel_reservoir. Do not clear them to None. The last
+      known good value persists until a new source overwrites it.
+
+   C. No broadcast from status_reader. The journal handlers carry the
+      broadcast responsibility per Section 9.
+
+   D. Under no circumstances should status_reader write to
+      fuel_capacity_main or fuel_capacity_reserve. Status.json does not
+      carry capacity.
+
+
+================================================================================
+9. SOURCE PRIORITY (LAW 7 ENFORCEMENT)
+================================================================================
+
+Per Blueprint Section 2 Law 7 and phase_2_dev_guide.txt line 260-261:
+
+   "Source priority: journal wins for discrete events, status_json wins
+    for live gauge."
+
+Concrete rule set:
+
+   1. Journal events (ReservoirReplenished, FuelScoop, FSDJump, LoadGame,
+      RefuelAll, RefuelPartial) are AUTHORITATIVE at the instant they fire.
+      Their handlers write fuel_main (and fuel_reservoir where provided)
+      directly.
+
+   2. Between journal events, Status.json polling maintains the live gauge
+      via Section 8.
+
+   3. These two paths do not conflict in practice. They write the same
+      fields with the same values derived from the same underlying game
+      state. The only race is that Status.json may be up to 0.5 s stale
+      relative to a journal event; this is acceptable and does not violate
+      Law 7 — the 100 ms combat alert budget applies to broadcast
+      dispatch, not to gauge freshness.
+
+   4. Threshold evaluation (Section 10) is triggered ONLY by journal
+      handlers. Status.json writes are silent. Rationale: Status.json fires
+      every 0.5 s whether values changed or not; threshold crossings must
+      debounce on discrete event boundaries or the broadcast layer will
+      spam.
+
+
+================================================================================
+10. THRESHOLD LOGIC
+================================================================================
+
+A. KB entries (omnicovas/knowledge_base/combat_mechanics.json):
+
+   Verify (V7) or add:
+
+      "fuel_low_threshold": {
+        "value": 0.25,
+        "unit": "fraction",
+        "patch_verified": "4.3.1.0",
+        "source": "Frontier in-game fuel warning parity",
+        "last_updated": "2026-04-24",
+        "confidence": "high",
+        "needs_review": false,
+        "_justification":
+          "25% is the ED in-game low-fuel warning threshold. Matches FUEL_LOW."
+      },
+      "fuel_critical_threshold": {
+        "value": 0.10,
+        "unit": "fraction",
+        "patch_verified": "4.3.1.0",
+        "source": "Frontier in-game fuel critical warning parity",
+        "last_updated": "2026-04-24",
+        "confidence": "high",
+        "needs_review": false,
+        "_justification":
+          "10% is the ED in-game critical-fuel warning threshold."
+      }
+
+   If already present with matching values, do not rewrite — only bump
+   last_updated and patch_verified if they are older than 4.3.1.0.
+   Bump _metadata.json kb_version and last_full_audit_date if you modify
+   either entry.
+
+B. Computation:
+
+   The fraction evaluated against these thresholds is:
+
+      fraction = fuel_main / fuel_capacity_main
+
+   Not against the sum of main + reservoir, and not against capacity_main +
+   capacity_reserve. Rationale: the reservoir is a ~1.14 t buffer that is
+   always full as long as main > 0. Including it in the denominator skews
+   the fraction and delays the warning. Frontier's own in-game warning
+   tracks main-only. We match that behaviour for parity.
+
+   If fuel_main is None or fuel_capacity_main is None or
+   fuel_capacity_main <= 0.0: skip threshold evaluation for this tick. Do
+   not broadcast. Do not log a warning.
+
+C. Hysteresis (existing Week 7 behaviour — preserve):
+
+   FUEL_LOW is broadcast once on downward crossing of 0.25. It is not
+   re-broadcast on subsequent FuelMain decrements. It is re-armed when
+   fuel_main / fuel_capacity_main rises back above 0.25 (after a refuel or
+   fuel scoop).
+
+   FUEL_CRITICAL behaves identically on 0.10.
+
+   Preserve whatever crossing-state fields (e.g. _fuel_low_fired: bool,
+   _fuel_critical_fired: bool) already exist in fuel.py. Do not rename
+   them.
+
+
+================================================================================
+11. TEST PLAN (tests/test_fuel.py)
+================================================================================
+
+The Week 7 suite has 14 fuel tests. You must not reduce this count. You will
+add at least 6 new tests for regression coverage. Target: 20+ fuel tests
+after this Playbook.
+
+All new tests use pytest + asyncio.AUTO mode (consistent with existing
+Week 7 conventions). Use real journal literal values from Section 4 and the
+fixtures from Section 12. Do not fabricate numbers.
+
+Required new tests:
+
+[ ] T1. test_reservoir_replenished_updates_fuel_main_and_reservoir
+        Given state.ship fresh. Fire the three ReservoirReplenished events
+        from Section 4 in order. Assert state.ship.fuel_main equals
+        12.131409 after the third. Assert state.ship.fuel_reservoir equals
+        1.140000. Asserts the primary live-gauge wiring.
+
+[ ] T2. test_loadout_populates_fuel_capacity_only_not_live_fuel
+        Given state.ship fresh. Fire one Loadout event from the 2026-04-20
+        fixture. Assert state.ship.fuel_capacity_main == 128.0 and
+        state.ship.fuel_capacity_reserve == 1.14. Assert state.ship.fuel_main
+        is still None and state.ship.fuel_reservoir is still None. This
+        asserts the Defect 1 fix: Loadout must not write live fuel.
+
+[ ] T3. test_loadgame_populates_fuel_main_and_capacity_main_but_not_reservoir
+        Fire a LoadGame event with FuelLevel=128.0 and FuelCapacity=128.0.
+        Assert fuel_main == 128.0, fuel_capacity_main == 128.0, fuel_reservoir
+        is None, fuel_capacity_reserve is None. Reservoir must come from
+        the Loadout that follows.
+
+[ ] T4. test_fsdjump_updates_fuel_main
+        Fire an FSDJump event with FuelLevel=121.516029. Assert
+        state.ship.fuel_main == 121.516029.
+
+[ ] T5. test_fuel_scoop_updates_fuel_main_from_total_field
+        Starting from fuel_main=11.884117 and capacity=128.0, fire a
+        FuelScoop Scooped=5.007157 Total=16.891285. Assert
+        state.ship.fuel_main == 16.891285. Do not add Scooped to fuel_main;
+        use Total.
+
+[ ] T6. test_threshold_fraction_uses_main_not_sum
+        Given fuel_capacity_main=128.0, fuel_capacity_reserve=1.14.
+        Drive fuel_main through 32.5 (25.4%), 32.0 (25.0%), 31.9 (24.9%),
+        12.9 (10.1%), 12.8 (10.0%), 12.7 (9.9%). Assert FUEL_LOW broadcast
+        fires exactly once (on the 31.9 step, crossing below 0.25). Assert
+        FUEL_CRITICAL fires exactly once (on the 12.7 step, crossing below
+        0.10). Reservoir value does not enter the denominator.
+
+Optional (strongly recommended):
+
+[ ] T7. test_status_json_poll_updates_fuel_fields_silently
+        Drive status_reader with a payload containing
+        Fuel={FuelMain:100.0, FuelReservoir:1.14}. Assert state.ship.fuel_main
+        and fuel_reservoir updated. Assert no broadcast fired. Assert
+        fuel_capacity_* fields unchanged.
+
+[ ] T8. test_status_json_missing_fuel_key_preserves_last_known
+        Pre-seed state with fuel_main=50.0. Drive status_reader with a
+        payload where Fuel key is absent (simulate Flags:0 post-shutdown
+        state). Assert fuel_main is still 50.0 — not None, not 0.0.
+
+Update V6: after your changes, full suite must pass. Target:
+157 existing + 6 to 8 new = 163-165 total. mypy --strict must remain clean.
+ruff check must remain clean.
+
+
+================================================================================
+12. FIXTURE EXTRACTION
+================================================================================
+
+Two fixtures from the 2026-04-20 session journal. Path:
+tests/fixtures/fuel_samples/.
+
+[ ] F1. tests/fixtures/fuel_samples/loadout_explorer_nx.json
+        Source: the Loadout event at timestamp 2026-04-20T02:10:35Z.
+        Anonymisation: set "ShipIdent" to "AB-01C". Remove nothing else.
+        File is valid JSON (the outer braces of the single journal line,
+        reformatted to pretty-print is acceptable — parser only cares about
+        JSON shape).
+
+[ ] F2. tests/fixtures/fuel_samples/reservoir_replenished_sequence.jsonl
+        Source: the 45 ReservoirReplenished events from the session, one
+        per line, in timestamp order. JSON Lines format. No modification —
+        ReservoirReplenished carries no PII. This is the regression corpus
+        for T1 and future live-gauge work.
+
+Add a short README.md to tests/fixtures/fuel_samples/ stating provenance
+(2026-04-20 TeamRocket session, anonymised per Section 7 of the Findings
+doc) and that these fixtures back Playbook PB-01.
+
+This fixture work also satisfies half of the Week 8 Part A requirement for
+"3+ anonymized Loadout" fixtures (phase_2_dev_guide.txt line 521). Week 8
+Part A will add the remaining two.
+
+
+================================================================================
+13. COMMIT STRUCTURE
+================================================================================
+
+Four commits, in this order. Each must pass pre-commit hooks, mypy, ruff,
+and the current pytest suite before the next begins.
+
+   1. "fix(phase2): extend state.ship with fuel_main/reservoir/capacity
+       fields (PB-01)"
+      - state_manager.py changes only.
+      - No behaviour change yet — fields land unused.
+
+   2. "fix(phase2): correct Loadout FuelCapacity parsing; add LoadGame/
+       FSDJump fuel wiring (PB-01)"
+      - ship_state.py changes.
+      - fuel.py: FSDJump handler if new.
+
+   3. "feat(phase2): add ReservoirReplenished handler; wire Status.json
+       live gauge; fix 25%% log (PB-01)"
+      - event_types.py, fuel.py, status_reader.py.
+      - This is the commit where the symptom disappears.
+
+   4. "test(phase2): fuel live-gauge regression tests and session fixtures
+       (PB-01)"
+      - tests/test_fuel.py, tests/fixtures/fuel_samples/*.
+      - KB updates to combat_mechanics.json if needed.
+
+Commit body for each: reference Playbook PB-01, the Blueprint section
+driving the change (Section 19.C.5 for all four commits; Law 7 for 2 and 3),
+and the dev guide line range (phase_2_dev_guide.txt:249-274).
+
+
+================================================================================
+14. DEFINITION OF DONE
+================================================================================
+
+All of the following must be true before you declare this Playbook complete
+and ready for the architect to sign off on Week 8 Part A.
+
+[ ] All V1-V7 pre-flight verifications performed and findings captured in
+    commit 1 body.
+
+[ ] mypy --strict omnicovas/ : Success, 0 errors.
+
+[ ] ruff check omnicovas/ : All checks passed.
+
+[ ] pytest : at least 163 tests collected, all green. Fuel test count in
+    test_fuel.py at 20 or more.
+
+[ ] Manual replay verification: run python -m omnicovas.core.main against
+    the 2026-04-19T220931_01 journal or a copy of it. Watch the [STATE]
+    print. It MUST show fuel values decreasing from 128.0 down through
+    113.6, 112.5, ... as the journal replays. It MUST NOT stick at 128.0.
+
+[ ] The "25%%" double-percent is gone from any log line your changes
+    touched.
+
+[ ] tests/fixtures/fuel_samples/ contains both F1 and F2 plus a README.
+
+[ ] KB combat_mechanics.json fuel thresholds verified or added with full
+    Principle 6 schema (all 7 fields incl. _justification).
+
+[ ] Git push to main successful; CI green on GitHub Actions (ruff, mypy,
+    pytest hard-fails all clear).
+
+
+================================================================================
+15. ESCALATION TRIGGERS
+================================================================================
+
+STOP and escalate to the architect (do not proceed, do not work around, do
+not guess) if ANY of the following occur:
+
+   E1. V1 finds state.ship.fuel_level (or similar) is read by code outside
+       fuel.py, ship_state.py, status_reader.py, main.py, or tests. A rename
+       with broader blast radius is an architectural change, not a fix.
+
+   E2. V4 finds that status_reader.py is structured such that per-poll
+       state writes would require a non-trivial refactor (e.g. no current
+       access to the state manager, blocking I/O somewhere on the path,
+       async/sync mismatch). Report the structure; the architect decides
+       whether to refactor or to route fuel updates through a different
+       mechanism.
+
+   E3. V6 finds existing tests red before you change anything. A flaky or
+       broken test pre-existing this Playbook is its own problem.
+
+   E4. Any existing test breaks as a direct consequence of renames or
+       field additions — specifically tests outside test_fuel.py. Report
+       which test and which assertion. Do not edit the test to make it
+       pass unless the assertion is demonstrably asserting the defective
+       behaviour.
+
+   E5. The current fuel.py file exceeds 300 lines or contains any
+       functionality you cannot justify in one sentence to the architect.
+       This Playbook assumes the module is small and surgical; if it has
+       grown beyond that, scope has drifted.
+
+   E6. Frontier has changed the journal schema in a way that breaks the
+       Section 4 contract — specifically, if any event you inspect in the
+       current journal has field shapes that disagree with Section 4.
+       Defensive Update Infrastructure (Blueprint Section 15) takes over.
+
+   E7. Any attempt to add a new broadcast event type beyond FUEL_LOW and
+       FUEL_CRITICAL. Broadcaster taxonomy changes require architect review.
+
+   E8. You find a second bug while fixing this one. Log it; do not fix it
+       in this Playbook. Zero-scope-creep discipline per your mandate.
+
+
+================================================================================
+16. REFERENCES
+================================================================================
+
+   Blueprint v4.2 Section 2 Law 5  : Zero Hallucination Doctrine
+   Blueprint v4.2 Section 2 Law 6  : Performance Priority
+   Blueprint v4.2 Section 2 Law 7  : Telemetry Rigidity
+   Blueprint v4.2 Section 7.F      : Knowledge Base Stewardship
+   Blueprint v4.2 Section 14.B     : Latency budgets
+   Blueprint v4.2 Section 19.C.5   : Pillar 1 Fuel & Jump Range feature
+   phase_2_dev_guide.txt 249-274   : Week 7 Part D original spec
+   phase_2_dev_guide.txt 775-780   : Week 10 Part B (anticipated hardening)
+   Session_Findings_2026-04-20.md  : Source evidence for the defect
+   Journal_2026-04-19T220931_01.log: 2026-04-20 session journal (fixture
+                                     source)
+
+
+================================================================================
+END OF PLAYBOOK PB-01
+================================================================================

@@ -41,6 +41,7 @@ SHIELDS_UP: Final[str] = "SHIELDS_UP"
 # --- Fuel (Week 7 Parts C/D — Fuel & Jump Range) ----------------------------
 FUEL_LOW: Final[str] = "FUEL_LOW"
 FUEL_CRITICAL: Final[str] = "FUEL_CRITICAL"
+RESERVOIR_REPLENISHED: Final[str] = "RESERVOIR_REPLENISHED"
 
 # --- Navigation & location (Week 9 Part C — Extended Event Broadcaster) -----
 FSD_JUMP: Final[str] = "FSD_JUMP"
@@ -82,6 +83,7 @@ ALL_EVENT_TYPES: Final[frozenset[str]] = frozenset(
         SHIELDS_UP,
         FUEL_LOW,
         FUEL_CRITICAL,
+        RESERVOIR_REPLENISHED,
         FSD_JUMP,
         DOCKED,
         UNDOCKED,

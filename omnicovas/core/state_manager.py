@@ -120,7 +120,10 @@ class SessionState:
 
     shield_up: bool | None = None
     fuel_main: float | None = None
-    fuel_capacity: float | None = None
+    # fuel_capacity_main: total fuel capacity in main tank (tons)
+    # fuel_capacity_reserve: total fuel capacity in reservoir tank (tons)
+    fuel_capacity_main: float | None = None
+    fuel_capacity_reserve: float | None = None
     cargo_count: int | None = None
     cargo_capacity: int | None = None
     target_cmdr: str | None = None

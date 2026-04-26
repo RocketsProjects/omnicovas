@@ -8,6 +8,9 @@ models:
     model: qwen-executor:latest
     apiBase: http://localhost:11434
     contextLength: 32768
+    completionOptions:
+      temperature: 0
+      maxTokens: 4096
     requestOptions:
       timeout: 600000
     roles:

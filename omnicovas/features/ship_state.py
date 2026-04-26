@@ -150,7 +150,7 @@ async def handle_loadout(
     ship_ident = event.get("ShipIdent")
     hull_health = event.get("HullHealth")
     max_jump = event.get("MaxJumpRange")
-    fuel_capacity_block = event.get("FuelCapacity", {})
+    fuel_capacity_block: dict[str, Any] | None = event.get("FuelCapacity")
     modules_raw = event.get("Modules", [])
 
     if ship_type is not None:
@@ -179,9 +179,14 @@ async def handle_loadout(
     # FuelCapacity block: {"Main": float, "Reserve": float}
     if isinstance(fuel_capacity_block, dict):
         main_cap = fuel_capacity_block.get("Main")
-        if main_cap is not None:
+        reserve_cap = fuel_capacity_block.get("Reserve")
+        if isinstance(main_cap, (int, float)):
             state.update_field(
-                "fuel_capacity", float(main_cap), TelemetrySource.JOURNAL, ts
+                "fuel_capacity_main", float(main_cap), TelemetrySource.JOURNAL, ts
+            )
+        if isinstance(reserve_cap, (int, float)):
+            state.update_field(
+                "fuel_capacity_reserve", float(reserve_cap), TelemetrySource.JOURNAL, ts
             )
 
     # Compute loadout hash -- excludes health so repairs don't trigger broadcast
@@ -356,11 +361,11 @@ def compute_loadout_hash(modules_raw: list[Any]) -> str:
     for mod in modules_raw:
         if not isinstance(mod, dict):
             continue
-        slot = mod.get("Slot", "")
-        item = mod.get("Item", "")
+        slot: str = str(mod.get("Slot", ""))
+        item: str = str(mod.get("Item", ""))
         engineering = mod.get("Engineering", {})
-        blueprint = (
-            engineering.get("BlueprintName", "")
+        blueprint: str = (
+            str(engineering.get("BlueprintName", ""))
             if isinstance(engineering, dict)
             else ""
         )

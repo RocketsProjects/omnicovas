@@ -51,7 +51,7 @@ from omnicovas.core.state_manager import StateManager, TelemetrySource
 
 logger = logging.getLogger(__name__)
 
-# Fuel threshold fractions (fuel_main / fuel_capacity).
+# Fuel threshold fractions (fuel_main / fuel_capacity_main).
 # These match the Phase 1 StatusReader thresholds (FUEL_LOW_THRESHOLD = 0.25)
 # so both the legacy dispatcher sub-event and the broadcaster event fire at
 # the same level. KB entries for these values are added in Week 7 Part E.
@@ -95,7 +95,7 @@ async def handle_refuel_all(
     Journal fields:
         Amount -- tons purchased (not the new total)
 
-    After a full refuel, fuel_main equals fuel_capacity. We derive the new
+    After a full refuel, fuel_main equals fuel_capacity_main. We derive the new
     total from the existing capacity field if available, otherwise we record
     the amount as a delta and leave capacity as-is.
     """
@@ -104,17 +104,31 @@ async def handle_refuel_all(
 
     if amount is not None:
         snap = state.snapshot
-        if snap.fuel_capacity is not None:
+        if snap.fuel_capacity_main is not None:
             # Full refuel: new level = capacity
-            new_total = snap.fuel_capacity
+            new_total = snap.fuel_capacity_main
         else:
             # Capacity unknown: best effort using current + amount
             new_total = (snap.fuel_main or 0.0) + float(amount)
 
         previous = snap.fuel_main
-        state.update_field("fuel_main", float(new_total), TelemetrySource.JOURNAL, ts)
-        await _check_thresholds(previous, float(new_total), state, broadcaster, ts)
-        logger.info("RefuelAll -> new_total=%.2f", new_total)
+        state.update_field(
+            "fuel_main",
+            float(new_total),
+            TelemetrySource.JOURNAL,
+            ts,
+        )
+        await _check_thresholds(
+            previous,
+            float(new_total),
+            state,
+            broadcaster,
+            ts,
+        )
+        logger.info(
+            "RefuelAll -> new_total=%.2f",
+            new_total,
+        )
 
 
 async def handle_refuel_partial(
@@ -136,8 +150,8 @@ async def handle_refuel_partial(
         new_total = current + float(amount)
 
         # Clamp to capacity if known
-        if snap.fuel_capacity is not None:
-            new_total = min(new_total, snap.fuel_capacity)
+        if snap.fuel_capacity_main is not None:
+            new_total = min(new_total, snap.fuel_capacity_main)
 
         previous = snap.fuel_main
         state.update_field("fuel_main", float(new_total), TelemetrySource.JOURNAL, ts)
@@ -165,6 +179,76 @@ async def handle_start_jump(
     jump_type = event.get("JumpType")
     logger.debug("StartJump -> %s (%s)", star_system, jump_type)
     # No state update -- fuel cost arrives via Status.json during transit
+
+
+# ---------------------------------------------------------------------------
+# New Handlers for Reservoir and FSD Jump
+# ---------------------------------------------------------------------------
+
+
+async def handle_reservoir_replenished(
+    event: dict[str, Any],
+    state: StateManager,
+    broadcaster: ShipStateBroadcaster,
+) -> None:
+    """Handle ReservoirReplenished -- reservoir tank filled at dock.
+
+    Journal fields:
+        Reservoir -- total fuel in reservoir tank (tons)
+
+    This fires when the reservoir tank is full (e.g., after RefuelAll).
+    The main tank is handled by handle_refuel_all(). These are separate
+    events because they can fire independently (reservoir can fill while
+    main tank is being scooped, etc.).
+    """
+    ts = event.get("timestamp")
+    reservoir = event.get("Reservoir")
+
+    if reservoir is not None:
+        state.update_field(
+            "fuel_reservoir", float(reservoir), TelemetrySource.JOURNAL, ts
+        )
+        logger.debug("ReservoirReplenished -> reservoir=%.2f", reservoir)
+
+
+async def handle_fsdjump(
+    event: dict[str, Any],
+    state: StateManager,
+    broadcaster: ShipStateBroadcaster,
+) -> None:
+    """Handle FSDJump -- FSD arrival, fuel cost applied.
+
+    FSDJump fires on arrival in destination system. The journal includes
+    the fuel cost for the jump, so we can update fuel_main to reflect
+    the deduction.
+
+    Journal fields:
+        FuelMain    -- new fuel_main after jump cost
+        FuelReservoir -- new fuel_reservoir after jump cost (if applicable)
+    """
+    ts = event.get("timestamp")
+    fuel_main = event.get("FuelMain")
+    fuel_reservoir = event.get("FuelReservoir")
+
+    if fuel_main is not None:
+        previous = state.snapshot.fuel_main
+        state.update_field("fuel_main", float(fuel_main), TelemetrySource.JOURNAL, ts)
+        # Check if we crossed a threshold downward during jump
+        capacity = state.snapshot.fuel_capacity_main
+        if capacity is not None:
+            await _check_thresholds(previous, float(fuel_main), state, broadcaster, ts)
+
+    if fuel_reservoir is not None:
+        previous = state.snapshot.fuel_reservoir
+        state.update_field(
+            "fuel_reservoir", float(fuel_reservoir), TelemetrySource.JOURNAL, ts
+        )
+
+    logger.debug(
+        "FSDJump -> fuel_main=%.2f fuel_reservoir=%.2f",
+        fuel_main or 0.0,
+        fuel_reservoir or 0.0,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -197,13 +281,22 @@ def register(
     async def _start_jump(event: dict[str, Any]) -> None:
         await handle_start_jump(event, state, broadcaster)
 
+    async def _reservoir_replenished(event: dict[str, Any]) -> None:
+        await handle_reservoir_replenished(event, state, broadcaster)
+
+    async def _fsdjump(event: dict[str, Any]) -> None:
+        await handle_fsdjump(event, state, broadcaster)
+
     dispatcher_register("FuelScoop", _fuel_scoop)
     dispatcher_register("RefuelAll", _refuel_all)
     dispatcher_register("RefuelPartial", _refuel_partial)
+    dispatcher_register("ReservoirReplenished", _reservoir_replenished)
+    dispatcher_register("FSDJump", _fsdjump)
     dispatcher_register("StartJump", _start_jump)
 
     logger.info(
-        "Fuel handlers registered (FuelScoop, RefuelAll, RefuelPartial, StartJump)"
+        "Fuel handlers registered (FuelScoop, RefuelAll, RefuelPartial, "
+        "ReservoirReplenished, FSDJump, StartJump)"
     )
 
 
@@ -228,7 +321,7 @@ async def _check_thresholds(
     Args:
         previous: fuel_main before this update (None if unknown)
         new_total: fuel_main after this update
-        state: StateManager (read fuel_capacity for fraction calculation)
+        state: StateManager (read fuel_capacity_main for fraction calculation)
         broadcaster: ShipStateBroadcaster to publish events to
         timestamp: journal timestamp for the triggering event
     """
@@ -236,7 +329,7 @@ async def _check_thresholds(
         # First fuel reading -- no crossing possible
         return
 
-    capacity = state.snapshot.fuel_capacity
+    capacity = state.snapshot.fuel_capacity_main
     if capacity is None or capacity <= 0.0:
         # Cannot compute fraction without capacity
         return
