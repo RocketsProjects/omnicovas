@@ -139,7 +139,8 @@ async def handle_loadout(
         ShipIdent     -> current_ship_ident
         HullHealth    -> hull_health  (0.0-1.0)
         MaxJumpRange  -> jump_range_ly
-        FuelCapacity  -> fuel_capacity (FuelCapacity.Main, tons)
+        FuelCapacity.Main   -> fuel_capacity_main (tons)
+        FuelCapacity.Reserve -> fuel_capacity_reserve (tons)
         Modules       -> loadout_hash (SHA-256 of sorted slot/item/blueprint)
     """
     ts = event.get("timestamp")

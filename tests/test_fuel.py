@@ -50,11 +50,11 @@ def broadcaster() -> ShipStateBroadcaster:
 def set_fuel(
     state: StateManager,
     main: float,
-    capacity: float,
+    capacity_main: float,
 ) -> None:
     """Helper: pre-populate fuel state so threshold tests have context."""
     state.update_field("fuel_main", main, TelemetrySource.STATUS_JSON)
-    state.update_field("fuel_capacity", capacity, TelemetrySource.JOURNAL)
+    state.update_field("fuel_capacity_main", capacity_main, TelemetrySource.JOURNAL)
 
 
 async def _drain(broadcaster: ShipStateBroadcaster) -> None:
@@ -107,7 +107,7 @@ async def test_fuel_scoop_no_threshold_when_increasing(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
     """Scooping fuel (increasing) must never trigger FUEL_LOW or FUEL_CRITICAL."""
-    set_fuel(state, main=5.0, capacity=32.0)  # 15% -- below LOW threshold
+    set_fuel(state, main=5.0, capacity_main=32.0)  # 15% -- below LOW threshold
 
     received: list[ShipStateEvent] = []
 
@@ -133,7 +133,7 @@ async def test_refuel_all_sets_fuel_to_capacity(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
     """RefuelAll with known capacity must set fuel_main to capacity."""
-    set_fuel(state, main=5.0, capacity=32.0)
+    set_fuel(state, main=5.0, capacity_main=32.0)
     await handle_refuel_all(make_refuel_all(amount=27.0), state, broadcaster)
     assert state.snapshot.fuel_main == pytest.approx(32.0)
 
@@ -143,7 +143,7 @@ async def test_refuel_all_without_capacity_uses_delta(
 ) -> None:
     """RefuelAll without known capacity adds amount to current."""
     state.update_field("fuel_main", 5.0, TelemetrySource.STATUS_JSON)
-    # fuel_capacity is None
+    # fuel_capacity_main is None
     await handle_refuel_all(make_refuel_all(amount=27.0), state, broadcaster)
     assert state.snapshot.fuel_main == pytest.approx(32.0)
 
@@ -152,7 +152,7 @@ async def test_refuel_all_does_not_trigger_threshold(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
     """Refueling upward must not trigger FUEL_LOW or FUEL_CRITICAL."""
-    set_fuel(state, main=2.0, capacity=32.0)  # ~6% -- below CRITICAL
+    set_fuel(state, main=2.0, capacity_main=32.0)  # ~6% -- below CRITICAL
 
     received: list[ShipStateEvent] = []
 
@@ -177,7 +177,7 @@ async def test_refuel_partial_adds_amount(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
     """RefuelPartial must add amount to current fuel_main."""
-    set_fuel(state, main=10.0, capacity=32.0)
+    set_fuel(state, main=10.0, capacity_main=32.0)
     await handle_refuel_partial(make_refuel_partial(amount=8.0), state, broadcaster)
     assert state.snapshot.fuel_main == pytest.approx(18.0)
 
@@ -186,7 +186,7 @@ async def test_refuel_partial_clamped_to_capacity(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
     """RefuelPartial must not exceed fuel_capacity."""
-    set_fuel(state, main=30.0, capacity=32.0)
+    set_fuel(state, main=30.0, capacity_main=32.0)
     # Buying 10t would overfill -- must clamp to 32.0
     await handle_refuel_partial(make_refuel_partial(amount=10.0), state, broadcaster)
     assert state.snapshot.fuel_main == pytest.approx(32.0)
@@ -201,7 +201,7 @@ async def test_fuel_low_fires_on_downward_crossing(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
     """FUEL_LOW must fire when fuel drops from above 25% to below 25%."""
-    set_fuel(state, main=9.0, capacity=32.0)  # 28% -- above LOW
+    set_fuel(state, main=9.0, capacity_main=32.0)  # 28% -- above LOW
 
     received: list[ShipStateEvent] = []
 
@@ -223,7 +223,7 @@ async def test_fuel_critical_fires_on_downward_crossing(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
     """FUEL_CRITICAL must fire when fuel drops from above 10% to below 10%."""
-    set_fuel(state, main=4.0, capacity=32.0)  # 12.5% -- above CRITICAL
+    set_fuel(state, main=4.0, capacity_main=32.0)  # 12.5% -- above CRITICAL
 
     received: list[ShipStateEvent] = []
 
@@ -244,7 +244,7 @@ async def test_fuel_critical_fires_not_low_when_crossing_critical_directly(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
     """Crossing from above 25% directly past 10% fires CRITICAL only."""
-    set_fuel(state, main=9.0, capacity=32.0)  # 28%
+    set_fuel(state, main=9.0, capacity_main=32.0)  # 28%
 
     low_received: list[ShipStateEvent] = []
     crit_received: list[ShipStateEvent] = []
@@ -276,8 +276,8 @@ async def test_no_threshold_on_first_fuel_reading(
     Law 5: we don't know if the commander was already low before we started
     watching. A session that starts at 5% fuel should not fire FUEL_CRITICAL.
     """
-    # fuel_capacity is set but fuel_main is None (unknown start)
-    state.update_field("fuel_capacity", 32.0, TelemetrySource.JOURNAL)
+    # fuel_capacity_main is set but fuel_main is None (unknown start)
+    state.update_field("fuel_capacity_main", 32.0, TelemetrySource.JOURNAL)
 
     received: list[ShipStateEvent] = []
 
@@ -297,9 +297,9 @@ async def test_no_threshold_on_first_fuel_reading(
 async def test_no_threshold_without_capacity(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
-    """Without fuel_capacity, fraction cannot be computed -- no threshold fires."""
+    """Without fuel_capacity_main, fraction cannot be computed -- no threshold fires."""
     state.update_field("fuel_main", 10.0, TelemetrySource.STATUS_JSON)
-    # fuel_capacity is None -- can't compute fraction
+    # fuel_capacity_main is None -- can't compute fraction
 
     received: list[ShipStateEvent] = []
 
@@ -319,7 +319,7 @@ async def test_threshold_does_not_refire_while_staying_low(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
     """FUEL_LOW must not re-fire if fuel stays below 25% between updates."""
-    set_fuel(state, main=7.0, capacity=32.0)  # already at 21% -- below LOW
+    set_fuel(state, main=7.0, capacity_main=32.0)  # already at 21% -- below LOW
 
     received: list[ShipStateEvent] = []
 
@@ -346,7 +346,7 @@ async def test_start_jump_does_not_update_fuel(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
     """StartJump must not update fuel_main -- fuel cost arrives via Status.json."""
-    set_fuel(state, main=16.0, capacity=32.0)
+    set_fuel(state, main=16.0, capacity_main=32.0)
 
     event = {
         "timestamp": "2026-04-19T12:00:00Z",

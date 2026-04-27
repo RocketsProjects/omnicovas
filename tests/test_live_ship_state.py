@@ -167,12 +167,12 @@ async def test_loadout_sets_hull_and_jump(
     assert snap.jump_range_ly == pytest.approx(38.4)
 
 
-async def test_loadout_sets_fuel_capacity(
+async def test_loadout_sets_fuel_capacities(
     state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
     """Loadout must extract fuel capacity from FuelCapacity.Main."""
     await handle_loadout(make_loadout(fuel_main=32.0), state, broadcaster)
-    assert state.snapshot.fuel_capacity == pytest.approx(32.0)
+    assert state.snapshot.fuel_capacity_main == pytest.approx(32.0)
 
 
 async def test_loadout_publishes_ship_state_changed(

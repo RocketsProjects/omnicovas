@@ -267,6 +267,13 @@ def register(
         dispatcher_register: EventDispatcher.register method
         state: The shared StateManager instance
         broadcaster: The shared ShipStateBroadcaster instance
+    Note:
+        FSDJump is also registered by core/handlers.py.handle_fsd_jump
+        (location concern: current_system, is_in_supercruise). The
+        handler here updates fuel_main and fuel_reservoir from the
+        FSDJump payload. Both run; the dispatcher supports multiple
+        handlers per event type. Intentional separation of concerns,
+        not a bug.
     """
 
     async def _fuel_scoop(event: dict[str, Any]) -> None:
@@ -339,7 +346,7 @@ async def _check_thresholds(
 
     payload: dict[str, Any] = {
         "fuel_main": new_total,
-        "fuel_capacity": capacity,
+        "fuel_capacity_main": capacity,
         "fuel_fraction": round(new_frac, 4),
         "timestamp": timestamp,
     }
