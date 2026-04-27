@@ -111,6 +111,50 @@
       "confidence": "high",
       "needs_review": false,
       "_justification": "Week 7. Reference point for Heat Management (Feature 10, Week 9). Establishes that 1.0 is the damage onset, not just a display threshold."
+    },
+    {
+      "id": "module_health_warning_threshold",
+      "topic": "Module Health Warning Threshold",
+      "content": "A ship module's health is reported in the Loadout journal event as a float between 0.0 (destroyed) and 1.0 (intact). OmniCOVAS broadcasts MODULE_DAMAGED when any module's health is below 0.8 (80%). At this level the module's performance begins to degrade noticeably. Expressed as a fraction: 0.8.",
+      "patch_verified": "4.0",
+     "source": "Elite Dangerous module damage mechanics, in-game observation of module performance degradation onset",
+      "last_updated": "2026-04-26",
+     "confidence": "medium",
+      "needs_review": false,
+     "_justification": "Week 8. Used by Feature 2 Module Health as the MODULE_DAMAGED threshold. 0.8 chosen as the standard community-documented degradation onset. Medium confidence: exact degradation percentage varies by module type."
+    },
+    {
+      "id": "module_health_critical_threshold",
+      "topic": "Module Health Critical Threshold",
+     "content": "A ship module with health below 0.2 (20%) is critically damaged and at risk of failure. OmniCOVAS broadcasts MODULE_CRITICAL when any module drops below this level. At or near 0.0 the module is destroyed and non-functional. Expressed as a fraction: 0.2.",
+     "patch_verified": "4.0",
+     "source": "Elite Dangerous module damage mechanics, in-game observation of module failure threshold",
+     "last_updated": "2026-04-26",
+     "confidence": "medium",
+     "needs_review": false,
+     "_justification": "Week 8. Used by Feature 2 Module Health as the MODULE_CRITICAL threshold. 0.2 chosen as the point where module failure risk is high and immediate repair is advised. Medium confidence: failure probability at this health level is build-dependent."
+    },
+    {
+     "id": "cargo_vessel_filter",
+     "topic": "Cargo Vessel Filter",
+     "content": "The Cargo journal event includes a Vessel field that indicates which context owns the cargo: Ship, SRV, or Suit. OmniCOVAS Pillar 1 tracks Ship cargo only. Events where Vessel is SRV or Suit must be dropped. Events where Vessel is absent (older game versions) are treated as Ship context.",
+     "patch_verified": "4.0",
+     "source": "Elite Dangerous journal documentation, in-game observation of Cargo events across ship/SRV/Suit contexts",
+     "last_updated": "2026-04-26",
+     "confidence": "high",
+     "needs_review": false,
+     "_justification": "Week 8. Cargo handler must filter on Vessel == Ship to avoid polluting ship cargo_inventory with SRV or Suit cargo counts. Observed Vessel values: Ship, SRV, Suit."
+    },
+    {
+     "id": "cargo_inventory_source",
+     "topic": "Cargo Inventory Canonical Source",
+     "content": "The Cargo journal event is the canonical source for a ship's cargo inventory. It fires at session start and whenever cargo changes (buy, sell, collect, eject). The Inventory array contains entries with Name (commodity internal name, lowercase) and Count (integer unit count). The top-level Count field is the total units across all commodities.",
+     "patch_verified": "4.0",
+     "source": "Elite Dangerous journal documentation, in-game cargo transaction observation",
+     "last_updated": "2026-04-26",
+     "confidence": "high",
+     "needs_review": false,
+     "_justification": "Week 8. Documents the Cargo event structure used by cargo.py. Name field uses internal lowercase commodity names (e.g. gold, not Gold) matching the journal output directly."
     }
   ]
 }

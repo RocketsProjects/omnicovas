@@ -1,9 +1,9 @@
 {
   "kb_version": "0.2.0",
   "schema_version": 1,
-  "last_full_audit_date": "2026-04-19",
+  "last_full_audit_date": "2026-04-26",
   "game_version_at_last_audit": "unknown",
-  "total_entries": 20,
+  "total_entries": 24,
   "entries_needing_review": 2,
-  "notes": "Week 7 Phase 2 additions: 9 new combat_mechanics entries (hull/shield/fuel/heat thresholds, rebuy, insurance) and 3 new exploration_mechanics entries (jump range source, typical values, neutron boost). All new entries include _justification comments."
+  "notes": "KB entries added in Phase 1 (Week 1-6) and Phase 2 (Week 7-10). Week 8 additions: 2 new combat_mechanics entries (module_health_warning_threshold, module_health_critical_threshold); cargo_vessel_filter, cargo_inventory_source."
 }
