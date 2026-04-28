@@ -300,6 +300,17 @@
       "_justification": "Week 9. Reference for future SHIELDS_UP broadcast latency. 30s is approximate; exact timing requires per-ship testing. needs_review=true."
     },
     {
+      "id": "ship_hull_values",
+      "topic": "Ship Hull Values (Top 20 by Usage)",
+      "content": "Approximate insured hull values in credits for the top 20 most-flown ships. These are baseline new-purchase hull prices from Inara shipyard data at patch 4.0. Values exclude optional module costs. All values are estimates and may drift with economy updates; the authoritative source at runtime is Loadout.HullValue from the journal. Sidewinder: 32,000; Eagle: 44,800; Hauler: 52,720; Adder: 87,808; Cobra Mk III: 349,718; Cobra Mk IV: 785,790; Viper Mk III: 142,932; Viper Mk IV: 437,793; Asp Explorer: 6,662,303; Asp Scout: 3,962,182; Diamondback Scout: 564,329; Diamondback Explorer: 1,894,760; Krait Phantom: 37,472,254; Krait Mk II: 44,152,928; Python: 56,978,012; Python Mk II: 54,703,750; Anaconda: 146,969,451; Federal Corvette: 187,071,660; Imperial Cutter: 208,969,451; Type-9 Heavy: 76,555,848.",
+      "patch_verified": "4.0",
+      "source": "Inara shipyard prices, cross-referenced with in-game purchase screen, patch 4.0",
+      "last_updated": "2026-04-28",
+      "confidence": "medium",
+      "needs_review": true,
+      "_justification": "Week 10. Reference values for the Rebuy Calculator fallback path. Medium confidence because economy adjustments can shift prices. needs_review=true until per-patch verification is established. At runtime the journal Loadout.HullValue is always preferred over these KB figures."
+    },
+    {
       "id": "pip_archetypes",
       "topic": "Power Distribution Pip Archetypes",
       "content": "Common SYS/ENG/WEP pip configurations as [SYS, ENG, WEP] on the 0-8 scale (total always 12): balanced=[4,4,4], combat_shields=[6,2,4], evasive=[2,6,4], full_weapons=[0,4,8], full_shields=[8,0,4]. These are starting points; actual optimal distribution varies by ship and engagement type.",

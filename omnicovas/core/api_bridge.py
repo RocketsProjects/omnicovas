@@ -173,6 +173,65 @@ class ApiBridge:
                 "entries": list(self._activity_log),
             }
 
+        @app.get("/rebuy")  # type: ignore[misc,untyped-decorator,unused-ignore]
+        async def get_rebuy() -> dict[str, Any]:
+            """Rebuy Calculator (Feature 11) -- estimated rebuy cost for current ship.
+
+            Returns:
+                rebuy_cost: estimated credits, or null when data unavailable
+                ship_type: current ship internal type string
+                hull_value: hull insured value in credits
+                modules_value: total module insured value in credits
+                insurance_percent: rate used (always 5.0 for standard insurance)
+                calculated_at: ISO-8601 UTC timestamp of this calculation
+            """
+            from omnicovas.features.rebuy import rebuy_api_payload
+
+            return rebuy_api_payload(self._state)
+
+        @app.get("/fuel")  # type: ignore[misc,untyped-decorator,unused-ignore]
+        async def get_fuel() -> dict[str, Any]:
+            """Current fuel state (Feature 5) -- main tank, reservoir, and capacity.
+
+            Returns:
+                current: fuel_main in tons, or null
+                capacity: fuel_capacity_main in tons, or null
+                percentage: current/capacity * 100, or null when either is absent
+                reservoir: fuel_reservoir in tons, or null
+            """
+            snap = self._state.snapshot
+            current = snap.fuel_main
+            capacity = snap.fuel_capacity_main
+            percentage: float | None = None
+            if current is not None and capacity is not None and capacity > 0:
+                percentage = round(current / capacity * 100, 1)
+            return {
+                "current": current,
+                "capacity": capacity,
+                "percentage": percentage,
+                "reservoir": snap.fuel_reservoir,
+            }
+
+        @app.get("/jump_range")  # type: ignore[misc,untyped-decorator,unused-ignore]
+        async def get_jump_range() -> dict[str, Any]:
+            """Jump range (Feature 5) -- max jump range from most recent Loadout.
+
+            The value is sourced directly from Loadout.MaxJumpRange and is NOT
+            recomputed from physics. First-principles jump math is Pillar 3
+            (Exploration, Phase 5) work.
+
+            Returns:
+                max_ly: maximum jump range in light-years, or null
+                ship_type: current ship internal type string
+                loadout_hash: SHA-256 hash of current loadout configuration
+            """
+            snap = self._state.snapshot
+            return {
+                "max_ly": snap.jump_range_ly,
+                "ship_type": snap.current_ship_type,
+                "loadout_hash": snap.loadout_hash,
+            }
+
         @app.get("/resources")  # type: ignore[misc,untyped-decorator,unused-ignore]
         async def get_resources() -> dict[str, Any]:
             """Live resource usage snapshot (Principle 10)."""

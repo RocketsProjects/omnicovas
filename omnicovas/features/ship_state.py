@@ -153,6 +153,8 @@ async def handle_loadout(
     max_jump = event.get("MaxJumpRange")
     fuel_capacity_block: dict[str, Any] | None = event.get("FuelCapacity")
     modules_raw = event.get("Modules", [])
+    hull_value = event.get("HullValue")
+    modules_value = event.get("ModulesValue")
 
     if ship_type is not None:
         state.update_field(
@@ -189,6 +191,14 @@ async def handle_loadout(
             state.update_field(
                 "fuel_capacity_reserve", float(reserve_cap), TelemetrySource.JOURNAL, ts
             )
+
+    # Rebuy Calculator inputs (Feature 11, Week 10)
+    if isinstance(hull_value, (int, float)):
+        state.update_field("hull_value", int(hull_value), TelemetrySource.JOURNAL, ts)
+    if isinstance(modules_value, (int, float)):
+        state.update_field(
+            "modules_value", int(modules_value), TelemetrySource.JOURNAL, ts
+        )
 
     # Compute loadout hash -- excludes health so repairs don't trigger broadcast
     new_hash = compute_loadout_hash(modules_raw)

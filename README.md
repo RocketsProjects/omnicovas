@@ -66,8 +66,16 @@ data flow.
 3. STATUS
 --------------------------------------------------------------------------------
 
-Pre-alpha. Phase 2 active (Ship Telemetry pillar). Not yet ready for end
-users.
+Pre-alpha. Phase 2 complete (Ship Telemetry pillar). Phase 3 (UI Shell) is
+next. Not yet ready for end users.
+
+Phase 2 delivered all 11 locked Ship Telemetry features: Live Ship State,
+Module Health, Hull & Integrity Triggers, Loadout Awareness, Fuel & Jump
+Range, Cargo Monitoring, Critical Event Broadcaster, Extended Event
+Broadcaster, Power Distribution, Heat Management (Tier 2, KB-grounded),
+and Rebuy Calculator. Test suite: 222 tests, all passing. Zero mypy errors,
+zero ruff violations. See docs/releases/phase2.md for the full delivery
+summary.
 
 
 --------------------------------------------------------------------------------

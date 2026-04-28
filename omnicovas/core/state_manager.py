@@ -88,6 +88,10 @@ class ModuleInfo:
     # Raw engineering block from journal -- parsed in Phase 8 (Pillar 6).
     # None when module has no engineering modifications.
     engineering: dict[str, Any] | None
+    # Insured credit value of this module from Loadout.Modules[].Value.
+    # None when the journal does not include a Value field (older versions).
+    # Used by the Rebuy Calculator (Feature 11, Week 10).
+    value: int | None = None
 
 
 @dataclass
@@ -191,6 +195,13 @@ class SessionState:
     # 1.0 = 100% heat (damage threshold). Values above 1.0 are possible
     # during fuel scoop overheat. None until first Status read.
     heat_level: float | None = None
+
+    # --- Phase 2 -- Rebuy Calculator (Feature 11, Week 10) -----------------
+    # hull_value: insured hull value in credits from Loadout.HullValue.
+    # modules_value: total insured module value from Loadout.ModulesValue.
+    # Both are None until a Loadout event arrives.
+    hull_value: int | None = None
+    modules_value: int | None = None
 
     # --- Internal audit (NOT public) ----------------------------------------
     _field_sources: dict[str, FieldSource] = field(default_factory=dict)

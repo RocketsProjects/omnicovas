@@ -74,6 +74,8 @@ async def handle_loadout(
         on_val = bool(entry.get("On", True))
         eng_raw = entry.get("Engineering")
         engineering = eng_raw if isinstance(eng_raw, dict) else None
+        value_raw = entry.get("Value")
+        module_value = int(value_raw) if isinstance(value_raw, (int, float)) else None
 
         modules_dict[slot] = ModuleInfo(
             slot=slot,
@@ -84,6 +86,7 @@ async def handle_loadout(
             priority=priority,
             on=on_val,
             engineering=engineering,
+            value=module_value,
         )
 
     state.update_field("modules", modules_dict, TelemetrySource.JOURNAL, ts)

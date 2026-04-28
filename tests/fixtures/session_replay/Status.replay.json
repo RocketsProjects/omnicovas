@@ -1,0 +1,1 @@
+{ "timestamp":"2026-04-28T10:15:00Z", "event":"Status", "Flags":16842752, "Pips":[4,4,4], "FireGroup":0, "GuiFocus":0, "Fuel":{"FuelMain":12.57,"FuelReservoir":0.63}, "Cargo":0, "LegalState":"Clean", "Latitude":-1.0, "Altitude":-1, "Longitude":-1.0, "Heading":-1, "Body":"Sol", "BodyRadius":696000.0, "Health":0.82 }

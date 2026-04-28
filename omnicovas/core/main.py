@@ -123,6 +123,10 @@ async def main() -> None:
     _power_distribution.register(dispatcher.register, state, broadcaster)
     _heat_management.register(dispatcher.register, state, broadcaster)
 
+    # Week 10: Rebuy Calculator (Feature 11 -- Tier 1, no registration needed;
+    # rebuy is computed on-demand from state captured by ship_state handlers)
+    logger.info("Rebuy Calculator ready (on-demand via /rebuy endpoint)")
+
     dispatcher.register_recorder(recorder.record_event)
 
     async def push_to_bridge(event: dict[str, object], raw_line: str) -> None:
