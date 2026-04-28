@@ -1,0 +1,1190 @@
+================================================================================
+OMNICOVAS — PHASE 3 DEVELOPMENT GUIDE
+UI Shell — Weeks 11-14
+Companion to Master Blueprint v4.2
+Phase 2 complete. UI population begins. Submission window opens.
+================================================================================
+
+HOW TO USE THIS DOCUMENT
+
+This document is your step-by-step guide through Phase 3 of OmniCOVAS
+development. Phase 3 makes everything Pillar 1 broadcasts in Phase 2 visible
+to the Commander. If Phase 1 was the concrete and Phase 2 was the first floor,
+Phase 3 is the windows, the front door, and the path to the street — the
+moment OmniCOVAS becomes something a Commander can actually use.
+
+GOLDEN RULE: Every Pillar 1 broadcast laid down in Phase 2 must be observable
+in the UI by end of Week 14. The Tauri shell, the bridge endpoints, and the
+overlay are the load-bearing deliverables — get them right before reaching
+for the P2 polish items. Phase 3 also opens the external-approval window:
+the Frontier Developer application and the Inara whitelisting request both
+go out at Week 14 close.
+
+THE THREE-COLUMN TASK TABLES
+
+Every task appears with three columns plus a checkbox:
+  Task           — What you are doing, in plain English.
+  Why It Matters — The architectural reason.
+  Notes          — Specific traps, warnings, and things to double-check.
+
+ON GETTING HELP
+
+When asking for help, always provide:
+  - Which week and task (e.g. "Week 12, Part B, click-through toggle task 2")
+  - The exact error message
+  - What you already tried
+  - Which layer of the UI stack: bridge endpoint / WebSocket / Tauri window /
+    HTML or component / state hook / style token / accessibility surface
+
+--------------------------------------------------------------------------------
+PHASE 3 AT A GLANCE
+--------------------------------------------------------------------------------
+
+Week 11 | Tauri Shell, Bridge Extension, Pillar 1 Dashboard       | ~15 hrs
+        | Output: Main window populated; every Pillar 1 broadcast renders
+
+Week 12 | Game Overlay (Transparent Always-On-Top)                | ~15 hrs
+        | Output: Critical events surface in-game without focus theft
+
+Week 13 | First-Run, Privacy, Settings, Activity Log (full)       | ~15 hrs
+        | Output: Three-Path Onboarding live; all opt-ins gated OFF by default
+
+Week 14 | Accessibility, P2 Polish, Frontier + Inara Submission   | ~15 hrs
+        | Output: Prototype binary released; both applications submitted
+
+--------------------------------------------------------------------------------
+WHAT PHASE 3 DELIVERS (15 features, locked)
+--------------------------------------------------------------------------------
+
+P1 (9 — all required for Phase 3 complete):
+  1. Tauri desktop app full shell
+  2. Game overlay (transparent always-on-top)
+  3. FastAPI bridge Python <-> Tauri (extension of Phase 1 foundation)
+  4. First-Run Onboarding (Three-Path Model)
+  5. Privacy Page with opt-in toggles
+  6. Settings panel (Three-Tier Customization)
+  7. Activity Log UI (full)
+  8. Data flow transparency map
+  9. Accessibility framework (Principle 1)
+
+P2 (6 — best-effort within the 60-hour envelope; may slip to v1.1):
+ 10. Resource dashboard UI
+ 11. Color-blind modes
+ 12. Font size adjustments
+ 13. Keyboard-only navigation
+ 14. Credits / Contributors page (Principle 4)
+ 15. SBOM display
+
+Milestone deliverables (Week 14):
+  - Working prototype binary published as a GitHub release
+  - Frontier Developer application submitted
+  - Inara whitelisting outreach sent
+  - Phase 3 release notes (docs/releases/phase3.md)
+
+OUT OF SCOPE (do not build):
+  Voice I/O for any feature, multi-monitor overlay placement, Pillar 2-7
+  features, CAPI-dependent UI screens (gated on Frontier approval), EDDN
+  submission UI, squadron / P2P / Top Secret UI, full KB audit dashboard,
+  theme customization beyond palette swaps, AI provider key management UI
+  beyond a single text field.
+
+--------------------------------------------------------------------------------
+BEFORE YOU WRITE A SINGLE LINE OF CODE
+--------------------------------------------------------------------------------
+
+Confirm the Phase 2 baseline is green:
+  ruff check omnicovas/
+  mypy omnicovas/
+  pytest
+
+All three must be green. The full Phase 2 integration test from Week 10 must
+pass. All 11 Pillar 1 features must broadcast events. Do not layer Phase 3
+onto a partially-complete Phase 2.
+
+Confirm the Phase 1 Tauri skeleton still builds:
+  npm install
+  npm run tauri dev
+
+The window from Phase 1 must launch and the existing ui/index.html must load.
+
+Dependency rules for Phase 3:
+  - Python: no new runtime dependencies anticipated. The FastAPI bridge from
+    Phase 1 is being extended, not replaced. If you reach for `uv add`, stop —
+    the architecture is wrong or the feature is out of scope.
+  - Rust / Tauri: new plugins are expected (state persistence, dialogs,
+    possibly window-positioner). Each plugin must pass legal review (license
+    check, supply-chain check) before adding to Cargo.toml. Reference
+    Compliance Matrix Section 6.
+  - Frontend: a framework choice is the first task in Week 11 Part A. No
+    framework is added before that decision is documented.
+
+--------------------------------------------------------------------------------
+ARCHITECTURE PATTERNS FOR PHASE 3
+--------------------------------------------------------------------------------
+
+Pattern 1 — WebSocket-First State (subscribe, never poll)
+  - The UI subscribes to /ws/events and renders from the broadcast stream
+  - Polling /state is the safety net only, not the primary path
+  - Every broadcast type from Phase 2 is forwarded to connected WS clients
+  - Subscriber registered once in main(); not per-component
+
+Pattern 2 — Confirmation Gate UI (Law 1 enforcement at the surface)
+  - Every advisory output passes through a ConfirmationGate component
+  - Component renders the suggestion, the "Why?" affordance (Tier 3), and
+    explicit Confirm / Decline controls
+  - No UI control fires an in-game action implicitly — Law 1 is absolute
+  - Phase 3 lands the framework; Phase 4+ populates Tier 3 content
+
+Pattern 3 — Privacy-by-Default Toggles (Principle 7)
+  - Every outbound data flow has an explicit toggle on the Privacy page
+  - Every toggle defaults OFF
+  - Toggle state persists to the encrypted config vault (Phase 1 DPAPI)
+  - The Data Flow Transparency Map renders zero active flows in the
+    Phase 3 baseline because no Phase 3 feature ships outbound data
+
+Pattern 4 — Accessibility from Day One (Principle 1)
+  - Semantic HTML before custom widgets — use <button>, <nav>, <main>, etc.
+  - ARIA labels on every interactive element from first commit, not retrofit
+  - Focus order is the tab order; visible focus indicator is mandatory
+  - Color is never the only signal (icons + text accompany color cues)
+
+Pattern 5 — Three Output Modes Router (Voice / Overlay / Both)
+  - Phase 3 owns the Overlay path
+  - Voice path is stubbed (Phase 3+; requires EDDI/VoiceAttack — Law 9 B)
+  - Output mode is a per-feature setting in the Settings panel
+  - Default for Phase 3: Overlay-only, all critical events enabled
+
+Pattern 6 — Three-Path Onboarding (single wizard, three branches)
+  - Easy Mode — preset selection + skip; under 60 seconds wall-clock
+  - Custom Setup — guided wizard, 5 to 15 minutes
+  - Power User — link directly to Settings + Privacy pages
+  - First-run flag persists in config; wizard does not re-trigger after success
+
+================================================================================
+WEEK 11 | Tauri Shell, Bridge Extension, Pillar 1 Dashboard | ~15 hours
+================================================================================
+
+STATUS: PLANNED (start once Phase 2 sign-off is complete)
+
+ARCHITECTURAL NOTE: Week 11 builds the surface every other Phase 3 week
+populates. The navigation shell, the design tokens, and the Pillar 1 endpoint
+extensions are consumed by every page that follows. Design flaws here compound
+for the rest of the phase.
+
+--------------------------------------------------------------------------------
+PART A — Frontend Architecture Decision
+--------------------------------------------------------------------------------
+
+[ ] Decide frontend approach: vanilla HTML/JS vs framework
+    Why: The Phase 1 skeleton is vanilla. A framework (Svelte, Solid, Lit,
+    plain Web Components) reduces hand-written DOM code but adds a build
+    step, dependencies, and a security-review surface. Document the choice
+    before adding any framework code.
+    Note: Decision goes in docs/decisions/0001-frontend-framework.md.
+    Default if undecided: stay vanilla and use Web Components for reusable
+    pieces. Vanilla is the lowest-risk path to a working prototype.
+
+[ ] Establish design tokens
+    Why: A single source of truth for color, spacing, typography prevents
+    drift across pages and makes the color-blind palette swap (Week 14)
+    a token-level change, not a per-file edit.
+    Note: ui/styles/tokens.css. Define --color-bg, --color-fg, --color-accent,
+    --color-warn, --color-critical, --space-*, --font-*. Every new component
+    references tokens, never hard-coded values.
+
+[ ] Build navigation shell (sidebar + content area)
+    Why: Every Phase 3 page lives inside this shell. Stable navigation is a
+    prerequisite for keyboard-only navigation in Week 14.
+    Note: Routes for /dashboard (default), /activity-log, /settings,
+    /privacy, /resources, /credits. Single keyboard handler at the shell
+    level. <nav> with <ul> of <a> elements for screen-reader compatibility.
+
+[ ] Build base layout primitives
+    Why: Cards, lists, tables, badges, status dots reused across every view.
+    Define them once.
+    Note: ui/components/ — card.html (or .js), badge.html, status-dot.html,
+    field-row.html. Each primitive accepts ARIA attributes via attribute
+    pass-through.
+
+--------------------------------------------------------------------------------
+PART B — FastAPI Bridge Extension (Pillar 1 Endpoints)
+--------------------------------------------------------------------------------
+
+NOTE: The Phase 1 bridge exposes /health, /state, /activity-log, /resources.
+Phase 2 added /fuel, /jump_range, /rebuy. Phase 3 adds focused per-view
+endpoints so each UI page fetches exactly what it needs and no more.
+
+[ ] Create omnicovas/api/pillar1.py
+    Why: Centralizes the new Phase 3 endpoints. Keeps api_bridge.py from
+    growing unboundedly.
+    Note: FastAPI APIRouter pattern. Mounted under prefix /pillar1. Tests
+    live in tests/test_api_pillar1.py.
+
+[ ] Add GET /pillar1/ship-state
+    Why: Dashboard view needs the consolidated ship snapshot in one call.
+    Note: Returns ship_type, ship_name, ship_ident, hull_health, shield_up,
+    shield_strength_pct, fuel_main, fuel_capacity, jump_range_ly,
+    cargo_count, cargo_capacity, heat_level, sys_pips, eng_pips, wep_pips,
+    is_docked, current_system, current_station, is_wanted_in_system.
+
+[ ] Add GET /pillar1/loadout
+    Why: Loadout view needs the full module list with engineering blocks.
+    Note: Returns ship_type, loadout_hash, module list (slot, item, health,
+    power, priority, on, engineering raw block). Engineering remains raw —
+    Pillar 6 (Phase 8) owns effect computation.
+
+[ ] Add GET /pillar1/cargo
+    Why: Cargo view filters and sorts the inventory; needs structured data.
+    Note: Returns cargo_count, cargo_capacity, inventory list (name,
+    localised_name, count, stolen, mission_id).
+
+[ ] Add GET /pillar1/heat and GET /pillar1/pips
+    Why: Compact endpoints for the dashboard cards and overlay banner.
+    Note: heat returns level, trend (rising/steady/falling), last 10
+    samples for sparkline. pips returns sys/eng/wep + last_changed_at.
+
+[ ] Extend /ws/events to forward all Phase 2 broadcast types
+    Why: WebSocket-First Pattern (Pattern 1). Subscribers must see every
+    event type without registering for each one.
+    Note: Single subscriber registered in main() that wraps every event
+    type into the existing WebSocketBroadcaster.broadcast() call. Payload
+    shape: {type: 'event', event_type, timestamp, payload, source}.
+
+[ ] Write pytest tests for new endpoints
+    Why: Endpoint shape is the UI contract. Snapshot it with tests.
+    Note: tests/test_api_pillar1.py. Each endpoint: 200 happy path,
+    correct shape, correct values from a seeded StateManager.
+
+--------------------------------------------------------------------------------
+PART C — Pillar 1 Dashboard View
+--------------------------------------------------------------------------------
+
+The Dashboard is the default route. It must render every Phase 2 broadcast in
+real time. If a Commander never opens any other view, the Dashboard alone has
+to demonstrate the value of OmniCOVAS.
+
+[ ] Build LiveShipState card
+    Why: Feature 1 of Pillar 1 made visible.
+    Note: Ship type, ship name, ship ident, hull %, shield up/down,
+    shield strength %, docked yes/no, current system, wanted yes/no.
+    Uses GET /pillar1/ship-state and SHIP_STATE_CHANGED, HULL_DAMAGE,
+    SHIELDS_DOWN, SHIELDS_UP, DOCKED, UNDOCKED, WANTED, FSD_JUMP events.
+
+[ ] Build Hull and Shields card
+    Why: Feature 3 made visible. The 25% and 10% threshold crossings
+    must be obvious.
+    Note: Hull bar with thresholds marked. Shield up/down indicator.
+    Card border tint changes on HULL_CRITICAL_25, HULL_CRITICAL_10.
+
+[ ] Build Fuel and Jump Range card
+    Why: Feature 5 made visible.
+    Note: Current fuel / capacity, percentage, jump range LY, last
+    refuel timestamp. Uses GET /pillar1/ship-state and FUEL_LOW,
+    FUEL_CRITICAL, FSD_JUMP events.
+
+[ ] Build Cargo card
+    Why: Feature 6 made visible.
+    Note: Count / capacity, top 5 commodities by count, link to full
+    cargo view. Uses GET /pillar1/cargo and CARGO_CHANGED events.
+
+[ ] Build Heat card
+    Why: Feature 10 (P2) made visible.
+    Note: Heat level (0.0-1.0 displayed as percentage), trend indicator
+    (rising/steady/falling arrow), 10-sample sparkline. Uses GET
+    /pillar1/heat and HEAT_WARNING events.
+
+[ ] Build Power Distribution (PIPS) card
+    Why: Feature 9 (P2) made visible.
+    Note: SYS / ENG / WEP pip bars (0-8 each). Uses GET /pillar1/pips
+    and PIPS_CHANGED events. Hide gracefully when on-foot.
+
+[ ] Build Module Health summary
+    Why: Feature 2 made visible at a glance.
+    Note: Count of modules below 80% (warning) and below 20% (critical).
+    Link to full loadout view (basic table is acceptable — Phase 8 owns
+    the rich engineering view).
+
+[ ] Build Rebuy estimate card
+    Why: Feature 11 (P2) made visible.
+    Note: Single number in credits. Refreshed on LOADOUT_CHANGED. Uses
+    GET /rebuy.
+
+[ ] Wire WebSocket subscription to render updates
+    Why: Pattern 1 (WebSocket-First).
+    Note: One WS connection per Tauri webview. Reconnect with backoff on
+    drop. Visual indicator when disconnected (status dot in shell).
+
+--------------------------------------------------------------------------------
+PART D — Phase 1 Skeleton Migration
+--------------------------------------------------------------------------------
+
+[ ] Migrate the existing ui/index.html content into the new shell
+    Why: The Phase 1 skeleton renders ship state already. Its logic is
+    correct; only the layout needs to fit inside the navigation shell.
+    Note: Move discover() and tryConnect() into a shared connection module
+    used by every view. Keep the 2-second polling fallback as the safety
+    net. Phase 1 ui/index.html becomes ui/views/dashboard.html (or
+    component-equivalent depending on Part A decision).
+
+[ ] Verify zero regression in current ship-state rendering
+    Why: Phase 1 already worked. Phase 3 must not break it.
+    Note: Manual smoke test against a running Phase 2 core. Every field
+    that rendered in Phase 1 must still render.
+
+--------------------------------------------------------------------------------
+PART E — End-to-End Smoke Test
+--------------------------------------------------------------------------------
+
+[ ] Replay the Phase 2 integration session journal with the UI running
+    Why: Validates that every broadcast flows through to the right card.
+    Note: Use the journal recorded in tests/fixtures/session_replay/ from
+    Phase 2 Week 10. Feed at 10x speed. Watch every dashboard card update.
+
+[ ] Verify no card shows stale data after handler reset
+    Why: Ship destroyed events reset state. The UI must reset cleanly.
+    Note: DESTROYED event in the replay. Cards should show null / reset
+    indicator until next LoadGame.
+
+[ ] Measure WebSocket message latency under replay load
+    Why: Latency budgets from Phase 2 only covered the broadcaster. Add
+    bridge-to-UI as a new measurement.
+    Note: Log the timestamp difference between broadcast and WS receipt.
+    Target: under 50 ms locally. Track in docs/perf/phase3_baseline.md.
+
+--------------------------------------------------------------------------------
+WEEK 11 — MILESTONE CHECKLIST (all green before Week 12)
+--------------------------------------------------------------------------------
+
+[ ] docs/decisions/0001-frontend-framework.md exists; decision recorded
+[ ] ui/styles/tokens.css present and used by every new component
+[ ] Navigation shell loads; routes for /dashboard, /activity-log, /settings,
+    /privacy, /resources, /credits all reachable
+[ ] omnicovas/api/pillar1.py created; APIRouter mounted
+[ ] GET /pillar1/ship-state returns correct shape and values
+[ ] GET /pillar1/loadout, /pillar1/cargo, /pillar1/heat, /pillar1/pips
+    each green and tested
+[ ] /ws/events forwards every Phase 2 broadcast type to connected clients
+[ ] Dashboard renders all 8 cards (LiveShipState, Hull/Shields, Fuel,
+    Cargo, Heat, PIPS, Module Health, Rebuy)
+[ ] WebSocket subscription updates every card in real time during replay
+[ ] Reconnect logic on WS drop verified
+[ ] Phase 1 ship-state rendering preserved (no regression)
+[ ] Bridge-to-UI latency under 50 ms in local replay
+[ ] tauri build green on Windows
+[ ] mypy strict clean, ruff clean, CI green
+[ ] Phase 1 + Phase 2 tests still passing (zero regressions)
+[ ] Test count: Phase 2 baseline + ~10 to 15 new endpoint tests
+
+================================================================================
+WEEK 12 | Game Overlay (Transparent Always-On-Top) | ~15 hours
+================================================================================
+
+STATUS: PLANNED
+
+WARNING: This is the highest-complexity deliverable in Phase 3 (rated High in
+Master Blueprint Section 29). The transparent always-on-top window must
+coexist with Elite Dangerous in fullscreen-borderless without breaking input
+focus or blocking game pixels. Test on the actual game early and often. Do
+not save this for the end of the week.
+
+--------------------------------------------------------------------------------
+PART A — Tauri Overlay Window Configuration
+--------------------------------------------------------------------------------
+
+[ ] Add a second window definition to src-tauri/tauri.conf.json
+    Why: Main shell and overlay are separate windows with different
+    properties.
+    Note: label: "overlay", transparent: true, alwaysOnTop: true,
+    decorations: false, skipTaskbar: true, resizable: false, focus: false,
+    visible: false (until first event). Initial size and position from
+    persisted config.
+
+[ ] Add ui/overlay.html (or component route)
+    Why: Overlay has a separate document tree to keep its DOM minimal —
+    transparency rendering is sensitive to large compositions.
+    Note: Background must be fully transparent. No body padding. No
+    border. Only the banner element renders pixels.
+
+[ ] Add Tauri plugin for window-state persistence
+    Why: Commanders expect the overlay to remember where they put it.
+    Note: tauri-plugin-window-state is the canonical choice. License
+    review before adding (Compliance Matrix 6.x). Document in
+    docs/decisions/0002-tauri-plugins.md.
+
+[ ] Confirm transparency renders correctly on Windows 10 and 11
+    Why: WebView2 transparency has historical edge cases.
+    Note: window-vibrancy is already in src-tauri/Cargo.lock (verified
+    via Phase 1). Test on a Windows 10 box and a Windows 11 box if
+    available. Failure mode is a black or white frame instead of
+    transparency — log and escalate, do not ship.
+
+--------------------------------------------------------------------------------
+PART B — Click-Through Behavior
+--------------------------------------------------------------------------------
+
+[ ] Implement click-through default
+    Why: A Commander flying a ship must be able to click through the
+    overlay to the game. Anything else is a Law 6 (Performance Priority)
+    violation by way of disrupting flow.
+    Note: Tauri set_ignore_cursor_events(true) on overlay window at
+    creation. The overlay never steals input by default.
+
+[ ] Implement hotkey to toggle click-through
+    Why: When the Commander needs to dismiss a banner or interact with
+    the overlay, they need a way to grab it.
+    Note: Default Ctrl+Shift+O. Configurable in Settings (Week 13).
+    Toggle is global hotkey via tauri-plugin-global-shortcut. License
+    review before adding.
+
+[ ] Visual indicator of click-through state
+    Why: Hidden state is a foot-gun. Commanders must see whether the
+    overlay is currently grabbing input.
+    Note: Small status dot in the corner of the overlay. Different
+    color for grab vs click-through. Disappears after 3 seconds when
+    no banner is active.
+
+--------------------------------------------------------------------------------
+PART C — Critical Event Banner
+--------------------------------------------------------------------------------
+
+[ ] Subscribe to critical event types
+    Why: The overlay's primary job is surfacing critical events without
+    forcing the Commander to open the main shell.
+    Note: HULL_CRITICAL_25, HULL_CRITICAL_10, SHIELDS_DOWN, FUEL_LOW,
+    FUEL_CRITICAL, MODULE_CRITICAL, HEAT_WARNING. Subscriber registered
+    in the overlay webview, separate from the main shell subscriber.
+
+[ ] Build the banner component
+    Why: Single visual primitive used by every critical event type.
+    Note: Renders icon, label, value (e.g. "HULL 8%"), short context.
+    Color follows the event severity. Token-driven so color-blind
+    palette swap (Week 14) works without rewriting the banner.
+
+[ ] Implement auto-dismiss timer (configurable per event type)
+    Why: Banners that linger become noise.
+    Note: Defaults: HULL_CRITICAL_10 = 30 s, HULL_CRITICAL_25 = 10 s,
+    SHIELDS_DOWN = 5 s, FUEL_CRITICAL = 30 s, FUEL_LOW = 10 s,
+    MODULE_CRITICAL = 15 s, HEAT_WARNING = 8 s. All configurable in
+    Settings (Week 13).
+
+[ ] Implement banner queue (FIFO with priority preemption)
+    Why: A Commander hit by hull damage AND shield down at the same
+    moment must see both, not just the first.
+    Note: Priority order in Appendix. HULL_CRITICAL_10 preempts
+    everything below it. Lower-priority banners are queued, not
+    discarded; they show after the preempting banner clears.
+
+--------------------------------------------------------------------------------
+PART D — Overlay Settings (Basic; full panel comes Week 13)
+--------------------------------------------------------------------------------
+
+[ ] Opacity slider (0.5 to 1.0)
+    Why: Commanders run different monitors at different brightness.
+[ ] Anchor position (4 corners + center)
+    Why: HUD elements vary by ship type and Commander preference.
+[ ] Per-event-type enable / disable toggles
+    Why: A Commander focused on combat may not want HEAT_WARNING noise.
+[ ] Persist all overlay settings to encrypted config vault
+    Why: First-run defaults; everything else persists.
+    Note: Config key namespace: "overlay.*".
+
+--------------------------------------------------------------------------------
+PART E — Coexistence Test with Elite Running
+--------------------------------------------------------------------------------
+
+NOTE: This is not optional. The overlay's value is conditional on it working
+alongside the actual game. Skipping this test is a Law 6 risk.
+
+[ ] Launch Elite Dangerous in borderless fullscreen
+    Why: Fullscreen-borderless is the most common Commander setup.
+[ ] Verify overlay renders on top of the game
+[ ] Verify click-through default does not steal input from the game
+[ ] Verify Ctrl+Shift+O grab + release toggles cleanly
+[ ] Verify Elite input focus is not stolen by banner appearance
+[ ] Verify GPU and CPU overhead during overlay operation is within
+    the resource_budget.yaml limits (max 10 percent background CPU)
+[ ] Capture screenshots for the prototype submission package (Week 14)
+
+[ ] Write integration test stubs (best-effort; Tauri E2E is hard)
+    Note: Smoke tests for window creation and DOM rendering at minimum.
+    Full game-coexistence remains a manual-test step until v1.1.
+
+--------------------------------------------------------------------------------
+WEEK 12 — MILESTONE CHECKLIST
+--------------------------------------------------------------------------------
+
+[ ] Second Tauri window configured; overlay launches on demand
+[ ] Transparency confirmed on Windows 10 and Windows 11 (where available)
+[ ] window-state plugin added; window position persists across restarts
+[ ] Click-through default verified
+[ ] Ctrl+Shift+O toggle works; status dot signals grab vs click-through
+[ ] Critical event banner renders for all 7 critical event types
+[ ] Banner queue handles preemption + FIFO correctly
+[ ] Auto-dismiss timers fire at configured intervals
+[ ] Opacity, anchor position, per-event toggles all persist
+[ ] Overlay tested with Elite running in borderless fullscreen
+    (no input theft observed; screenshots captured for Week 14 submission)
+[ ] CPU and memory under resource_budget.yaml limits during overlay operation
+[ ] Phase 2 tests still passing (zero regressions)
+[ ] mypy strict clean, ruff clean, CI green
+
+================================================================================
+WEEK 13 | First-Run, Privacy, Settings, Activity Log (full) | ~15 hours
+================================================================================
+
+STATUS: PLANNED
+
+ARCHITECTURAL NOTE: Week 13 lands the four user-facing surfaces a Commander
+sees in their first session. First-Run is the front door; Privacy is the
+locked cabinet; Settings is the toolbox; Activity Log is the receipt. None
+of these is technically the most complex deliverable in Phase 3 (Week 12 owns
+that), but they are the most user-facing — the polish and clarity bar is high.
+
+--------------------------------------------------------------------------------
+PART A — First-Run Onboarding (Three-Path Model)
+--------------------------------------------------------------------------------
+
+[ ] Detect first run
+    Why: First-Run only fires once per installation.
+    Note: Check encrypted config for first_run_completed flag. If absent,
+    show wizard; on completion, set flag.
+
+[ ] Build the path-selection screen
+    Why: A Commander chooses Easy, Custom, or Power User up front.
+    Note: Three large buttons with one-line descriptions. Skip option
+    available (treated as Easy Mode default).
+
+[ ] Path A — Easy Mode (60-second setup)
+    Why: Universal Pattern §10.B.1. Casual Pilot preset, NullProvider,
+    privacy defaults at OFF, overlay enabled with critical events only.
+    Note: One screen: confirm preset (Combat / Explorer / Trader / Miner /
+    Casual). Hit Continue. Done. Wall-clock target: under 60 seconds.
+
+[ ] Path B — Custom Setup (5 to 15 minute wizard)
+    Why: Commanders who want some control without diving into every setting.
+    Note: Multi-step wizard: preset, AI provider choice (NullProvider /
+    Gemini / Local LLM / skip), privacy toggles (one screen, all OFF
+    by default), output mode (Voice/Overlay/Both — Voice greyed out
+    in Phase 3), overlay position. Each step has a Skip option.
+
+[ ] Path C — Power User (link to full Settings + Privacy pages)
+    Why: Some Commanders want to read every setting before any default
+    is applied.
+    Note: One screen with two big buttons: "Open Settings" and "Open
+    Privacy Page". Wizard exits. first_run_completed is set to true
+    only after the Commander has opened both at least once.
+
+[ ] Persist first_run_completed flag
+    Why: Wizard never re-triggers after success.
+    Note: Encrypted config (DPAPI). Manual reset path: delete the config
+    key via dev-tools menu (gated behind --dev flag).
+
+--------------------------------------------------------------------------------
+PART B — Privacy Page with Opt-In Toggles
+--------------------------------------------------------------------------------
+
+[ ] Build /privacy route
+    Why: Single canonical location for every outbound-data toggle.
+    Note: Heading: "Your data, your choice." Below it: a list of toggles,
+    every one defaulted OFF.
+
+[ ] Implement Phase 3 toggle inventory
+    Why: Privacy-by-Default Pattern. Every potential outbound flow has
+    a toggle, even if no Phase 3 feature uses it yet.
+    Note: Toggles to render:
+      - EDDN market data submission (Phase 5+)
+      - EDSM commander tracking (Phase 5+)
+      - Squadron telemetry sync (Phase 7)
+      - AI provider API calls (Tier 3 features, Phase 4+)
+      - Crash report submission (currently inert; structural)
+      - Usage analytics (currently none planned; structural)
+    Each toggle has a one-paragraph plain-language description.
+
+[ ] All toggles default OFF; setting persists to encrypted vault
+    Why: Principle 7 (Privacy-by-Default). Law 8 (Sovereignty &
+    Transparency).
+    Note: No exceptions, ever. The Commander turns each toggle on if
+    they want it on. The system never assumes consent.
+
+[ ] Implement export and delete capability
+    Why: GDPR alignment (Compliance Matrix Section 5.1).
+    Note: "Export my data" — produces a JSON dump of every config + KB
+    state + recent Activity Log entries. Saved via OS file dialog.
+    "Delete all my data" — confirms twice, then wipes the config vault
+    + activity log + cached KB. Restart required after delete.
+
+--------------------------------------------------------------------------------
+PART C — Data Flow Transparency Map
+--------------------------------------------------------------------------------
+
+[ ] Build /privacy/data-flows view
+    Why: Compliance Matrix Section 5.1 deliverable. Law 8 visibility.
+    Note: Shows every potential outbound flow: destination, frequency,
+    purpose, current state (active / disabled / not yet shipped).
+
+[ ] Implement live call counters per service
+    Why: When something is active, the Commander sees the rate.
+    Note: For Phase 3, every counter shows zero — no Phase 3 feature
+    sends outbound data. The view exists for the framework; Phase 5+
+    populates real numbers.
+
+[ ] Render a clear "no flows are active" indicator when applicable
+    Why: A blank screen is ambiguous. An explicit indicator builds trust.
+    Note: Single banner: "No outbound data flows are currently active.
+    Phase 3 is local-only."
+
+--------------------------------------------------------------------------------
+PART D — Settings Panel (Three-Tier Customization)
+--------------------------------------------------------------------------------
+
+[ ] Tier 1 — Preset Profiles
+    Why: Universal Pattern §10.C.1. The fastest path to a sensible config.
+    Note: Combat Pilot, Explorer, Trader, Miner, Casual. Selecting a
+    preset overwrites Tier 2 + Tier 3 defaults but preserves privacy
+    toggles (privacy is never auto-changed).
+
+[ ] Tier 2 — Category Toggles
+    Why: Universal Pattern §10.C.2. Whole-category enable / disable.
+    Note: Categories: Ship Telemetry (Pillar 1), Combat (Pillar 2 —
+    greyed out until Phase 4), Exploration (Phase 5), Trading (Phase 6),
+    Squadron (Phase 7), Engineering (Phase 8), Powerplay (Phase 9).
+    Each renders with a "coming in Phase X" caption when not yet shipped.
+
+[ ] Tier 3 — Granular Settings
+    Why: Universal Pattern §10.C.3. Every feature has an explicit control.
+    Note: Per-event banner toggles (Week 12 already wired), per-event
+    auto-dismiss timers, overlay opacity / anchor / hotkey, AI provider
+    selection (NullProvider default), Resource Budget overrides
+    (rare; warn before allowing).
+
+[ ] Output Mode controls (per feature)
+    Why: Universal Pattern §10.E. Voice / Overlay / Both.
+    Note: Voice is greyed out in Phase 3 (no EDDI integration yet).
+    Default: Overlay only. Document that Voice activates in Phase 3+
+    after EDDI integration ships.
+
+[ ] AI provider selection
+    Why: Universal Pattern §10.F. Four operating modes.
+    Note: NullProvider (default), Gemini, Premium Cloud, Local LLM.
+    API key field saves to DPAPI vault, never to plain config.
+    Selection takes effect on next app start.
+
+[ ] Save / Reset to Default / Export / Import
+    Why: Configurations should round-trip and be recoverable.
+    Note: Export to JSON (excluding secrets — they stay in the vault).
+    Import with explicit "this will overwrite your current settings"
+    confirmation.
+
+--------------------------------------------------------------------------------
+PART E — Activity Log UI (Full)
+--------------------------------------------------------------------------------
+
+[ ] Extend the Phase 1 skeleton to a full /activity-log route
+    Why: Phase 1 shipped a 1000-entry ring buffer with a basic list.
+    Phase 3 makes it filterable, searchable, exportable.
+    Note: Read from existing GET /activity-log endpoint. No backend
+    change required for Phase 3.
+
+[ ] Columns: timestamp, event_type, source, summary, AI tier (if any)
+    Why: Law 8 — every action the system takes must be auditable.
+    Note: AI tier column is empty for Phase 3 (no Tier 3 features yet).
+
+[ ] Filter by category (critical, extended, telemetry, AI)
+    Why: A Commander hunting a specific issue should not scroll 1000 rows.
+    Note: Multi-select. Default: all categories on.
+
+[ ] Free-text search
+    Why: Same reason. Most useful: search by event_type or summary text.
+[ ] Pagination (50 rows per page)
+    Why: Browser performance with 1000 rows of live updates.
+[ ] Export to JSON
+    Why: Bug reports + audit + Commander curiosity.
+[ ] Clear log (with confirmation)
+    Why: Some Commanders will want a fresh slate before recording.
+    Note: Confirmation dialog. Two clicks required.
+
+--------------------------------------------------------------------------------
+PART F — Confirmation Gate UI Framework
+--------------------------------------------------------------------------------
+
+NOTE: Phase 2 has no Tier 3 features, so there are no advisories to gate yet.
+Phase 3 lands the framework; population happens in Phase 4+ when first Tier 3
+features arrive (Tactical Threat Assessment, Predictive Module Targeting).
+
+[ ] Build ConfirmationGate component
+    Why: Universal Pattern §10.B (Confirmation Gate). Law 1 absolute.
+    Note: Renders the suggestion text, a "Why?" affordance (Tier 3),
+    and explicit Confirm / Decline controls. Component is generic;
+    every advisory consumer wraps its output in this component.
+
+[ ] Wire it to the Phase 1 ConfirmationGate middleware
+    Why: Existing Phase 1 middleware queues advisories. The UI component
+    pulls from the queue.
+    Note: GET /confirmations/pending and POST /confirmations/{id}
+    (confirm | decline). Endpoints added to omnicovas/api/pillar1.py
+    (or a new omnicovas/api/confirmation.py).
+
+[ ] "Why?" inline button placeholder for Tier 3
+    Why: Tier 3 explainability is a Phase 3 deliverable per BP §29.7
+    (Explainability inline). Framework only — no Tier 3 content yet.
+    Note: Button renders. Click currently shows a "No Tier 3 features
+    are active in this build" tooltip. Phase 4+ populates the content.
+
+[ ] Test Confirmation Gate end-to-end
+    Why: Law 1 is the most important law. Test it.
+    Note: Inject a mock advisory through the middleware. Verify it
+    surfaces in the UI. Verify Confirm dispatches a confirmation event.
+    Verify Decline dispatches a decline event. Verify timeout (no
+    response in 30 s) defaults to Decline.
+
+--------------------------------------------------------------------------------
+WEEK 13 — MILESTONE CHECKLIST
+--------------------------------------------------------------------------------
+
+[ ] First-Run wizard fires only on first launch; flag persists
+[ ] Path A (Easy Mode) completes in under 60 seconds
+[ ] Path B (Custom Setup) covers preset + AI + privacy + output + overlay
+[ ] Path C (Power User) requires opening Settings and Privacy at least once
+[ ] /privacy route renders all 6 toggles, all defaulted OFF
+[ ] Privacy toggle state persists to DPAPI-encrypted vault
+[ ] Export and Delete data flows both work end-to-end
+[ ] /privacy/data-flows shows zero active flows in Phase 3 baseline
+[ ] /settings: Tier 1 presets selectable; Tier 2 category toggles render
+    with phase captions; Tier 3 granular settings persist
+[ ] Output Mode: Overlay path active; Voice greyed out with Phase 3+ caption
+[ ] AI provider selection persists; API key flows to DPAPI vault not plain
+[ ] Settings Save / Reset / Export / Import all work
+[ ] /activity-log: filter, search, paginate, export, clear all work
+[ ] ConfirmationGate component renders mock advisories correctly
+[ ] /confirmations endpoints respond per spec
+[ ] "Why?" placeholder renders with Phase 3 caption
+[ ] Phase 2 tests still passing
+[ ] Test count: ~30 to 40 new tests for endpoints + Confirmation flow
+[ ] mypy strict clean, ruff clean, CI green
+
+================================================================================
+WEEK 14 | Accessibility, P2 Polish, Frontier + Inara Submission | ~15 hours
+================================================================================
+
+STATUS: PLANNED
+
+WARNING (Submission Window): Frontier and Inara approvals can take weeks to
+months (Compliance Matrix Section 11; Approval Applications Part I "Expected
+Timeline"). Do not push submission to the last hour of Week 14. Submit in the
+first half of Week 14 if the prototype is stable, then spend the rest of the
+week on accessibility and P2 polish.
+
+WARNING (Scope Creep): The P2 features in Phase 3 are real deliverables, not
+nice-to-haves — but they are also the easiest place to spend more than the
+hour-budget allows. Color-blind palettes can become a week of design work if
+permitted. Build the minimum that satisfies the requirement; defer richer
+versions to v1.1.
+
+--------------------------------------------------------------------------------
+PART A — Accessibility Framework (Principle 1, P1)
+--------------------------------------------------------------------------------
+
+[ ] Audit semantic HTML across every Phase 3 view
+    Why: Pattern 4. Screen readers and keyboard-only users depend on
+    semantic structure.
+    Note: Replace any <div role="button"> with <button>. Replace any
+    <div class="nav"> with <nav>. <main>, <section>, <h1>-<h3>, <ul>
+    used correctly. One <h1> per view.
+
+[ ] ARIA labels on every interactive element
+    Why: Even semantic HTML benefits from explicit labels for icon-only
+    controls and dynamic regions.
+    Note: aria-label on icon buttons. aria-live="polite" on the
+    Activity Log live region. aria-live="assertive" on the overlay
+    critical banner. aria-describedby for tooltips.
+
+[ ] Focus order audit (logical tab order)
+    Why: Tab order should follow reading order without surprises.
+    Note: Walk every view with Tab key. Document any non-source-order
+    placements that require tabindex. Default tabindex of 0 for custom
+    interactive elements.
+
+[ ] Visible focus indicators (Tier 1 mandatory)
+    Why: Keyboard users must see where they are.
+    Note: :focus-visible outlines using --color-accent token. No
+    outline: none anywhere unless replaced with a more visible style.
+
+[ ] Screen reader smoke test (NVDA on Windows)
+    Why: NVDA is free and the most common Windows screen reader.
+    Note: Walk Dashboard, Privacy, Settings, Activity Log, Onboarding.
+    Confirm every label is announced. Confirm critical banner is
+    announced when fired. Document any failures in
+    docs/accessibility/nvda_smoke_test.md.
+
+--------------------------------------------------------------------------------
+PART B — Color-blind Modes (P2)
+--------------------------------------------------------------------------------
+
+[ ] Add three palettes via design tokens
+    Why: Pattern 4 + Principle 1. Color is never the only signal.
+    Note: Palettes for deuteranopia, protanopia, tritanopia. Defined as
+    full token overrides in ui/styles/tokens-deuteranopia.css etc.
+    Active palette swapped via a class on <body> or a CSS data attribute.
+
+[ ] Add toggle in Settings (Tier 3)
+    Why: Granular control, easily reversible.
+    Note: Default "none" (use base palette). Selecting a palette swaps
+    the token override. Persist to encrypted vault.
+
+[ ] Verify critical banner remains distinguishable in each palette
+    Why: Hull-critical orange could collapse to grey in deuteranopia
+    if not handled.
+    Note: Visually inspect the banner in each palette. Confirm icon +
+    text remain unambiguous. If any banner becomes ambiguous, adjust
+    the palette token before declaring done.
+
+--------------------------------------------------------------------------------
+PART C — Font Size Adjustments (P2)
+--------------------------------------------------------------------------------
+
+[ ] Add three font sizes: small, default, large
+    Why: Principle 1. Some Commanders need bigger text; some run 4K and
+    want denser layout.
+    Note: Token --font-size-base swaps among 14 / 16 / 20 px equivalents.
+    Every other size is rem-relative so the whole UI scales together.
+
+[ ] Toggle in Settings (Tier 3)
+    Why: Same pattern as palettes.
+    Note: Persist; takes effect immediately.
+
+[ ] Verify no layout breakage at large
+    Why: rem scaling can break grids and overlap.
+    Note: Walk every view at large. Adjust grid templates if any view
+    overflows or clips.
+
+--------------------------------------------------------------------------------
+PART D — Keyboard-Only Navigation (P2)
+--------------------------------------------------------------------------------
+
+[ ] Confirm every action is reachable from the keyboard
+    Why: Principle 1. Some Commanders cannot use a mouse, by choice or
+    by necessity.
+    Note: Every button, toggle, slider, and link is reachable by Tab.
+    Every action is invokable by Enter or Space (per ARIA convention).
+    Every modal traps focus correctly until dismissed.
+
+[ ] Document the shortcut list
+    Why: Discoverability. Keyboard users should not have to reverse-engineer.
+    Note: Page in Settings or a "?" overlay. List: Tab navigation,
+    Enter/Space actions, Esc closes modals, Ctrl+Shift+O toggles overlay
+    click-through, Ctrl+, opens Settings, Ctrl+L opens Activity Log.
+
+[ ] Verify no keyboard traps
+    Why: A keyboard trap is a UI bug that locks a keyboard user in one
+    region with no way out.
+    Note: Tab from any element should eventually return to the start.
+    Esc should always close the topmost modal or overlay region.
+
+--------------------------------------------------------------------------------
+PART E — Resource Dashboard UI (P2)
+--------------------------------------------------------------------------------
+
+[ ] Build /resources route
+    Why: Master Blueprint §11 (Resource Budget Framework). Phase 1 has
+    the data; Phase 3 makes it visible.
+    Note: Reads from existing GET /resources endpoint. No backend work.
+
+[ ] Live memory, CPU, disk, bandwidth charts
+    Why: Conservative Defaults are an architectural commitment;
+    Commanders need to verify them.
+    Note: Sparkline-style charts, last 60 seconds. Refreshed on a
+    timer (every 2 seconds is enough; this is not a critical-latency view).
+
+[ ] Resource budget indicators
+    Why: Show the limit, not just the current value.
+    Note: Budget value from resource_budget.yaml. Indicator turns warn
+    color above 80% and critical color above 95% of budget.
+
+--------------------------------------------------------------------------------
+PART F — Credits / Contributors Page (P2, Principle 4)
+--------------------------------------------------------------------------------
+
+[ ] Build /credits route
+    Why: Principle 4 (Attribution). Compliance Matrix Section 7.
+    Note: Lists contributors (from CONTRIBUTORS.md or git log),
+    third-party dependencies and their licenses, all required external
+    service attributions (EDDN, EDSM, Inara, Spansh, EDAstro, BGS-Tally,
+    EDDI, VoiceAttack — even those not yet integrated).
+
+[ ] Render the Trademark Disclaimer prominently
+    Why: Compliance Matrix Section 1 + Approval Applications Part I.
+    Note: "OmniCOVAS is not an official tool and is not affiliated with
+    Frontier Developments. 'Elite', 'Elite Dangerous', and 'Frontier'
+    are trademarks of Frontier Developments plc." — verbatim, visible
+    on the credits page and in the footer of the main shell.
+
+--------------------------------------------------------------------------------
+PART G — SBOM Display (P2)
+--------------------------------------------------------------------------------
+
+[ ] Build a /credits/sbom panel (or sub-route)
+    Why: Compliance Matrix Section 6. Master Blueprint §16 (Trust
+    Infrastructure) requires SBOM publication per release.
+    Note: Render SBOM file (CycloneDX or SPDX format) generated by the
+    build pipeline. If the build pipeline does not yet emit SBOM, that
+    is the prerequisite — check before the UI work.
+
+--------------------------------------------------------------------------------
+PART H — Frontier Developer Application Submission
+--------------------------------------------------------------------------------
+
+[ ] Final review of OmniCOVAS_Approval_Applications_v4_0.txt Part I
+    Why: The submission package is pre-drafted; verify it still matches
+    the prototype.
+    Note: Update version numbers, correct any references to Phase 2
+    that should now read Phase 3, confirm the contact email is current.
+
+[ ] Capture prototype screenshots
+    Why: Document 5 of the application package requires "Screenshots
+    showing the application in action."
+    Note: Dashboard with live ship state, Overlay with critical banner
+    (in-game), Privacy page with toggles, Settings with three tiers.
+    PNG, 1920x1080, no personal CMDR identifiers visible.
+
+[ ] Build prototype binary
+    Why: Document 5 requires a downloadable prototype.
+    Note: tauri build on Windows, signed if SignPath is set up. Upload
+    as a GitHub release tagged phase3-prototype.
+
+[ ] Submit application via user.frontierstore.net
+    Why: This is the milestone.
+    Note: Cover letter from Approval Applications Part I Document 1.
+    Compliance commitments from Document 4. Working prototype link
+    from Document 5. Log the submission timestamp in Activity Log.
+
+--------------------------------------------------------------------------------
+PART I — Inara Whitelisting Outreach
+--------------------------------------------------------------------------------
+
+[ ] Final review of OmniCOVAS_Approval_Applications_v4_0.txt Part II
+    Why: Same pattern as Frontier. Verify the message still reflects
+    the prototype.
+    Note: Inara culture is informal; the pre-drafted message is direct
+    and friendly. Do not over-formalize it.
+
+[ ] Send DM to Artie via Inara forums
+    Why: This is the second milestone.
+    Note: Subject: "Whitelisting Request — OmniCOVAS". Body: pre-drafted
+    text from Approval Applications Part II. Include GitHub link,
+    prototype download link, screenshots. Log the outreach timestamp
+    in Activity Log.
+
+--------------------------------------------------------------------------------
+PART J — Phase 3 Documentation and Sign-Off
+--------------------------------------------------------------------------------
+
+[ ] Update README: Phase 3 from "planned" to "complete"
+[ ] Write docs/releases/phase3.md
+    Sections: what shipped (15 features), what was deferred (Phase 3+),
+    architectural additions (overlay window, Confirmation Gate UI,
+    accessibility framework), known limitations, test count, KB entry
+    count (unchanged from Phase 2), submission status (Frontier:
+    submitted [date]; Inara: outreach sent [date]).
+[ ] Confirm Compliance Matrix v4.1 Section 5 + Section 11 Phase 3 items
+    now show as complete.
+[ ] Docstring pass: grep for new def / async def in omnicovas/api/,
+    confirm each has Args / Returns / Raises docstring.
+[ ] Final CI green verification: git push, confirm GitHub Actions green.
+[ ] Test count: target 200+ total (Phase 2 baseline + ~50 to 60 Phase 3 tests
+    across endpoints, components, Confirmation Gate, accessibility smoke).
+[ ] Tag: git tag phase3-complete
+[ ] Update CLAUDE.md with Phase 3 learnings if warranted
+
+--------------------------------------------------------------------------------
+WEEK 14 — FINAL PHASE 3 MILESTONE CHECKLIST
+--------------------------------------------------------------------------------
+
+[ ] Semantic HTML audited across all views
+[ ] ARIA labels on every interactive element; live regions configured
+[ ] Focus order verified; visible focus indicators on every focusable element
+[ ] NVDA smoke test executed and documented
+[ ] Three color-blind palettes available; banner verified in each
+[ ] Three font sizes available; no layout breakage at large
+[ ] Keyboard-only navigation verified end-to-end; shortcut list documented
+[ ] /resources route live with real Phase 1 metrics
+[ ] /credits page renders contributors, dependencies, attributions,
+    Trademark Disclaimer
+[ ] SBOM rendered in /credits/sbom (or panel)
+[ ] Frontier Developer application submitted; timestamp in Activity Log
+[ ] Inara whitelisting outreach sent; timestamp in Activity Log
+[ ] Prototype binary published as GitHub release (phase3-prototype tag)
+[ ] README updated: Phase 3 complete
+[ ] docs/releases/phase3.md written
+[ ] Compliance Matrix Phase 3 items confirmed
+[ ] All new functions have Args / Returns / Raises docstrings
+[ ] GitHub Actions CI green on final Phase 3 commit
+[ ] Test count >= 200 (Phase 2 baseline + ~50 Phase 3)
+[ ] Commit tagged phase3-complete
+[ ] CLAUDE.md updated with Phase 3 learnings (if warranted)
+[ ] READY FOR PHASE 4: Combat Pillar (start; do not block on
+    Frontier/Inara responses — v1.0 ship-blocking path activates if
+    approvals delayed past Phase 8)
+
+================================================================================
+APPENDIX — QUICK REFERENCE
+================================================================================
+
+DAILY COMMANDS:
+  .venv\Scripts\activate        Activate venv (run first in every terminal)
+  uv add <package>              Install Python package (Phase 3 needs zero —
+                                flag if used)
+  npm install                   Install Tauri / frontend dev deps
+  npm run tauri dev             Run app in dev mode (live reload)
+  npm run tauri build           Build production binary
+  pytest                        Run all Python tests
+  pytest --cov=omnicovas        Coverage (target >= 80% on new code)
+  mypy omnicovas/               Type check (strict)
+  ruff check omnicovas/         Lint
+  ruff check --fix omnicovas/   Autofix safe issues
+  ruff format omnicovas/        Format
+  pytest -k pillar1             Run Pillar 1 endpoint tests
+  pytest -k confirmation        Run Confirmation Gate tests
+  git tag phase3-prototype      Tag the submission-package binary
+  git tag phase3-complete       Tag Phase 3 sign-off commit
+
+--------------------------------------------------------------------------------
+PILLAR 1 EVENT -> UI SURFACE MAPPING
+--------------------------------------------------------------------------------
+
+SHIP_STATE_CHANGED   Dashboard LiveShipState card; updates ship identity row
+HULL_DAMAGE          Dashboard Hull/Shields card; bar value
+HULL_CRITICAL_25     Overlay banner (priority 3); Activity Log critical filter
+HULL_CRITICAL_10     Overlay banner (priority 1); Activity Log critical filter
+SHIELDS_DOWN         Dashboard Hull/Shields card; Overlay banner (priority 2)
+SHIELDS_UP           Dashboard Hull/Shields card; clears the SHIELDS_DOWN
+                     banner if active
+FUEL_LOW             Dashboard Fuel card border; Overlay banner (priority 6)
+FUEL_CRITICAL        Dashboard Fuel card border; Overlay banner (priority 4)
+FSD_JUMP             Dashboard LiveShipState card; current_system row
+DOCKED               Dashboard LiveShipState card; docked indicator
+UNDOCKED             Dashboard LiveShipState card; docked indicator clears
+WANTED               Dashboard LiveShipState card; wanted indicator
+DESTROYED            Dashboard reset to null; banner: "Ship destroyed."
+HEAT_WARNING         Dashboard Heat card border; Overlay banner (priority 7)
+PIPS_CHANGED         Dashboard Power Distribution card
+LOADOUT_CHANGED      Dashboard Module Health summary; Rebuy estimate refresh
+MODULE_DAMAGED       Dashboard Module Health summary; Activity Log only
+                     (no overlay banner — too noisy in combat)
+MODULE_CRITICAL      Dashboard Module Health summary; Overlay banner (priority 5)
+CARGO_CHANGED        Dashboard Cargo card; commodity list refresh
+
+--------------------------------------------------------------------------------
+OVERLAY EVENT BANNER PRIORITY (highest preempts lower)
+--------------------------------------------------------------------------------
+
+1. HULL_CRITICAL_10   Hull below 10% — preempts everything
+2. SHIELDS_DOWN       Shields just dropped — combat-critical
+3. HULL_CRITICAL_25   Hull crossed 25% — early warning
+4. FUEL_CRITICAL      Fuel below 10% — strategic-critical
+5. MODULE_CRITICAL    A core module crossed 20% — combat-critical
+6. FUEL_LOW           Fuel below 25% — early warning
+7. HEAT_WARNING       Heat threshold crossed — coaching-tier
+
+--------------------------------------------------------------------------------
+PRIVACY HIERARCHY ENFORCEMENT (most restrictive wins)
+--------------------------------------------------------------------------------
+
+1. Top Secret Mode      Phase 7 — overrides everything; no outbound flows
+2. Individual Opt-Out   Phase 3 — Privacy page toggles, default OFF
+3. Squadron Override    Phase 7 — applies to squadron-wide flows only
+4. Global Default OFF   Phase 1 architecture; Phase 3 surfaces it in UI
+
+--------------------------------------------------------------------------------
+THREE-PATH ONBOARDING REFERENCE
+--------------------------------------------------------------------------------
+
+Path A — Easy Mode
+  Steps: 1
+  Time:  under 60 seconds
+  Default outcomes: Casual preset, NullProvider, all privacy OFF,
+                    Overlay enabled with critical events only
+  Skip: yes (defaults applied without confirmation)
+
+Path B — Custom Setup
+  Steps: 5 to 7 (preset, AI, privacy, output, overlay)
+  Time:  5 to 15 minutes
+  Default outcomes: each step has its own default, applied on Skip
+  Skip: per-step
+
+Path C — Power User
+  Steps: 1 (link to Settings + Privacy)
+  Time:  Commander-paced
+  Default outcomes: nothing applied until Commander explicitly saves
+  Skip: no — wizard exits only after both pages are opened
+
+--------------------------------------------------------------------------------
+SEVEN-LAYER UI DEBUGGING VOCABULARY
+--------------------------------------------------------------------------------
+
+Trace in this order. UI bugs hide in transitions between layers.
+
+1. Bridge endpoint        Is the FastAPI route returning correct data?
+2. WebSocket              Is the broadcast forwarded to /ws/events?
+3. Tauri window           Is the webview loaded and the route correct?
+4. HTML / Component       Is the DOM rendered? Are tokens applied?
+5. State hook             Is the WS message updating the component?
+6. Style / Token          Is the visual change wired to a token? (palette
+                          and font-size paths depend on this)
+7. Accessibility surface  Is the change announced to screen readers?
+                          Is focus order preserved?
+
+--------------------------------------------------------------------------------
+FILE LAYOUT REFERENCE (Phase 3 additions)
+--------------------------------------------------------------------------------
+
+ui/styles/tokens.css                   Design tokens (color, spacing, type)
+ui/styles/tokens-deuteranopia.css      Color-blind palette overrides
+ui/styles/tokens-protanopia.css        Color-blind palette overrides
+ui/styles/tokens-tritanopia.css        Color-blind palette overrides
+ui/components/                         Reusable primitives (cards, badges)
+ui/views/dashboard.html                Pillar 1 dashboard
+ui/views/overlay.html                  Transparent overlay route
+ui/views/onboarding.html               Three-Path wizard
+ui/views/privacy.html                  Privacy page + transparency map
+ui/views/settings.html                 Three-Tier customization panel
+ui/views/activity-log.html             Full Activity Log
+ui/views/resources.html                Resource Dashboard
+ui/views/credits.html                  Credits + Trademark + SBOM
+src-tauri/tauri.conf.json              Extended for overlay window
+omnicovas/api/pillar1.py               Phase 3 Pillar 1 endpoints
+omnicovas/api/confirmation.py          Confirmation Gate UI bridge
+docs/decisions/0001-frontend-framework.md
+docs/decisions/0002-tauri-plugins.md
+docs/accessibility/nvda_smoke_test.md
+docs/perf/phase3_baseline.md
+docs/releases/phase3.md                Phase 3 release notes
+tests/test_api_pillar1.py              Endpoint tests
+tests/test_confirmation_gate.py        Confirmation Gate flow tests
+tests/test_overlay_priority.py         Banner queue priority tests
+
+--------------------------------------------------------------------------------
+OUT-OF-SCOPE LIST (deferred beyond Phase 3)
+--------------------------------------------------------------------------------
+
+Voice I/O integration              Phase 3+ — requires EDDI/VoiceAttack;
+                                   activates after submission window closes
+Multi-monitor overlay placement    v1.1 — Phase 3 ships single-monitor only
+Tier 3 inline explainability       Phase 4+ — framework lands; population
+                                   waits for first Tier 3 features
+CAPI-dependent UI screens          Phase 3+ — gated on Frontier approval;
+                                   placeholder messaging in the meantime
+EDDN submission UI                 Phase 5+ — toggle exists in Phase 3,
+                                   feature ships in Phase 5
+Squadron / P2P / Top Secret UI     Phase 7
+Full KB audit dashboard            Phase 4+ — Phase 3 ships /credits + SBOM
+                                   only; KB-specific views come later
+Theme customization beyond palette v1.1+
+AI provider key management beyond
+single text field                  v1.1+ — multi-key, key rotation, etc.
+Pillar 2 - 7 features              Phases 4 through 9 in order
+
+================================================================================
+OmniCOVAS Phase 3 Development Guide
+Companion to Master Blueprint v4.2
+Phase 3 Active — Weeks 11-14 — 15 features locked — UI Shell + Submission
+================================================================================
