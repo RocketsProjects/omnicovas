@@ -1,0 +1,80 @@
+/* OmniCOVAS Design Tokens
+   Single source of truth for color, spacing, and typography.
+   All components reference tokens — never hard-coded values.
+   Color-blind palette overrides swap these tokens at the :root level. */
+
+:root {
+  /* --- Background / Surface --- */
+  --color-bg:            #0a0a14;
+  --color-bg-gradient:   linear-gradient(135deg, #0a0a14 0%, #0f1020 100%);
+  --color-surface:       rgba(15, 16, 32, 0.85);
+  --color-surface-hover: rgba(255, 136, 0, 0.06);
+  --color-border:        rgba(255, 136, 0, 0.25);
+  --color-border-active: rgba(255, 136, 0, 0.6);
+
+  /* --- Foreground / Text --- */
+  --color-fg:            #e0e0e8;
+  --color-fg-muted:      #8888aa;
+  --color-fg-unknown:    #555577;
+
+  /* --- Accent --- */
+  --color-accent:        #ff8800;
+  --color-accent-dim:    rgba(255, 136, 0, 0.15);
+
+  /* --- Semantic Status --- */
+  --color-ok:            #00ffaa;
+  --color-warn:          #ffcc00;
+  --color-critical:      #ff3333;
+  --color-info:          #4499ff;
+
+  /* --- Nav --- */
+  --color-nav-bg:        rgba(8, 8, 20, 0.95);
+  --color-nav-border:    rgba(255, 136, 0, 0.18);
+  --color-nav-active:    rgba(255, 136, 0, 0.12);
+  --color-nav-active-border: #ff8800;
+
+  /* --- Hull / Shield Bar Colors --- */
+  --color-hull-full:     #00ffaa;
+  --color-hull-warn:     #ffcc00;
+  --color-hull-critical: #ff3333;
+  --color-shield-up:     #4499ff;
+  --color-shield-down:   #555577;
+
+  /* --- Spacing Scale --- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  24px;
+  --space-6:  32px;
+  --space-7:  48px;
+  --space-8:  64px;
+
+  /* --- Typography --- */
+  --font-family:         'Consolas', 'Courier New', monospace;
+  --font-size-xs:        11px;
+  --font-size-sm:        12px;
+  --font-size-base:      14px;
+  --font-size-md:        15px;
+  --font-size-lg:        18px;
+  --font-size-xl:        22px;
+  --font-size-2xl:       28px;
+  --font-weight-normal:  400;
+  --font-weight-bold:    700;
+  --line-height:         1.5;
+
+  /* --- Radius --- */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+
+  /* --- Transitions --- */
+  --transition-fast:   120ms ease;
+  --transition-normal: 220ms ease;
+
+  /* --- Nav width --- */
+  --nav-width: 200px;
+
+  /* --- Connection bar height --- */
+  --topbar-height: 36px;
+}

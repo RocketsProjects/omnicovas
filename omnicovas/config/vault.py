@@ -42,6 +42,7 @@ VAULT_FILE = VAULT_DIR / "config.vault"
 
 # Known config keys — documented so mypy helps catch typos
 # Callers should use these constants, not hand-typed strings
+# Phase 3 Week 13 extends this with settings_* and privacy_* keys.
 CONFIG_KEYS = frozenset(
     {
         "journal_path",
@@ -55,6 +56,20 @@ CONFIG_KEYS = frozenset(
         "spansh_enabled",
         "voice_enabled",
         "first_run_complete",
+        # Phase 3 Week 13 onboarding and settings
+        "first_run_completed",
+        "first_run_completed_at",
+        "settings_preset",
+        "settings_ai_provider",
+        "settings_overlay_opacity",
+        "settings_overlay_anchor",
+        # Privacy toggles (all default OFF)
+        "privacy_eddn_submission",
+        "privacy_edsm_tracking",
+        "privacy_squadron_telemetry",
+        "privacy_ai_provider_calls",
+        "privacy_crash_reports",
+        "privacy_usage_analytics",
     }
 )
 
@@ -231,3 +246,20 @@ class ConfigVault:
     def keys(self) -> list[str]:
         """Return the list of keys currently stored (useful for UI/debug)."""
         return list(self._data.keys())
+
+    def list_keys(self) -> list[str]:
+        """Return the list of keys currently stored.
+
+        Alias for keys(); used by Week 13 export APIs.
+        """
+        return self.keys()
+
+    def clear_all(self) -> None:
+        """Wipe all keys from the vault (destructive operation).
+
+        Used by the /privacy/delete endpoint (Law 8: Sovereignty).
+        Requires user confirmation before calling.
+        """
+        self._data.clear()
+        self._save_to_disk()
+        logger.warning("Vault cleared entirely")

@@ -1,0 +1,11 @@
+/* Tritanopia palette override — replaces blue/yellow signals with red/pink */
+:root {
+  --color-ok:            #ff6699;
+  --color-warn:          #ff3366;
+  --color-critical:      #cc0033;
+  --color-hull-full:     #ff6699;
+  --color-hull-warn:     #ff3366;
+  --color-hull-critical: #cc0033;
+  --color-shield-up:     #ff6699;
+  --color-info:          #ff6699;
+}

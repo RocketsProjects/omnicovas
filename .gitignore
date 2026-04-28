@@ -216,6 +216,9 @@ package-lock.json
 # Tauri build output
 src-tauri/target/
 
+# Tauri sidecar binaries
+src-tauri/bin/
+
 # Rust
 Cargo.lock
 

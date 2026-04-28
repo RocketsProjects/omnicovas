@@ -1,0 +1,444 @@
+/**
+ * OmniCOVAS Dashboard View — Week 11 Part C
+ *
+ * Renders all 8 Pillar 1 cards:
+ *  1. LiveShipState   — ship identity, system, docked, wanted
+ *  2. Hull & Shields  — hull bar with 25%/10% threshold marks, shield badge
+ *  3. Fuel & Jump     — fuel bar, jump range
+ *  4. Cargo           — count/capacity, top-5 commodity list
+ *  5. Heat            — level bar, trend arrow, 10-sample sparkline
+ *  6. Power (PIPS)    — SYS / ENG / WEP pip dots
+ *  7. Module Health   — ok/warning/critical counts, link to loadout
+ *  8. Rebuy Estimate  — single credit figure
+ *
+ * Pattern 1 (WebSocket-First): all cards subscribe to window.OmniEvents.
+ * HTTP /pillar1/ship-state is the initial-load path; WS events keep it live.
+ */
+
+'use strict';
+
+/* ── Utility helpers ── */
+const fmt = {
+  pct: (v, dp = 1) => v == null ? '—' : `${v.toFixed(dp)}%`,
+  num: (v) => v == null ? '—' : v.toLocaleString(),
+  ly:  (v) => v == null ? '—' : `${v.toFixed(2)} ly`,
+  t:   (v) => v == null ? '—' : `${v.toFixed(1)} t`,
+  credits: (v) => v == null ? '—' : `${v.toLocaleString()} cr`,
+};
+
+function el(id) { return document.getElementById(id); }
+
+function hullClass(pct) {
+  if (pct == null) return '';
+  if (pct <= 10) return 'critical';
+  if (pct <= 25) return 'warn';
+  return 'ok';
+}
+
+function fuelClass(pct) {
+  if (pct == null) return '';
+  if (pct <= 10) return 'critical';
+  if (pct <= 25) return 'warn';
+  return '';
+}
+
+function heatClass(pct) {
+  if (pct == null) return '';
+  if (pct >= 120) return 'critical';
+  if (pct >= 95)  return 'critical';
+  if (pct >= 80)  return 'warn';
+  return '';
+}
+
+/* ── Sparkline (canvas) ── */
+function drawSparkline(canvasEl, samples) {
+  if (!canvasEl || !samples || samples.length < 2) return;
+  const ctx = canvasEl.getContext('2d');
+  const w = canvasEl.offsetWidth || 200;
+  const h = canvasEl.offsetHeight || 32;
+  canvasEl.width = w;
+  canvasEl.height = h;
+  ctx.clearRect(0, 0, w, h);
+
+  const max = Math.max(...samples, 1.0);
+  const step = w / (samples.length - 1);
+
+  ctx.beginPath();
+  ctx.strokeStyle = samples[samples.length - 1] >= 0.80
+    ? 'var(--color-critical, #ff3333)'
+    : 'var(--color-accent, #ff8800)';
+  ctx.lineWidth = 1.5;
+
+  samples.forEach((s, i) => {
+    const x = i * step;
+    const y = h - (s / max) * (h - 4) - 2;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+
+/* ── Pip dots ── */
+function renderPips(groupEl, value, max = 8) {
+  if (!groupEl) return;
+  const dotsEl = groupEl.querySelector('.pips-dots');
+  if (!dotsEl) return;
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < max; i++) {
+    const pip = document.createElement('span');
+    pip.className = 'pip' + (value != null && i < value ? ' filled' : '');
+    pip.setAttribute('aria-hidden', 'true');
+    dotsEl.appendChild(pip);
+  }
+}
+
+/* ── Card border state ── */
+function setCardState(cardId, state) {
+  const card = el(cardId);
+  if (!card) return;
+  card.classList.remove('ok', 'warn', 'critical', 'destroyed');
+  if (state) card.classList.add(state);
+}
+
+/* ─────────────────────────────────────────────
+   CARD 1 — Live Ship State
+───────────────────────────────────────────── */
+function renderShipState(s) {
+  const set = (id, val) => { const e = el(id); if (e) e.textContent = val ?? '—'; };
+
+  set('dash-ship-type',   s.ship_type);
+  set('dash-ship-name',   s.ship_name || s.ship_type || '—');
+  set('dash-ship-ident',  s.ship_ident);
+  set('dash-system',      s.current_system);
+  set('dash-station',     s.current_station);
+
+  const dockedEl = el('dash-docked');
+  if (dockedEl) {
+    dockedEl.textContent = s.is_docked ? 'YES' : 'NO';
+    dockedEl.className = 'field-value ' + (s.is_docked ? 'ok' : '');
+  }
+
+  const wantedEl = el('dash-wanted');
+  if (wantedEl) {
+    wantedEl.textContent = s.is_wanted_in_system ? 'WANTED' : '—';
+    wantedEl.className = 'field-value ' + (s.is_wanted_in_system ? 'critical' : 'unknown');
+  }
+}
+
+/* ─────────────────────────────────────────────
+   CARD 2 — Hull & Shields
+───────────────────────────────────────────── */
+function renderHullShields(s) {
+  const hullPct = s.hull_health;
+  const cls = hullClass(hullPct);
+
+  const hullVal = el('dash-hull-value');
+  if (hullVal) {
+    hullVal.textContent = fmt.pct(hullPct);
+    hullVal.className = 'field-value ' + cls;
+  }
+
+  const bar = el('dash-hull-bar');
+  if (bar) {
+    bar.style.width = (hullPct ?? 0) + '%';
+    bar.className = 'progress-bar-fill ' + cls;
+  }
+
+  setCardState('card-hull', cls || null);
+
+  const shieldEl = el('dash-shield');
+  if (shieldEl) {
+    if (s.shield_up == null) {
+      shieldEl.textContent = '—';
+      shieldEl.className = 'badge muted';
+    } else if (s.shield_up) {
+      shieldEl.textContent = 'UP';
+      shieldEl.className = 'badge ok';
+    } else {
+      shieldEl.textContent = 'DOWN';
+      shieldEl.className = 'badge critical';
+    }
+  }
+
+  const shieldPctEl = el('dash-shield-pct');
+  if (shieldPctEl) shieldPctEl.textContent = fmt.pct(s.shield_strength_pct);
+}
+
+/* ─────────────────────────────────────────────
+   CARD 3 — Fuel & Jump Range
+───────────────────────────────────────────── */
+function renderFuel(s) {
+  const fuelPct = s.fuel_pct;
+  const cls = fuelClass(fuelPct);
+
+  const fuelVal = el('dash-fuel-value');
+  if (fuelVal) {
+    fuelVal.textContent = fmt.pct(fuelPct);
+    fuelVal.className = 'field-value ' + cls;
+  }
+
+  const bar = el('dash-fuel-bar');
+  if (bar) {
+    bar.style.width = (fuelPct ?? 0) + '%';
+    bar.className = 'progress-bar-fill ' + cls;
+  }
+
+  const fuelRaw = el('dash-fuel-raw');
+  if (fuelRaw) fuelRaw.textContent = `${fmt.t(s.fuel_main)} / ${fmt.t(s.fuel_capacity)}`;
+
+  const jump = el('dash-jump');
+  if (jump) jump.textContent = fmt.ly(s.jump_range_ly);
+
+  setCardState('card-fuel', cls || null);
+}
+
+/* ─────────────────────────────────────────────
+   CARD 4 — Cargo
+───────────────────────────────────────────── */
+function renderCargo(s, inventory) {
+  const countEl = el('dash-cargo-count');
+  if (countEl) countEl.textContent =
+    s.cargo_count != null && s.cargo_capacity != null
+      ? `${s.cargo_count} / ${s.cargo_capacity}`
+      : '—';
+
+  const listEl = el('dash-cargo-list');
+  if (listEl) {
+    const items = (inventory || []).slice(0, 5);
+    if (items.length === 0) {
+      listEl.innerHTML = '<li class="field-value unknown">Empty</li>';
+    } else {
+      listEl.innerHTML = items.map(item =>
+        `<li class="field-row">
+          <span class="field-label">${item.name}</span>
+          <span class="field-value">${item.count}</span>
+        </li>`
+      ).join('');
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────
+   CARD 5 — Heat
+───────────────────────────────────────────── */
+function renderHeat(s, trend, samples) {
+  const heatPct = s.heat_level != null ? s.heat_level * 100 : null;
+  const cls = heatClass(heatPct);
+
+  const heatVal = el('dash-heat-value');
+  if (heatVal) {
+    heatVal.textContent = fmt.pct(heatPct, 0);
+    heatVal.className = 'field-value ' + cls;
+  }
+
+  const bar = el('dash-heat-bar');
+  if (bar) {
+    bar.style.width = Math.min(heatPct ?? 0, 150) / 1.5 + '%';
+    bar.className = 'progress-bar-fill ' + cls;
+  }
+
+  const trendEl = el('dash-heat-trend');
+  if (trendEl && trend) {
+    const arrows = { rising: '↑', falling: '↓', steady: '→' };
+    trendEl.textContent = (arrows[trend] || '') + ' ' + trend;
+    trendEl.className = 'trend ' + (trend || 'steady');
+  }
+
+  drawSparkline(el('dash-heat-sparkline'), samples);
+  setCardState('card-heat', cls || null);
+}
+
+/* ─────────────────────────────────────────────
+   CARD 6 — Power Distribution (PIPS)
+───────────────────────────────────────────── */
+function renderPips(s) {
+  renderPipsGroup('pips-sys', s.sys_pips);
+  renderPipsGroup('pips-eng', s.eng_pips);
+  renderPipsGroup('pips-wep', s.wep_pips);
+}
+
+function renderPipsGroup(groupId, value) {
+  const group = el(groupId);
+  if (!group) return;
+  const dotsEl = group.querySelector('.pips-dots');
+  if (!dotsEl) return;
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const pip = document.createElement('span');
+    pip.className = 'pip' + (value != null && i < value ? ' filled' : '');
+    pip.setAttribute('aria-hidden', 'true');
+    dotsEl.appendChild(pip);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   CARD 7 — Module Health Summary
+───────────────────────────────────────────── */
+function renderModules(summary) {
+  const set = (id, val) => { const e = el(id); if (e) e.textContent = val ?? '—'; };
+  set('dash-mod-ok',       summary?.ok);
+  set('dash-mod-warning',  summary?.warning);
+  set('dash-mod-critical', summary?.critical);
+  set('dash-mod-total',    summary?.total);
+
+  const critEl = el('dash-mod-critical');
+  if (critEl) critEl.className = 'field-value' + (summary?.critical > 0 ? ' critical' : ' ok');
+
+  const warnEl = el('dash-mod-warning');
+  if (warnEl) warnEl.className = 'field-value' + (summary?.warning > 0 ? ' warn' : '');
+
+  if (summary?.critical > 0) setCardState('card-modules', 'critical');
+  else if (summary?.warning > 0) setCardState('card-modules', 'warn');
+  else setCardState('card-modules', null);
+}
+
+/* ─────────────────────────────────────────────
+   CARD 8 — Rebuy Estimate
+───────────────────────────────────────────── */
+function renderRebuy(rebuy) {
+  const rebuyEl = el('dash-rebuy');
+  if (rebuyEl) {
+    rebuyEl.textContent = fmt.credits(rebuy?.rebuy_cost);
+    rebuyEl.className = 'field-value' + (rebuy?.rebuy_cost == null ? ' unknown' : '');
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Full state render (called on initial load and /state poll)
+───────────────────────────────────────────── */
+function renderFullState(state) {
+  renderShipState(state);
+  renderHullShields(state);
+  renderFuel(state);
+}
+
+/* ─────────────────────────────────────────────
+   Fetch helpers
+───────────────────────────────────────────── */
+async function fetchJSON(path) {
+  if (!window.OMNICOVAS_PORT) return null;
+  try {
+    const r = await fetch(`http://127.0.0.1:${window.OMNICOVAS_PORT}${path}`);
+    return r.ok ? await r.json() : null;
+  } catch { return null; }
+}
+
+async function loadDashboard() {
+  const [ship, cargo, heat, mods, rebuy] = await Promise.all([
+    fetchJSON('/pillar1/ship-state'),
+    fetchJSON('/pillar1/cargo'),
+    fetchJSON('/pillar1/heat'),
+    fetchJSON('/pillar1/modules/summary'),
+    fetchJSON('/rebuy'),
+  ]);
+
+  if (ship)  { renderShipState(ship); renderHullShields(ship); renderFuel(ship); renderPips(ship); }
+  if (cargo) renderCargo(ship || {}, cargo.inventory);
+  if (heat)  renderHeat(ship || {}, heat.trend, heat.samples);
+  if (mods)  renderModules(mods);
+  if (rebuy) renderRebuy(rebuy);
+}
+
+/* ─────────────────────────────────────────────
+   WebSocket event handlers
+───────────────────────────────────────────── */
+function onStateUpdate(state) {
+  renderShipState(state);
+  renderHullShields(state);
+  renderFuel(state);
+  renderPips(state);
+}
+
+function onEvent(msg) {
+  const { event_type, payload } = msg;
+  if (!payload) return;
+
+  switch (event_type) {
+    case 'SHIP_STATE_CHANGED':
+    case 'LOADOUT_CHANGED':
+      loadDashboard();
+      break;
+
+    case 'HULL_DAMAGE':
+      renderHullShields({
+        hull_health: payload.hull_health != null ? payload.hull_health * 100 : null,
+        shield_up: window._lastShipState?.shield_up,
+        shield_strength_pct: window._lastShipState?.shield_strength_pct,
+      });
+      break;
+
+    case 'HULL_CRITICAL_25':
+    case 'HULL_CRITICAL_10':
+      setCardState('card-hull', 'critical');
+      break;
+
+    case 'SHIELDS_DOWN':
+      renderHullShields({ ...(window._lastShipState || {}), shield_up: false });
+      break;
+
+    case 'SHIELDS_UP':
+      renderHullShields({ ...(window._lastShipState || {}), shield_up: true });
+      break;
+
+    case 'FUEL_LOW':
+    case 'FUEL_CRITICAL':
+      fetchJSON('/pillar1/ship-state').then(s => { if (s) renderFuel(s); });
+      break;
+
+    case 'HEAT_WARNING':
+      fetchJSON('/pillar1/heat').then(h => {
+        if (h) renderHeat(window._lastShipState || {}, h.trend, h.samples);
+      });
+      break;
+
+    case 'PIPS_CHANGED':
+      renderPipsGroup('pips-sys', payload.sys_pips);
+      renderPipsGroup('pips-eng', payload.eng_pips);
+      renderPipsGroup('pips-wep', payload.wep_pips);
+      break;
+
+    case 'CARGO_CHANGED':
+      fetchJSON('/pillar1/cargo').then(c => {
+        if (c) renderCargo(window._lastShipState || {}, c.inventory);
+      });
+      break;
+
+    case 'MODULE_DAMAGED':
+    case 'MODULE_CRITICAL':
+      fetchJSON('/pillar1/modules/summary').then(m => { if (m) renderModules(m); });
+      break;
+
+    case 'DESTROYED':
+      document.querySelectorAll('.card').forEach(c => c.classList.add('destroyed'));
+      ['dash-hull-value','dash-shield','dash-fuel-value'].forEach(id => {
+        const e = el(id); if (e) e.textContent = '—';
+      });
+      el('dash-ship-type') && (el('dash-ship-type').textContent = 'DESTROYED');
+      break;
+
+    case 'FSD_JUMP':
+    case 'DOCKED':
+    case 'UNDOCKED':
+      fetchJSON('/pillar1/ship-state').then(s => { if (s) renderShipState(s); });
+      break;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Init
+───────────────────────────────────────────── */
+window.OmniEvents.addEventListener('state', (ev) => {
+  window._lastShipState = ev.detail;
+  onStateUpdate(ev.detail);
+});
+
+window.OmniEvents.addEventListener('event', (ev) => {
+  onEvent(ev.detail);
+});
+
+// Load immediately if port already known; also re-load when view becomes active
+window.addEventListener('hashchange', () => {
+  if (window.location.hash === '#/dashboard' || !window.location.hash) loadDashboard();
+});
+
+// Initial load — wait a tick for shell.js to discover the port
+setTimeout(loadDashboard, 200);

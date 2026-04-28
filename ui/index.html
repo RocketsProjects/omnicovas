@@ -1,285 +1,459 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OmniCOVAS</title>
-    <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OmniCOVAS</title>
 
-      body {
-        background: linear-gradient(135deg, #0a0a14 0%, #0f1020 100%);
-        color: #e0e0e8;
-        font-family: 'Consolas', 'Courier New', monospace;
-        min-height: 100vh;
-        padding: 24px;
-        overflow-x: hidden;
-      }
+  <!-- Design tokens must load before any component stylesheet -->
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/shell.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+</head>
+<body>
 
-      h1 {
-        color: #ff8800;
-        font-size: 1.8rem;
-        letter-spacing: 0.3rem;
-        text-transform: uppercase;
-        margin-bottom: 4px;
-      }
+<!-- ── Top connection bar ── -->
+<header id="topbar" role="banner">
+  <span class="app-name">&#9881; OmniCOVAS</span>
+  <span class="topbar-sep" aria-hidden="true">|</span>
+  <div id="connection-status" role="status" aria-live="polite" aria-atomic="true">
+    <span class="status-dot" id="status-dot" aria-label="Disconnected"></span>
+    <span id="status-text">Connecting&hellip;</span>
+  </div>
+  <span class="topbar-spacer" aria-hidden="true"></span>
+  <span class="port-label" id="port-label" aria-hidden="true"></span>
+</header>
 
-      .subtitle {
-        color: #888;
-        font-size: 0.75rem;
-        letter-spacing: 0.2rem;
-        margin-bottom: 24px;
-      }
+<!-- ── Sidebar navigation ── -->
+<nav id="sidebar" aria-label="Main navigation">
+  <ul role="list">
+    <li>
+      <a href="#/dashboard" class="active" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">&#9672;</span>
+        Dashboard
+      </a>
+    </li>
+    <li>
+      <a href="#/activity-log" aria-current="false">
+        <span class="nav-icon" aria-hidden="true">&#9719;</span>
+        Activity Log
+      </a>
+    </li>
+    <li>
+      <a href="#/settings" aria-current="false">
+        <span class="nav-icon" aria-hidden="true">&#9881;</span>
+        Settings
+      </a>
+    </li>
+    <li>
+      <a href="#/privacy" aria-current="false">
+        <span class="nav-icon" aria-hidden="true">&#128274;</span>
+        Privacy
+      </a>
+    </li>
+    <li>
+      <a href="#/resources" aria-current="false">
+        <span class="nav-icon" aria-hidden="true">&#9673;</span>
+        Resources
+      </a>
+    </li>
+    <li>
+      <a href="#/credits" aria-current="false">
+        <span class="nav-icon" aria-hidden="true">&#10022;</span>
+        Credits
+      </a>
+    </li>
+  </ul>
 
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        margin-bottom: 24px;
-      }
+  <div class="sidebar-footer" aria-hidden="true">
+    Phase 3 &middot; v0.1.0
+  </div>
+</nav>
 
-      .card {
-        background: rgba(20, 22, 35, 0.7);
-        border: 1px solid rgba(255, 136, 0, 0.2);
-        border-radius: 4px;
-        padding: 16px;
-      }
+<!-- ── Content area ── -->
+<main id="content-area" role="main">
 
-      .card h2 {
-        color: #ff8800;
-        font-size: 0.85rem;
-        letter-spacing: 0.2rem;
-        text-transform: uppercase;
-        margin-bottom: 12px;
-        border-bottom: 1px solid rgba(255, 136, 0, 0.2);
-        padding-bottom: 6px;
-      }
+  <!-- ══════════════════════════════════════
+       VIEW: Dashboard
+  ══════════════════════════════════════ -->
+  <section id="view-dashboard" class="view active" aria-labelledby="dash-title">
+    <h1 class="view-title" id="dash-title">Ship Dashboard</h1>
 
-      .field {
-        display: flex;
-        justify-content: space-between;
-        padding: 4px 0;
-        font-size: 0.9rem;
-      }
+    <div class="dashboard-grid">
 
-      .field .label {
-        color: #888;
-      }
+      <!-- Card 1: Live Ship State -->
+      <article class="card" id="card-ship" aria-label="Ship identity and location">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#9672;</span> Ship State
+        </h2>
+        <div class="field-row">
+          <span class="field-label">Ship</span>
+          <span class="field-value" id="dash-ship-name">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Type</span>
+          <span class="field-value" id="dash-ship-type">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Ident</span>
+          <span class="field-value" id="dash-ship-ident">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">System</span>
+          <span class="field-value" id="dash-system">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Station</span>
+          <span class="field-value" id="dash-station">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Docked</span>
+          <span class="field-value" id="dash-docked">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Status</span>
+          <span class="field-value unknown" id="dash-wanted">&mdash;</span>
+        </div>
+      </article>
 
-      .field .value {
-        color: #00ffaa;
-        font-weight: bold;
-      }
+      <!-- Card 2: Hull & Shields -->
+      <article class="card" id="card-hull" aria-label="Hull integrity and shield status">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#9647;</span> Hull &amp; Shields
+        </h2>
+        <div class="field-row">
+          <span class="field-label">Hull</span>
+          <span class="field-value" id="dash-hull-value">&mdash;</span>
+        </div>
+        <div class="progress-bar-wrap threshold-bar" aria-hidden="true">
+          <div class="progress-bar-fill" id="dash-hull-bar" style="width:0%"></div>
+          <div class="tick" style="left:25%" title="25% threshold"></div>
+          <div class="tick" style="left:10%" title="10% threshold"></div>
+        </div>
+        <div class="field-row" style="margin-top:var(--space-3)">
+          <span class="field-label">Shields</span>
+          <span class="badge muted" id="dash-shield">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Strength</span>
+          <span class="field-value" id="dash-shield-pct">&mdash;</span>
+        </div>
+      </article>
 
-      .field .value.unknown {
-        color: #555;
-        font-style: italic;
-      }
+      <!-- Card 3: Fuel & Jump Range -->
+      <article class="card" id="card-fuel" aria-label="Fuel level and jump range">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#9672;</span> Fuel &amp; Jump
+        </h2>
+        <div class="field-row">
+          <span class="field-label">Fuel</span>
+          <span class="field-value" id="dash-fuel-value">&mdash;</span>
+        </div>
+        <div class="progress-bar-wrap" aria-hidden="true">
+          <div class="progress-bar-fill" id="dash-fuel-bar" style="width:0%"></div>
+        </div>
+        <div class="field-row" style="margin-top:var(--space-3)">
+          <span class="field-label">Tonnes</span>
+          <span class="field-value" id="dash-fuel-raw">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Max Jump</span>
+          <span class="field-value" id="dash-jump">&mdash;</span>
+        </div>
+      </article>
 
-      .status-dot {
-        display: inline-block;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        margin-right: 6px;
-        vertical-align: middle;
-      }
+      <!-- Card 4: Cargo -->
+      <article class="card" id="card-cargo" aria-label="Cargo hold">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#9635;</span> Cargo
+        </h2>
+        <div class="field-row">
+          <span class="field-label">Units</span>
+          <span class="field-value" id="dash-cargo-count">&mdash;</span>
+        </div>
+        <ul id="dash-cargo-list" role="list" aria-label="Top cargo commodities"
+            style="margin-top:var(--space-2);list-style:none;padding:0">
+          <li class="field-value unknown">No data</li>
+        </ul>
+      </article>
 
-      .status-dot.connected { background: #00ffaa; box-shadow: 0 0 8px #00ffaa; }
-      .status-dot.disconnected { background: #ff4444; }
+      <!-- Card 5: Heat -->
+      <article class="card" id="card-heat" aria-label="Ship heat management">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#9673;</span> Heat
+        </h2>
+        <div class="field-row">
+          <span class="field-label">Level</span>
+          <span class="field-value" id="dash-heat-value">&mdash;</span>
+          <span class="trend steady" id="dash-heat-trend" aria-live="polite"></span>
+        </div>
+        <div class="progress-bar-wrap" aria-hidden="true">
+          <div class="progress-bar-fill" id="dash-heat-bar" style="width:0%"></div>
+        </div>
+        <div class="sparkline-wrap" aria-hidden="true">
+          <canvas class="sparkline" id="dash-heat-sparkline"
+                  role="img" aria-label="Heat history sparkline"></canvas>
+        </div>
+      </article>
 
-      .connection-bar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        padding: 6px 24px;
-        font-size: 0.75rem;
-        color: #888;
-        background: rgba(10, 10, 20, 0.9);
-        border-bottom: 1px solid rgba(255, 136, 0, 0.2);
-      }
+      <!-- Card 6: Power Distribution (PIPS) -->
+      <article class="card" id="card-pips" aria-label="Power distribution">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#9889;</span> Power Distribution
+        </h2>
+        <div class="pips-row" role="group" aria-label="Power pips">
+          <div class="pips-group" id="pips-sys" aria-label="Systems pips">
+            <span class="pips-label">SYS</span>
+            <div class="pips-dots" aria-hidden="true"></div>
+            <span class="field-value" id="pips-sys-val" aria-live="polite">&mdash;</span>
+          </div>
+          <div class="pips-group" id="pips-eng" aria-label="Engines pips">
+            <span class="pips-label">ENG</span>
+            <div class="pips-dots" aria-hidden="true"></div>
+            <span class="field-value" id="pips-eng-val" aria-live="polite">&mdash;</span>
+          </div>
+          <div class="pips-group" id="pips-wep" aria-label="Weapons pips">
+            <span class="pips-label">WEP</span>
+            <div class="pips-dots" aria-hidden="true"></div>
+            <span class="field-value" id="pips-wep-val" aria-live="polite">&mdash;</span>
+          </div>
+        </div>
+      </article>
 
-      .activity-log {
-        background: rgba(20, 22, 35, 0.7);
-        border: 1px solid rgba(255, 136, 0, 0.2);
-        border-radius: 4px;
-        padding: 16px;
-        max-height: 300px;
-        overflow-y: auto;
-      }
+      <!-- Card 7: Module Health Summary -->
+      <article class="card" id="card-modules" aria-label="Module health summary">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#9639;</span> Module Health
+        </h2>
+        <div class="field-row">
+          <span class="field-label">Total</span>
+          <span class="field-value" id="dash-mod-total">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">OK (&ge;80%)</span>
+          <span class="field-value ok" id="dash-mod-ok">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Warning</span>
+          <span class="field-value" id="dash-mod-warning">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Critical</span>
+          <span class="field-value" id="dash-mod-critical">&mdash;</span>
+        </div>
+      </article>
 
-      .activity-log h2 {
-        color: #ff8800;
-        font-size: 0.85rem;
-        letter-spacing: 0.2rem;
-        text-transform: uppercase;
-        margin-bottom: 12px;
-        border-bottom: 1px solid rgba(255, 136, 0, 0.2);
-        padding-bottom: 6px;
-      }
+      <!-- Card 8: Rebuy Estimate -->
+      <article class="card" id="card-rebuy" aria-label="Ship rebuy cost estimate">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#128179;</span> Rebuy Estimate
+        </h2>
+        <div class="field-row">
+          <span class="field-label">Cost (5%)</span>
+          <span class="field-value unknown" id="dash-rebuy">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label"
+                style="font-size:var(--font-size-xs);color:var(--color-fg-unknown)">
+            Standard insurance &middot; Tier 1 telemetry
+          </span>
+        </div>
+      </article>
 
-      .log-entry {
-        font-size: 0.8rem;
-        padding: 3px 0;
-        color: #aaa;
-        border-bottom: 1px dotted rgba(255, 136, 0, 0.1);
-      }
+    </div><!-- /.dashboard-grid -->
+  </section>
 
-      .log-entry .type {
-        color: #ff8800;
-        display: inline-block;
-        min-width: 140px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="connection-bar">
-      <span id="status-dot" class="status-dot disconnected"></span>
-      <span id="status-text">Connecting to core brain…</span>
-      <span id="port-info" style="margin-left: 12px;"></span>
+  <!-- ══════════════════════════════════════
+       VIEW: Activity Log
+  ══════════════════════════════════════ -->
+  <section id="view-activity-log" class="view" aria-labelledby="log-title">
+    <h1 class="view-title" id="log-title">Activity Log</h1>
+    <div id="log-controls"
+         style="margin-bottom:var(--space-4);display:flex;gap:var(--space-3);
+                flex-wrap:wrap;align-items:center">
+      <input type="search" id="log-search" placeholder="Search events&hellip;"
+             aria-label="Search activity log"
+             style="background:var(--color-surface);border:1px solid var(--color-border);
+                    color:var(--color-fg);padding:var(--space-2) var(--space-3);
+                    border-radius:var(--radius-md);font-family:var(--font-family);
+                    font-size:var(--font-size-sm);width:240px;" />
+      <button id="log-clear-btn"
+              aria-label="Clear activity log display"
+              style="background:transparent;border:1px solid var(--color-border);
+                     color:var(--color-fg-muted);padding:var(--space-2) var(--space-3);
+                     border-radius:var(--radius-md);font-family:var(--font-family);
+                     font-size:var(--font-size-sm);cursor:pointer;">
+        Clear
+      </button>
     </div>
+    <div id="log-entries" role="log" aria-live="polite" aria-atomic="false"
+         aria-label="Activity log entries"
+         style="max-height:calc(100vh - 220px);overflow-y:auto;">
+      <p class="field-value unknown" style="padding:var(--space-3)">No events yet.</p>
+    </div>
+  </section>
 
-    <div style="margin-top: 24px;">
-      <h1>⚙ OmniCOVAS</h1>
-      <p class="subtitle">Phase 1 Infrastructure · Week 5</p>
+  <!-- ══════════════════════════════════════
+       VIEW: Settings (stub — Week 13)
+  ══════════════════════════════════════ -->
+  <section id="view-settings" class="view" aria-labelledby="settings-title">
+    <h1 class="view-title" id="settings-title">Settings</h1>
+    <p class="field-value unknown">Settings panel &mdash; coming in Week 13.</p>
+  </section>
 
-      <div class="grid">
-        <div class="card">
-          <h2>Location</h2>
-          <div class="field"><span class="label">System</span><span id="f-system" class="value unknown">—</span></div>
-          <div class="field"><span class="label">Station</span><span id="f-station" class="value unknown">—</span></div>
-          <div class="field"><span class="label">Docked</span><span id="f-docked" class="value unknown">—</span></div>
-          <div class="field"><span class="label">Supercruise</span><span id="f-supercruise" class="value unknown">—</span></div>
-        </div>
+  <!-- ══════════════════════════════════════
+       VIEW: Privacy (stub — Week 13)
+  ══════════════════════════════════════ -->
+  <section id="view-privacy" class="view" aria-labelledby="privacy-title">
+    <h1 class="view-title" id="privacy-title">Privacy</h1>
+    <p class="field-value unknown">Privacy controls &mdash; coming in Week 13.</p>
+    <p style="margin-top:var(--space-4);color:var(--color-fg-muted);font-size:var(--font-size-sm)">
+      Phase 3 is fully local. No outbound data flows are currently active.
+    </p>
+  </section>
 
-        <div class="card">
-          <h2>Ship</h2>
-          <div class="field"><span class="label">Ship type</span><span id="f-ship" class="value unknown">—</span></div>
-          <div class="field"><span class="label">Hull</span><span id="f-hull" class="value unknown">—</span></div>
-          <div class="field"><span class="label">Shields</span><span id="f-shields" class="value unknown">—</span></div>
-          <div class="field"><span class="label">Fuel</span><span id="f-fuel" class="value unknown">—</span></div>
-        </div>
+  <!-- ══════════════════════════════════════
+       VIEW: Resources (stub — Week 14)
+  ══════════════════════════════════════ -->
+  <section id="view-resources" class="view" aria-labelledby="resources-title">
+    <h1 class="view-title" id="resources-title">Resources</h1>
+    <p class="field-value unknown">Resource dashboard &mdash; coming in Week 14.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       VIEW: Credits
+  ══════════════════════════════════════ -->
+  <section id="view-credits" class="view" aria-labelledby="credits-title">
+    <h1 class="view-title" id="credits-title">Credits</h1>
+    <div class="card" style="margin-bottom:var(--space-4)">
+      <h2 class="card-title">Trademark Disclaimer</h2>
+      <p style="color:var(--color-fg-muted);font-size:var(--font-size-sm);line-height:1.6">
+        OmniCOVAS is not an official tool and is not affiliated with Frontier Developments.
+        &ldquo;Elite&rdquo;, &ldquo;Elite Dangerous&rdquo;, and &ldquo;Frontier&rdquo; are
+        trademarks of Frontier Developments plc.
+      </p>
+    </div>
+    <div class="card">
+      <h2 class="card-title">Project</h2>
+      <div class="field-row">
+        <span class="field-label">Version</span>
+        <span class="field-value">0.1.0 &mdash; Phase 3</span>
       </div>
-
-      <div class="activity-log">
-        <h2>Activity Log</h2>
-        <div id="log-entries">
-          <div class="log-entry"><em>Waiting for events…</em></div>
-        </div>
+      <div class="field-row">
+        <span class="field-label">License</span>
+        <span class="field-value">AGPL-3.0-or-later</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Author</span>
+        <span class="field-value">RocketsLab</span>
       </div>
     </div>
+  </section>
 
-    <script>
-      // The Python core writes its port to a file that Tauri could pick up.
-      // For Phase 1, we probe common ports or let the user pass one.
-      // In Week 6+ Tauri will read the ready JSON from the sidecar stdout.
-      // For now we read from localhost query param or try a default.
+</main><!-- /#content-area -->
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const portFromQuery = urlParams.get('port');
-      const DEFAULT_PORT = portFromQuery || window.OMNICOVAS_PORT || null;
+<!-- ── Activity log inline script ── -->
+<script>
+(function () {
+  'use strict';
 
-      const statusDot = document.getElementById('status-dot');
-      const statusText = document.getElementById('status-text');
-      const portInfo = document.getElementById('port-info');
-      const logContainer = document.getElementById('log-entries');
+  let logEntries = [];
+  const MAX_LOG = 500;
 
-      function setField(id, value, unknownText = 'unknown') {
-        const el = document.getElementById(id);
-        if (value === null || value === undefined) {
-          el.textContent = unknownText;
-          el.classList.add('unknown');
-        } else {
-          el.textContent = value;
-          el.classList.remove('unknown');
+  function formatTime(ts) {
+    if (!ts) return '—';
+    try { return new Date(ts).toLocaleTimeString(); } catch (e) { return ts; }
+  }
+
+  function isCritical(t) {
+    return ['HULL_CRITICAL_10','HULL_CRITICAL_25','SHIELDS_DOWN',
+            'FUEL_CRITICAL','MODULE_CRITICAL'].includes(t);
+  }
+
+  function isWarn(t) {
+    return ['HULL_DAMAGE','FUEL_LOW','HEAT_WARNING','MODULE_DAMAGED'].includes(t);
+  }
+
+  function renderLog(filter) {
+    var container = document.getElementById('log-entries');
+    if (!container) return;
+    var items = filter
+      ? logEntries.filter(function(e) {
+          return (e.event_type || '').toLowerCase().indexOf(filter) !== -1 ||
+                 (e.summary || '').toLowerCase().indexOf(filter) !== -1;
+        })
+      : logEntries;
+
+    if (items.length === 0) {
+      container.innerHTML = '<p class="field-value unknown" style="padding:var(--space-3)">No events yet.</p>';
+      return;
+    }
+
+    container.innerHTML = items.slice(0, MAX_LOG).map(function(e) {
+      var cls = isCritical(e.event_type) ? 'critical' : isWarn(e.event_type) ? 'warn' : '';
+      return '<div class="log-entry ' + cls + '" role="listitem">' +
+        '<span class="log-time">' + formatTime(e.timestamp) + '</span>' +
+        '<span class="log-type">' + (e.event_type || '—') + '</span>' +
+        '<span class="log-msg">' + (e.summary || '') + '</span>' +
+        '</div>';
+    }).join('');
+  }
+
+  function addLogEntry(entry) {
+    logEntries.unshift(entry);
+    if (logEntries.length > MAX_LOG) logEntries.length = MAX_LOG;
+    var searchEl = document.getElementById('log-search');
+    renderLog(searchEl ? searchEl.value.toLowerCase().trim() : '');
+  }
+
+  async function fetchLog() {
+    if (!window.OMNICOVAS_PORT) return;
+    try {
+      var r = await fetch('http://127.0.0.1:' + window.OMNICOVAS_PORT + '/activity-log');
+      if (!r.ok) return;
+      var data = await r.json();
+      logEntries = (data.entries || []).reverse();
+      renderLog('');
+    } catch (e) { /* silent */ }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var searchEl = document.getElementById('log-search');
+    if (searchEl) {
+      searchEl.addEventListener('input', function () {
+        renderLog(searchEl.value.toLowerCase().trim());
+      });
+    }
+    var clearBtn = document.getElementById('log-clear-btn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        if (confirm('Clear the activity log display? (Does not affect stored history.)')) {
+          logEntries = [];
+          renderLog('');
         }
-      }
+      });
+    }
+  });
 
-      function renderState(s) {
-        setField('f-system', s.current_system);
-        setField('f-station', s.current_station);
-        setField('f-docked', s.is_docked === null ? null : (s.is_docked ? 'YES' : 'NO'));
-        setField('f-supercruise', s.is_in_supercruise === null ? null : (s.is_in_supercruise ? 'YES' : 'NO'));
-        setField('f-ship', s.current_ship_type);
-        setField('f-hull', s.hull_health === null ? null : `${(s.hull_health * 100).toFixed(1)}%`);
-        setField('f-shields', s.shield_up === null ? null : (s.shield_up ? 'UP' : 'DOWN'));
-        setField('f-fuel', s.fuel_main === null ? null : `${s.fuel_main.toFixed(1)} t`);
-      }
+  window.addEventListener('hashchange', function () {
+    if (window.location.hash === '#/activity-log') fetchLog();
+  });
 
-      function addLogEntry(entry) {
-        const waiting = logContainer.querySelector('em');
-        if (waiting) logContainer.innerHTML = '';
+  // Expose addLogEntry so shell event bus can call it
+  window._addLogEntry = addLogEntry;
+})();
+</script>
 
-        const div = document.createElement('div');
-        div.className = 'log-entry';
-        div.innerHTML = `<span class="type">${entry.event_type}</span> ${entry.summary || ''}`;
-        logContainer.insertBefore(div, logContainer.firstChild);
+<!-- Shell must load first so OmniEvents bus exists before dashboard.js runs -->
+<script src="components/shell.js"></script>
+<script src="views/dashboard.js"></script>
 
-        // Keep DOM manageable
-        while (logContainer.children.length > 50) {
-          logContainer.removeChild(logContainer.lastChild);
-        }
-      }
+<!-- Wire log entries from the WS bus after all scripts are loaded -->
+<script>
+  window.OmniEvents.addEventListener('event', function (ev) {
+    if (window._addLogEntry) window._addLogEntry(ev.detail);
+  });
+</script>
 
-      async function tryConnect(port) {
-        try {
-          const res = await fetch(`http://127.0.0.1:${port}/state`);
-          if (!res.ok) return false;
-          const state = await res.json();
-          renderState(state);
-
-          statusDot.className = 'status-dot connected';
-          statusText.textContent = 'Connected to core brain';
-          portInfo.textContent = `port ${port}`;
-
-          // Open WebSocket for live events
-          const ws = new WebSocket(`ws://127.0.0.1:${port}/ws/events`);
-          ws.onmessage = (msg) => {
-            try {
-              const data = JSON.parse(msg.data);
-              if (data.type === 'initial_state') {
-                renderState(data.state);
-              } else if (data.type === 'event' && data.event) {
-                addLogEntry(data.event);
-                // Re-fetch state on every event so fields refresh
-                fetch(`http://127.0.0.1:${port}/state`)
-                  .then(r => r.json())
-                  .then(renderState)
-                  .catch(() => {});
-              }
-            } catch (e) { /* ignore */ }
-          };
-          ws.onerror = () => { /* ignore */ };
-          return true;
-        } catch (e) {
-          return false;
-        }
-      }
-
-      async function discover() {
-        if (DEFAULT_PORT) {
-          if (await tryConnect(DEFAULT_PORT)) return;
-        }
-        // Probe a small range as a fallback for Phase 1 dev
-        for (let port = 50000; port < 65000; port += 1) {
-          if (port % 500 !== 0) continue; // only probe every 500
-          if (await tryConnect(port)) return;
-        }
-        statusText.textContent = 'No core brain found. Start the Python core.';
-      }
-
-      discover();
-      // Re-poll /state every 2s as a safety net against missed WS events
-      setInterval(async () => {
-        if (statusDot.classList.contains('connected')) {
-          try {
-            const port = portInfo.textContent.replace('port ', '');
-            const res = await fetch(`http://127.0.0.1:${port}/state`);
-            if (res.ok) renderState(await res.json());
-          } catch (e) { /* ignore */ }
-        }
-      }, 2000);
-    </script>
-  </body>
+</body>
 </html>

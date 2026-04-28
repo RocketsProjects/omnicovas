@@ -1,0 +1,213 @@
+/* OmniCOVAS Component Primitives
+   Card, badge, field-row, progress-bar, sparkline, log-entry.
+   Every value references tokens — never hard-coded. */
+
+/* ── Card ── */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition: border-color var(--transition-fast);
+}
+
+.card:hover { border-color: var(--color-border-active); }
+
+.card.warn     { border-color: var(--color-warn);     box-shadow: 0 0 8px rgba(255,204,0,0.15); }
+.card.critical { border-color: var(--color-critical); box-shadow: 0 0 10px rgba(255,51,51,0.20); }
+.card.ok       { border-color: var(--color-ok);       box-shadow: 0 0 8px rgba(0,255,170,0.12); }
+
+.card-title {
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ── Field row ── */
+.field-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  gap: var(--space-3);
+  min-height: 24px;
+}
+
+.field-row:last-child { border-bottom: none; }
+
+.field-label {
+  color: var(--color-fg-muted);
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+  min-width: 110px;
+}
+
+.field-value {
+  color: var(--color-fg);
+  font-size: var(--font-size-sm);
+  text-align: right;
+  word-break: break-word;
+}
+
+.field-value.unknown {
+  color: var(--color-fg-unknown);
+  font-style: italic;
+}
+
+.field-value.ok       { color: var(--color-ok); }
+.field-value.warn     { color: var(--color-warn); }
+.field-value.critical { color: var(--color-critical); }
+
+/* ── Badge ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.06em;
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.badge.ok       { background: rgba(0,255,170,0.10);  color: var(--color-ok);       border-color: rgba(0,255,170,0.25); }
+.badge.warn     { background: rgba(255,204,0,0.12);  color: var(--color-warn);     border-color: rgba(255,204,0,0.30); }
+.badge.critical { background: rgba(255,51,51,0.12);  color: var(--color-critical); border-color: rgba(255,51,51,0.30); }
+.badge.info     { background: rgba(68,153,255,0.12); color: var(--color-info);     border-color: rgba(68,153,255,0.30); }
+.badge.muted    { background: rgba(136,136,170,0.10); color: var(--color-fg-muted); border-color: rgba(136,136,170,0.20); }
+
+/* ── Progress bar ── */
+.progress-bar-wrap {
+  height: 6px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: var(--space-2);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--color-ok);
+  transition: width 400ms ease, background 400ms ease;
+}
+
+.progress-bar-fill.warn     { background: var(--color-warn); }
+.progress-bar-fill.critical { background: var(--color-critical); }
+
+/* ── Threshold tick marks (hull bar) ── */
+.threshold-bar {
+  position: relative;
+}
+
+.threshold-bar .tick {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: rgba(255,255,255,0.30);
+  pointer-events: none;
+}
+
+/* ── Pips display ── */
+.pips-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-top: var(--space-2);
+}
+
+.pips-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.pips-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-fg-muted);
+  letter-spacing: 0.08em;
+}
+
+.pips-dots {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-height: 20px;
+}
+
+.pip {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-fg-unknown);
+  transition: background var(--transition-fast);
+}
+
+.pip.filled { background: var(--color-accent); box-shadow: 0 0 4px var(--color-accent); }
+
+/* ── Heat sparkline ── */
+.sparkline-wrap {
+  margin-top: var(--space-2);
+  height: 32px;
+}
+
+canvas.sparkline {
+  width: 100%;
+  height: 32px;
+  display: block;
+}
+
+/* ── Trend indicator ── */
+.trend {
+  font-size: var(--font-size-xs);
+  padding: 1px var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.trend.rising  { color: var(--color-critical); }
+.trend.falling { color: var(--color-ok); }
+.trend.steady  { color: var(--color-fg-muted); }
+
+/* ── Activity log entries ── */
+.log-entry {
+  display: grid;
+  grid-template-columns: 140px 140px 1fr;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background var(--transition-fast);
+}
+
+.log-entry:hover { background: var(--color-surface-hover); }
+
+.log-entry .log-time  { color: var(--color-fg-unknown); }
+.log-entry .log-type  { color: var(--color-accent); letter-spacing: 0.04em; }
+.log-entry .log-msg   { color: var(--color-fg-muted); word-break: break-word; }
+
+.log-entry.critical .log-type { color: var(--color-critical); }
+.log-entry.warn     .log-type { color: var(--color-warn); }
+
+/* ── Dashboard grid ── */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+
+/* ── Destroyed state ── */
+.card.destroyed {
+  border-color: var(--color-critical);
+  opacity: 0.6;
+}

@@ -10,7 +10,16 @@
       "Bash(.venv/Scripts/python -m mypy omnicovas/ --no-error-summary)",
       "Bash(.venv/Scripts/python -m mypy omnicovas/)",
       "Bash(grep -v \"^$\\\\|note:\")",
-      "Bash(.venv/Scripts/python -m ruff check omnicovas/)"
+      "Bash(.venv/Scripts/python -m ruff check omnicovas/)",
+      "Bash(git add *)",
+      "Bash(npm install *)",
+      "Bash(python -m pytest tests/ -xvs)",
+      "Bash(mypy omnicovas/)",
+      "Bash(ruff check *)",
+      "Bash(python -m pytest tests/test_overlay_integration.py -xvs)",
+      "Bash(python -m pytest tests/ -q)",
+      "Bash(cargo check *)",
+      "Bash(python -m pytest tests/ --co -q)"
     ]
   }
 }

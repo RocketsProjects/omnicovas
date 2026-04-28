@@ -156,6 +156,25 @@ async def handle_status_heat(
         )
 
 
+# Module-level reference so pillar1.py can read trend + samples without
+# coupling to the dispatcher internals.
+_heat_buffer: deque[float] = deque(maxlen=10)
+_prev_holder: dict[str, float | None] = {"value": None}
+
+
+def get_heat_trend_and_samples() -> tuple[str, list[float]]:
+    """Return the current heat trend and rolling sample list.
+
+    Used by the /pillar1/heat endpoint to populate the sparkline and trend
+    indicator without re-deriving the buffer from the StateManager.
+
+    Returns:
+        A tuple of (trend, samples) where trend is 'rising'/'falling'/'steady'
+        and samples is the list of the last up-to-10 heat readings.
+    """
+    return _compute_trend(_heat_buffer), list(_heat_buffer)
+
+
 def register(
     dispatcher_register: Any,
     state: StateManager,
@@ -169,11 +188,9 @@ def register(
             signature consistency)
         broadcaster: The shared ShipStateBroadcaster instance
     """
-    heat_buffer: deque[float] = deque(maxlen=10)
-    prev_holder: dict[str, float | None] = {"value": None}
 
     async def _status_heat(event: dict[str, Any]) -> None:
-        await handle_status_heat(event, state, broadcaster, heat_buffer, prev_holder)
+        await handle_status_heat(event, state, broadcaster, _heat_buffer, _prev_holder)
 
     dispatcher_register("Status", _status_heat)
 

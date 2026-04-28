@@ -35,6 +35,9 @@ from typing import Any
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
+from omnicovas.api import pillar1 as pillar1_router
+from omnicovas.api import week13 as week13_router
+from omnicovas.config.vault import ConfigVault
 from omnicovas.core.state_manager import StateManager
 
 logger = logging.getLogger(__name__)
@@ -107,11 +110,13 @@ class ApiBridge:
         host: str = "127.0.0.1",
         port: int | None = None,
         resource_monitor: Any = None,
+        config_vault: ConfigVault | None = None,
     ) -> None:
         self._state = state_manager
         self._host = host
         self._port = port if port is not None else find_free_port()
         self._resource_monitor = resource_monitor
+        self._vault = config_vault or ConfigVault()
         self._app = self._build_app()
         self._broadcaster = WebSocketBroadcaster()
         self._activity_log: deque[dict[str, Any]] = deque(maxlen=ACTIVITY_LOG_CAPACITY)
@@ -145,6 +150,14 @@ class ApiBridge:
             allow_methods=["*"],
             allow_headers=["*"],
         )
+
+        # Phase 3: Pillar 1 endpoint router (Week 11 Part B)
+        pillar1_router.set_state_manager(self._state)
+        app.include_router(pillar1_router.router)
+
+        # Phase 3 Week 13: Onboarding, Privacy, Settings, Confirmations
+        week13_router.set_config_vault(self._vault)
+        app.include_router(week13_router.router)
 
         @app.get("/health")  # type: ignore[misc,untyped-decorator,unused-ignore]
         async def health() -> dict[str, Any]:
@@ -285,31 +298,129 @@ class ApiBridge:
         return app
 
     async def push_event(self, event: dict[str, Any]) -> None:
-        """Record an event and broadcast it."""
-        entry = {
-            "timestamp": event.get("timestamp"),
-            "event_type": event.get("event", "Unknown"),
-            "summary": self._summarize(event),
+        """Record a raw journal event and broadcast it to WebSocket clients.
+
+        Also accepts ShipStateEvent-shaped dicts (from the Phase 2 broadcaster)
+        keyed by 'event_type' instead of 'event'.  Both shapes are normalised
+        into the activity log and forwarded to the UI.
+
+        The WebSocket payload shape is:
+            {type: 'event', event_type: str, timestamp: str, payload: dict,
+             source: str, summary: str}
+        This is consumed by shell.js and each Dashboard card subscriber.
+        """
+        # Normalise both journal events ('event' key) and broadcaster events
+        # ('event_type' key) into a common shape.
+        event_type = event.get("event_type") or event.get("event", "Unknown")
+        timestamp = event.get("timestamp")
+        payload = event.get("payload", {})
+        source = event.get("source", "journal")
+        summary = self._summarize_typed(event_type, payload, event)
+
+        entry: dict[str, Any] = {
+            "timestamp": timestamp,
+            "event_type": event_type,
+            "summary": summary,
+            "source": source,
         }
         self._activity_log.append(entry)
         self._events_counter += 1
 
-        await self._broadcaster.broadcast({"type": "event", "event": entry})
+        await self._broadcaster.broadcast(
+            {
+                "type": "event",
+                "event_type": event_type,
+                "timestamp": timestamp,
+                "payload": payload,
+                "source": source,
+                "summary": summary,
+            }
+        )
 
-    def _summarize(self, event: dict[str, Any]) -> str:
-        """Build a short human-readable summary of an event for the log."""
-        event_type = event.get("event", "Unknown")
+    def _summarize_typed(
+        self,
+        event_type: str,
+        payload: dict[str, Any],
+        raw: dict[str, Any],
+    ) -> str:
+        """Build a short human-readable summary for the activity log.
+
+        Handles both raw journal events and Phase 2 ShipStateEvent payloads.
+
+        Args:
+            event_type: normalised event type string
+            payload: ShipStateEvent payload dict (may be empty for journal events)
+            raw: original event dict for journal-field fallback
+        """
+        # Phase 2 broadcaster event types
+        if event_type == "FSD_JUMP":
+            return f"Jump → {payload.get('system', raw.get('StarSystem', '?'))}"
+        if event_type == "DOCKED":
+            return f"Docked at {payload.get('station', raw.get('StationName', '?'))}"
+        if event_type == "UNDOCKED":
+            station = payload.get("station", raw.get("StationName", "?"))
+            return f"Undocked from {station}"
+        if event_type == "HULL_DAMAGE":
+            hp = payload.get("hull_health")
+            return f"Hull damage → {hp:.1f}%" if hp is not None else "Hull damage"
+        if event_type in ("HULL_CRITICAL_25", "HULL_CRITICAL_10"):
+            hp = payload.get("hull_health")
+            threshold = "25%" if "25" in event_type else "10%"
+            if hp is not None:
+                return f"Hull critical ({threshold}) → {hp:.1f}%"
+            return f"Hull critical ({threshold})"
+        if event_type == "SHIELDS_DOWN":
+            return "Shields down"
+        if event_type == "SHIELDS_UP":
+            return "Shields restored"
+        if event_type == "FUEL_LOW":
+            pct = payload.get("fuel_pct")
+            return f"Fuel low → {pct:.1f}%" if pct is not None else "Fuel low"
+        if event_type == "FUEL_CRITICAL":
+            pct = payload.get("fuel_pct")
+            return f"Fuel critical → {pct:.1f}%" if pct is not None else "Fuel critical"
+        if event_type == "HEAT_WARNING":
+            heat = payload.get("heat")
+            return (
+                f"Heat warning → {heat * 100:.0f}%"
+                if heat is not None
+                else "Heat warning"
+            )
+        if event_type == "PIPS_CHANGED":
+            sys = payload.get("sys_pips", "?")
+            eng = payload.get("eng_pips", "?")
+            wep = payload.get("wep_pips", "?")
+            return f"Pips → SYS:{sys} ENG:{eng} WEP:{wep}"
+        if event_type == "SHIP_STATE_CHANGED":
+            ship = payload.get("ship_type", raw.get("Ship", "?"))
+            return f"Ship state → {ship}"
+        if event_type == "LOADOUT_CHANGED":
+            return f"Loadout → {payload.get('ship_type', '?')}"
+        if event_type == "CARGO_CHANGED":
+            count = payload.get("cargo_count")
+            return f"Cargo → {count} units" if count is not None else "Cargo changed"
+        if event_type == "MODULE_DAMAGED":
+            slot = payload.get("slot", "?")
+            hp = payload.get("health_pct", "")
+            return f"Module damaged: {slot} {hp}"
+        if event_type == "MODULE_CRITICAL":
+            return f"Module critical: {payload.get('slot', '?')}"
+        if event_type == "WANTED":
+            return f"Wanted in {payload.get('system', '?')}"
+        if event_type == "DESTROYED":
+            return "Ship destroyed"
+        if event_type == "RESERVOIR_REPLENISHED":
+            return "Fuel reservoir replenished"
+
+        # Raw journal event fallbacks
         if event_type == "FSDJump":
-            return f"Jump → {event.get('StarSystem', '?')}"
-        if event_type == "Docked":
-            return f"Docked at {event.get('StationName', '?')}"
-        if event_type == "Undocked":
-            return f"Undocked from {event.get('StationName', '?')}"
+            return f"Jump → {raw.get('StarSystem', '?')}"
         if event_type == "HullDamage":
-            hp = event.get("Health", 0.0)
-            return f"Hull damage → {hp * 100:.1f}%"
+            hp = raw.get("Health", 0.0)
+            return f"Hull damage → {float(hp) * 100:.1f}%"
         if event_type == "Status":
             return "Status update"
+
         return str(event_type)
 
     async def start(self) -> None:

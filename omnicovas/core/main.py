@@ -127,6 +127,25 @@ async def main() -> None:
     # rebuy is computed on-demand from state captured by ship_state handlers)
     logger.info("Rebuy Calculator ready (on-demand via /rebuy endpoint)")
 
+    # Phase 3 Week 11: subscribe to every broadcaster event type and forward
+    # the ShipStateEvent to the ApiBridge WebSocket so the UI receives all
+    # Phase 2 broadcasts without the UI having to poll.
+    from omnicovas.core.broadcaster import ShipStateEvent
+    from omnicovas.core.event_types import ALL_EVENT_TYPES
+
+    async def _forward_to_ws(event: ShipStateEvent) -> None:
+        await bridge.push_event(
+            {
+                "event_type": event.event_type,
+                "timestamp": event.timestamp.isoformat(),
+                "payload": event.payload,
+                "source": event.source,
+            }
+        )
+
+    for _et in ALL_EVENT_TYPES:
+        broadcaster.subscribe(_et, _forward_to_ws)
+
     dispatcher.register_recorder(recorder.record_event)
 
     async def push_to_bridge(event: dict[str, object], raw_line: str) -> None:
