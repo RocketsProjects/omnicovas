@@ -77,6 +77,13 @@ BUDGETS: dict[str, LatencyBudget] = {
     "Loadout": LatencyBudget("Loadout", 500),
     # Status.json synthetic event -- polled at 500ms; must be well under
     "Status": LatencyBudget("Status", 100),
+    # Week 9 additions -- Extended Events, Hull Triggers, Cargo
+    "Cargo": LatencyBudget("Cargo", 200),
+    "CommitCrime": LatencyBudget("CommitCrime", 150),
+    "Bounty": LatencyBudget("Bounty", 150),
+    "ShipDestroyed": LatencyBudget("ShipDestroyed", 150),
+    "Died": LatencyBudget("Died", 150),
+    "ShieldsUp": LatencyBudget("ShieldsUp", 100),
 }
 
 

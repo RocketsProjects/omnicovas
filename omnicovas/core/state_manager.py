@@ -172,6 +172,12 @@ class SessionState:
     # Used to detect genuine loadout changes vs cosmetic re-fires of Loadout.
     loadout_hash: str | None = None
 
+    # omnicovas/core/state_manager.py
+    # Phase 2 -- Extended Events (Feature 8) --------------------------------
+    # True when commander has a bounty or crime in the current system.
+    # Cleared automatically on FSDJump to a different system.
+    is_wanted_in_system: bool = False
+
     # --- Phase 2 -- Power Distribution (Feature 9) --------------------------
     # Pip values are on a 0-8 scale where total always equals 12 when in a
     # flyable ship. Status.json reports them as a [SYS, ENG, WEP] list.

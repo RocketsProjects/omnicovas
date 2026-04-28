@@ -104,6 +104,25 @@ async def main() -> None:
     _cargo.register(dispatcher.register, state, broadcaster)
     _module_health.register_subscriber(state, broadcaster)
 
+    # Activity Log — Critical Event Broadcaster (Feature 7, Week 9)
+    # Subscribe BEFORE Week 9 feature handlers register so no critical
+    # broadcasts are missed during subsequent setup.
+    from omnicovas.core.activity_log import ActivityLog, subscribe_critical_events
+
+    activity_log = ActivityLog()
+    subscribe_critical_events(activity_log, broadcaster)
+
+    # Week 9 feature handlers
+    from omnicovas.features import extended_events as _extended_events
+    from omnicovas.features import heat_management as _heat_management
+    from omnicovas.features import hull_triggers as _hull_triggers
+    from omnicovas.features import power_distribution as _power_distribution
+
+    _hull_triggers.register(dispatcher.register, state, broadcaster)
+    _extended_events.register(dispatcher.register, state, broadcaster)
+    _power_distribution.register(dispatcher.register, state, broadcaster)
+    _heat_management.register(dispatcher.register, state, broadcaster)
+
     dispatcher.register_recorder(recorder.record_event)
 
     async def push_to_bridge(event: dict[str, object], raw_line: str) -> None:

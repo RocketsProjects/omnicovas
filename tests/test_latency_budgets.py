@@ -228,3 +228,17 @@ def test_all_week7_event_types_are_budgeted() -> None:
     }
     missing = week7_events - set(BUDGETS.keys())
     assert not missing, f"Missing budget entries: {missing}"
+
+
+def test_all_week9_event_types_are_budgeted() -> None:
+    """Every new journal event type introduced in Week 9 must have a budget entry."""
+    week9_events = {
+        "Cargo",
+        "CommitCrime",
+        "Bounty",
+        "ShipDestroyed",
+        "Died",
+        "ShieldsUp",
+    }
+    missing = week9_events - set(BUDGETS.keys())
+    assert not missing, f"Missing budget entries for Week 9 events: {missing}"
