@@ -211,16 +211,9 @@ __marimo__/
 
 # Node
 node_modules/
-package-lock.json
-
-# Tauri build output
-src-tauri/target/
 
 # Tauri sidecar binaries
 src-tauri/bin/
-
-# Rust
-Cargo.lock
 
 # Alembic development database
 alembic_dev.db
@@ -238,3 +231,42 @@ qwen-executor.Modelfile
 
 # Local documentation drafts that haven't been promoted yet
 docs/Testing data/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# VSCode local workspace state
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+
+# Logs
+logs/
+*.log.*
+*.tmp
+*.bak
+
+# Local runtime / app data
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.sqlite-journal
+*.sqlite3-journal
+
+# Tauri generated bundles / installers
+src-tauri/target/
+src-tauri/gen/
+src-tauri/dist/
+
+# Frontend build output
+ui/dist/
+ui/build/
+
+# Local scratch/export files
+scratch/
+tmp/
+temp/
+exports/

@@ -66,7 +66,7 @@ data flow.
 3. STATUS
 --------------------------------------------------------------------------------
 
-**Pre-alpha, Phase 3 complete.** Tauri desktop app with live ship telemetry, first-run onboarding, privacy controls, settings panel, activity log, and accessibility framework. 292 tests passing, zero mypy errors, zero ruff violations.
+**Status: Pre-alpha (Phase 3 implementation complete, validation ongoing).** Tauri desktop app with live ship telemetry, first-run onboarding, privacy controls, settings panel, activity log, and accessibility framework. 292 tests passing, zero mypy errors, zero ruff violations.
 
 See [docs/releases/](docs/releases/) for detailed feature summaries by phase.
 

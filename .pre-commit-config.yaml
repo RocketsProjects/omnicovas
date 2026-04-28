@@ -1,9 +1,8 @@
 # Pre-commit hooks for OmniCOVAS
 # Runs automatically before every git commit
-# Enforces Code Quality Gates from CLAUDE.MD Section VI
+# Enforces Code Quality Gates
 
 repos:
-  # Ruff — linter and formatter
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.11
     hooks:
@@ -11,20 +10,14 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-  # mypy — type checker (strict mode)
-  # Excludes tests/ and alembic/ — test decorators and auto-generated migrations
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.20.1
+  - repo: local
     hooks:
       - id: mypy
-        additional_dependencies:
-          - types-psutil
-          - types-PyYAML
-          - types-pywin32
-        args: [--strict]
-        exclude: ^(tests/|alembic/)
+        name: mypy
+        entry: mypy omnicovas/
+        language: system
+        pass_filenames: false
 
-  # General file hygiene
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
@@ -34,4 +27,4 @@ repos:
       - id: check-toml
       - id: check-merge-conflict
       - id: check-added-large-files
-        args: ['--maxkb=1000']
+        args: ["--maxkb=1000"]

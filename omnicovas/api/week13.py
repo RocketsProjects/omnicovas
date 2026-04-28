@@ -60,7 +60,7 @@ def _ensure_vault() -> ConfigVault:
     return _vault
 
 
-@router.get("/onboarding/status")  # type: ignore[untyped-decorator]
+@router.get("/onboarding/status")
 async def get_onboarding_status() -> dict[str, Any]:
     """Check if first-run wizard should display."""
     vault = _ensure_vault()
@@ -83,7 +83,7 @@ async def get_onboarding_status() -> dict[str, Any]:
     }
 
 
-@router.post("/onboarding/complete")  # type: ignore[untyped-decorator]
+@router.post("/onboarding/complete")
 async def complete_onboarding(
     body: dict[str, Any] | None = None,
 ) -> dict[str, str]:
@@ -140,7 +140,7 @@ PRIVACY_DESCRIPTIONS = {
 }
 
 
-@router.get("/privacy/toggles")  # type: ignore[untyped-decorator]
+@router.get("/privacy/toggles")
 async def get_privacy_toggles() -> dict[str, Any]:
     """Get all privacy toggle state."""
     vault = _ensure_vault()
@@ -157,7 +157,7 @@ async def get_privacy_toggles() -> dict[str, Any]:
     return result
 
 
-@router.post("/privacy/toggles/{toggle_key}")  # type: ignore[untyped-decorator]
+@router.post("/privacy/toggles/{toggle_key}")
 async def set_privacy_toggle(
     toggle_key: str,
     body: dict[str, Any],
@@ -181,7 +181,7 @@ async def set_privacy_toggle(
     return {"status": "ok"}
 
 
-@router.post("/privacy/export")  # type: ignore[untyped-decorator]
+@router.post("/privacy/export")
 async def export_privacy_data() -> dict[str, Any]:
     """Export all commander data as a JSON blob."""
     vault = _ensure_vault()
@@ -206,7 +206,7 @@ async def export_privacy_data() -> dict[str, Any]:
     }
 
 
-@router.post("/privacy/delete")  # type: ignore[untyped-decorator]
+@router.post("/privacy/delete")
 async def delete_all_data(body: dict[str, Any] | None = None) -> dict[str, str]:
     """Delete all local OmniCOVAS data."""
     vault = _ensure_vault()
@@ -260,7 +260,7 @@ PRESET_PROFILES = {
 }
 
 
-@router.get("/settings")  # type: ignore[untyped-decorator]
+@router.get("/settings")
 async def get_settings() -> dict[str, Any]:
     """Get full settings config."""
     vault = _ensure_vault()
@@ -303,7 +303,7 @@ async def get_settings() -> dict[str, Any]:
     }
 
 
-@router.post("/settings")  # type: ignore[untyped-decorator]
+@router.post("/settings")
 async def update_settings(body: dict[str, Any]) -> dict[str, str]:
     """Save settings config."""
     vault = _ensure_vault()
@@ -327,7 +327,7 @@ async def update_settings(body: dict[str, Any]) -> dict[str, str]:
     return {"status": "ok"}
 
 
-@router.post("/settings/reset")  # type: ignore[untyped-decorator]
+@router.post("/settings/reset")
 async def reset_settings_to_default() -> dict[str, str]:
     """Reset all settings to defaults."""
     vault = _ensure_vault()
@@ -347,7 +347,7 @@ async def reset_settings_to_default() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@router.post("/settings/export")  # type: ignore[untyped-decorator]
+@router.post("/settings/export")
 async def export_settings() -> dict[str, Any]:
     """Export settings as JSON."""
     vault = _ensure_vault()
@@ -363,7 +363,7 @@ async def export_settings() -> dict[str, Any]:
     return {"settings": settings}
 
 
-@router.post("/settings/import")  # type: ignore[untyped-decorator]
+@router.post("/settings/import")
 async def import_settings(body: dict[str, Any]) -> dict[str, str]:
     """Import settings from an exported JSON file."""
     vault = _ensure_vault()
@@ -382,7 +382,7 @@ async def import_settings(body: dict[str, Any]) -> dict[str, str]:
 _pending_confirmations: dict[str, dict[str, Any]] = {}
 
 
-@router.get("/confirmations/pending")  # type: ignore[untyped-decorator]
+@router.get("/confirmations/pending")
 async def get_pending_confirmations() -> dict[str, Any]:
     """Get all pending confirmation requests."""
     confirmations = []
@@ -405,7 +405,7 @@ async def get_pending_confirmations() -> dict[str, Any]:
     return {"confirmations": confirmations}
 
 
-@router.post("/confirmations/{confirmation_id}")  # type: ignore[untyped-decorator]
+@router.post("/confirmations/{confirmation_id}")
 async def respond_to_confirmation(
     confirmation_id: str,
     body: dict[str, Any],

@@ -52,7 +52,7 @@ def _snap() -> Any:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/ship-state")  # type: ignore[untyped-decorator]
+@router.get("/ship-state")
 async def get_ship_state() -> dict[str, Any]:
     """Consolidated ship snapshot for the Dashboard LiveShipState card.
 
@@ -148,7 +148,7 @@ def _empty_ship_state() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/loadout")  # type: ignore[untyped-decorator]
+@router.get("/loadout")
 async def get_loadout() -> dict[str, Any]:
     """Full module list for the Loadout view.
 
@@ -196,7 +196,7 @@ async def get_loadout() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/cargo")  # type: ignore[untyped-decorator]
+@router.get("/cargo")
 async def get_cargo() -> dict[str, Any]:
     """Cargo inventory for the Cargo card and detail view.
 
@@ -228,7 +228,7 @@ async def get_cargo() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/heat")  # type: ignore[untyped-decorator]
+@router.get("/heat")
 async def get_heat() -> dict[str, Any]:
     """Heat level for the Heat card and overlay banner.
 
@@ -288,7 +288,7 @@ async def get_heat() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/pips")  # type: ignore[untyped-decorator]
+@router.get("/pips")
 async def get_pips() -> dict[str, Any]:
     """Power distribution pips for the PIPS card.
 
@@ -313,7 +313,7 @@ async def get_pips() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/modules/summary")  # type: ignore[untyped-decorator]
+@router.get("/modules/summary")
 async def get_modules_summary() -> dict[str, Any]:
     """Module health summary for the Dashboard card.
 
@@ -355,7 +355,7 @@ async def get_modules_summary() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-@router.get("/overlay/settings")  # type: ignore[untyped-decorator]
+@router.get("/overlay/settings")
 async def get_overlay_settings() -> dict[str, Any]:
     """Get current overlay settings.
 
@@ -383,7 +383,7 @@ async def get_overlay_settings() -> dict[str, Any]:
     }
 
 
-@router.post("/overlay/settings")  # type: ignore[untyped-decorator]
+@router.post("/overlay/settings")
 async def update_overlay_settings(body: dict[str, Any]) -> dict[str, str]:
     """Update overlay settings (placeholder).
 
