@@ -7,7 +7,7 @@ NOTE: Full game-coexistence tests (Elite running in fullscreen-borderless)
 are manual. These stubs verify the overlay window configuration, event
 broadcasting, and banner queue logic.
 
-See: phase_3_dev_guide.txt Week 12 Part E (Manual Test Checklist)
+See: docs/internal/dev-guides/phase_3_dev_guide.txt Week 12 Part E
 """
 
 from __future__ import annotations

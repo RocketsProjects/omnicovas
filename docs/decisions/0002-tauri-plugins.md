@@ -48,5 +48,5 @@ Both plugins are maintained as part of the official Tauri ecosystem and carry MI
 
 ## Related
 
-- [phase_3_dev_guide.txt:412](phase_3_dev_guide.txt#L412)
-- [phase_3_dev_guide.txt:437](phase_3_dev_guide.txt#L437)
+- [phase_3_dev_guide.txt:412](../internal/dev-guides/phase_3_dev_guide.txt#L412)
+- [phase_3_dev_guide.txt:437](../internal/dev-guides/phase_3_dev_guide.txt#L437)

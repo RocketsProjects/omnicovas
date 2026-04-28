@@ -66,16 +66,9 @@ data flow.
 3. STATUS
 --------------------------------------------------------------------------------
 
-Pre-alpha. Phase 2 complete (Ship Telemetry pillar). Phase 3 (UI Shell) is
-next. Not yet ready for end users.
+**Pre-alpha, Phase 3 complete.** Tauri desktop app with live ship telemetry, first-run onboarding, privacy controls, settings panel, activity log, and accessibility framework. 292 tests passing, zero mypy errors, zero ruff violations.
 
-Phase 2 delivered all 11 locked Ship Telemetry features: Live Ship State,
-Module Health, Hull & Integrity Triggers, Loadout Awareness, Fuel & Jump
-Range, Cargo Monitoring, Critical Event Broadcaster, Extended Event
-Broadcaster, Power Distribution, Heat Management (Tier 2, KB-grounded),
-and Rebuy Calculator. Test suite: 222 tests, all passing. Zero mypy errors,
-zero ruff violations. See docs/releases/phase2.md for the full delivery
-summary.
+See [docs/releases/](docs/releases/) for detailed feature summaries by phase.
 
 
 --------------------------------------------------------------------------------
@@ -88,9 +81,6 @@ summary.
    - Verified data only; the system never invents.
    - Zero lag; function before flair.
    - Commander owns their data; everything is auditable.
-
-The complete constitutional framework (Ten Laws, Ten Architectural Principles)
-lives in the Master Blueprint.
 
 
 --------------------------------------------------------------------------------
@@ -105,11 +95,8 @@ explicitly enable an outbound data path.
    C. API keys redacted from logs automatically.
    D. No telemetry, no analytics, no tracking.
    E. Every external data flow is opt-in (Privacy-by-Default).
-   F. First-run privacy page with explicit toggles (coming in a later
-      release).
+   F. First-run privacy page with explicit toggles.
    G. Activity Log exposes every action the system takes.
-
-Full compliance detail lives in the Compliance Matrix.
 
 
 --------------------------------------------------------------------------------
@@ -245,5 +232,6 @@ Frontier Developments plc.
    - Project: OmniCOVAS
    - Maintainer: @RocketsProjects (https://github.com/RocketsProjects)
    - License: AGPL-3.0
-   - Status: Pre-alpha, Phase 2 in progress
-   - Last updated: 2026-04-22
+   - Status: Pre-alpha, Phase 3 complete
+   - Repository: https://github.com/RocketsProjects/omnicovas
+   - Last updated: 2026-04-28
