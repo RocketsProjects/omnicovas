@@ -1,0 +1,455 @@
+OmniCOVAS — Deferred Work Index
+Version: 1.0
+Created: 2026-04-29
+Purpose: Token-efficient manifest of deferred, slipped, later-release, and out-of-scope work across current OmniCOVAS project documents.
+Authority: Master Blueprint v4.2 > Phase guides > user-specified Phase 3.1+ additions.
+
+USAGE RULE
+- Use this file when checking whether a feature was intentionally deferred.
+- This file does not override the Master Blueprint. If conflict exists, update the Blueprint or this index with an explicit changelog.
+- Do not treat “not implemented yet” as “deferred” unless it appears here or in an authoritative phase guide.
+
+STATUS KEYS
+- Phase 2.5: deferred Pillar 1 recovery phase, activated after Phase 4 combat event stream exists.
+- Phase 3.1+: post-Phase 3 stabilization/polish branch before or after prototype release as project owner decides.
+- Phase 3+: requires UI/voice/submission window or approval timing.
+- v1.1/v1.2/v2.0: release-track work, not required for immediate phase completion.
+
+================================================================================
+1. HIGH-CONFIDENCE ACTIVE DEFERRALS
+================================================================================
+
+A. Deferred to Phase 2.5
+
+1. Shield Intelligence
+   - Pillar: 1 Ship Telemetry
+   - Priority: P3
+   - Reason: needs combat event context from Pillar 2.
+   - Source owner: Master Blueprint §19.E / §28; Phase 2 guide out-of-scope list.
+
+2. Repair & Rearm Intelligence
+   - Pillar: 1 Ship Telemetry
+   - Priority: P2
+   - Reason: needs station service data; better paired with Pillar 5 station/economy data.
+   - Source owner: Master Blueprint §19.E / §28; Phase 2 guide out-of-scope list.
+
+3. Predictive Module-Targeting Alerts
+   - Pillar: 1 → depends on Pillar 2 combat stream
+   - Priority: P2 original
+   - Reason: requires combat event stream from Pillar 2.
+   - Source owner: Master Blueprint §19.F / §28; Phase 2 guide out-of-scope list.
+
+4. Tactical Threat Assessment
+   - Pillar: 1 → depends on Pillar 2 combat stream
+   - Priority: P2 original
+   - Reason: same dependency as Predictive Module-Targeting Alerts.
+   - Source owner: Master Blueprint §19.F / §28; Phase 2 guide out-of-scope list.
+
+5. Multi-Ship State Tracking
+   - Pillar: 1 / future squadron-adjacent telemetry
+   - Priority: P2 original
+   - Reason: valuable but not blocking Pillar 1 foundation.
+   - Source owner: Master Blueprint §19.F / §28; Phase 2 guide out-of-scope list.
+
+B. Deferred to Phase 3
+
+6. Pillar 1 UI
+   - Pillar: 1 Ship Telemetry
+   - Reason: Phase 2 is telemetry/broadcaster only; UI Shell owns visibility.
+   - Source owner: Master Blueprint §27.D / §29; Phase 2 guide out-of-scope list.
+
+C. Deferred to Phase 3+
+
+7. Voice Queries About The Ship
+   - Pillar: 1 Ship Telemetry
+   - Priority: P2
+   - Reason: requires voice I/O path opened by Phase 3+ and EDDI/VoiceAttack integration.
+   - Source owner: Master Blueprint §19.E; Phase 2 guide out-of-scope list.
+
+8. Voice I/O for ship queries
+   - Pillar: cross-cutting voice layer
+   - Reason: requires UI Shell first and EDDI/VoiceAttack integration.
+   - Source owner: Master Blueprint §27.D; Phase 2 guide out-of-scope list.
+
+9. CAPI ship loadout fetch / CAPI integration
+   - Pillar: cross-pillar data integration
+   - Reason: pending Frontier approval; Phase 3+ regardless.
+   - Source owner: Master Blueprint §27.D; Phase 2 guide out-of-scope list.
+
+10. CAPI-dependent UI screens
+    - Pillar: UI / external integrations
+    - Reason: gated on Frontier approval; placeholder messaging only until approved.
+    - Source owner: Phase 3 guide out-of-scope list.
+
+D. Deferred to Phase 3.1+ — project-owner additions from 2026-04-29
+
+11. Global hotkey full handler implementation
+    - Pillar: UI Overlay / Settings
+    - Reason: Phase 3 can ship overlay basics; full global-hotkey handler hardened after initial shell/overlay stabilization.
+    - Source owner: user-specified deferral.
+    - RESOLVED: 2026-04-29 — on_shortcut handler wired in overlay.rs; Ctrl+Shift+O toggles click-through and emits overlay:click_through_toggled.
+
+12. Anchor-relative banner positioning
+    - Pillar: UI Overlay
+    - Reason: Phase 3 can ship basic anchor placement; robust anchor-relative calculations deferred to Phase 3.1+.
+    - Source owner: user-specified deferral.
+    - PARTIAL: 2026-04-29 — ANCHOR_CLASS_MAP and applyAnchor() in overlay.js; five anchor CSS classes in overlay.html. Anchor affects banner alignment within the overlay window. Window-level placement (screen corners via set_position) remains deferred to v1.1 multi-monitor work.
+
+13. Client-side settings persistence using DPAPI vault
+    - Pillar: UI Settings / Config
+    - Reason: basic settings surface may exist first; full client-side persistence bridge to encrypted vault deferred to Phase 3.1+.
+    - Source owner: user-specified deferral.
+    - RESOLVED: 2026-04-29 — pillar1.py set_config_vault() injection added; get/update_overlay_settings() read and write opacity, anchor, event toggles, click-through via DPAPI vault.
+
+14. Click-through state persistence across restarts
+    - Pillar: UI Overlay
+    - Reason: click-through behavior can exist at runtime; persisted restart state deferred to Phase 3.1+.
+    - Source owner: user-specified deferral.
+    - PARTIAL: 2026-04-29 — overlay_click_through vault key persisted on JS toggle; loaded on startup via loadOverlaySettings(). Rust-side startup restore (set_ignore_cursor_events on launch via OverlayState init) deferred; see phase3_1.md known limitations.
+
+E. Deferred to Phase 3.1.1 or Phase 4 hardening (newly added 2026-04-29)
+
+95. Rust-side startup restore of overlay_click_through
+    - Pillar: UI Overlay / Tauri integration
+    - Reason: JS-side persistence works; Tauri startup must read vault and apply set_ignore_cursor_events before window is visible. Hardening before Phase 4 combat overlay manual test.
+    - Source owner: Phase 3.1 repair audit.
+
+E. Deferred to Phase 5+
+
+15. EDDN heat/fuel contribution
+    - Pillar: external outbound data / later trading-data flows
+    - Reason: optional, opt-in outbound contribution; not part of local Phase 2/3 baseline.
+    - Source owner: Master Blueprint status dashboard; Phase 2 guide out-of-scope list.
+
+16. EDDN submission UI
+    - Pillar: UI / external data
+    - Reason: toggle exists earlier, actual submission UI ships with relevant later data phase.
+    - Source owner: Phase 3 guide out-of-scope list.
+
+F. Deferred to Phase 7
+
+17. Squadron / P2P / Top Secret UI
+    - Pillar: 7 Squadron & Social
+    - Reason: Phase 3 UI Shell excludes squadron-specific UI.
+    - Source owner: Phase 3 guide out-of-scope list.
+
+================================================================================
+2. v1.1 / v1.2 / v2.0 RELEASE-TRACK DEFERRALS BY PILLAR
+================================================================================
+
+A. Pillar 1 — Ship Telemetry
+
+18. Module Priority Mapping
+    - Target: v1.1
+    - Priority: P3
+    - Reason: needs UI drag affordances from Phase 3.
+
+19. Ship Performance Logging
+    - Target: v1.1
+    - Priority: P3
+    - Reason: analytical; more valuable after months of accumulated data.
+
+B. Phase 3 / UI Shell polish
+
+20. Multi-monitor overlay placement
+    - Target: v1.1
+    - Reason: Phase 3 ships single-monitor overlay only.
+
+21. Theme customization beyond palette swaps
+    - Target: v1.1+
+    - Reason: Phase 3 allows palette/token swaps only.
+
+22. AI provider key management beyond one text field
+    - Target: v1.1+
+    - Reason: multi-key management, rotation, richer provider UX deferred.
+
+23. Tier 3 inline explainability population
+    - Target: Phase 4+
+    - Reason: Phase 3 lands framework; first real Tier 3 content waits for later features.
+
+24. Full KB audit dashboard
+    - Target: Phase 4+
+    - Reason: Phase 3 ships /credits + SBOM only; KB-specific views come later.
+
+C. Pillar 2 — Tactical & Combat
+
+25. Anti-Xeno Operations Suite full scope
+    - Target: v1.1 complete; v1.0 partial.
+
+26. Massacre Mission Stacker
+    - Target: v1.1
+
+27. Sub-Module Scanner
+    - Target: v1.1
+
+28. Fighter Crew Support
+    - Target: v1.2
+
+29. Frontline Solutions tracking
+    - Target: v1.2
+
+30. Settlement raid intelligence
+    - Target: v1.2
+
+31. Post-Combat Debrief
+    - Target: v1.1
+
+32. Hardpoint & Utility Management
+    - Target: v1.1
+
+33. Thermal Attack Intelligence
+    - Target: v1.2
+
+34. Wake Scanning Intelligence
+    - Target: v1.1
+
+35. Engagement Range Calculator
+    - Target: v1.1
+
+36. Critical State Response opt-in
+    - Target: v1.1
+
+37. Combat Difficulty Meter
+    - Target: v1.1
+
+D. Pillar 3 — Exploration & Navigation
+
+38. Biome genus prediction
+    - Target: v1.1
+
+39. First Discovery Hunting
+    - Target: v1.1
+
+40. Outfitting & Shipyard Search
+    - Target: v1.1
+
+41. EDDiscovery Feature Integration
+    - Target: v1.2
+
+42. ED Observatory deeper integration
+    - Target: v2.0
+
+43. Expedition Planner
+    - Target: v1.2
+
+44. High-Value Target ID
+    - Target: v1.1
+
+45. Lost Commander Assistance
+    - Target: v1.1
+
+46. Jumponium Management
+    - Target: v1.2
+
+47. Codex Integration
+    - Target: v2.0
+
+48. Planetary Landing Intelligence
+    - Target: v1.1
+
+49. Guardian/Thargoid Site Navigation
+    - Target: v1.2
+
+50. Biome-Specific Exobiology Intelligence
+    - Target: v1.2
+
+51. Earnings-Per-Hour Tracker
+    - Target: v1.1
+
+52. Exploration Build Validator
+    - Target: v1.2
+
+53. Pretty System Finder
+    - Target: v2.0
+
+E. Pillar 5 — Trading, Mining & Colonization
+
+54. FC Market basic
+    - Target: v1.1
+
+55. FC Full Command Center
+    - Target: v1.1
+
+56. Colonization Full Operations
+    - Target: v1.1
+
+57. Station Economy Intelligence
+    - Target: v1.1
+
+58. Rare Commodity Run Tracker
+    - Target: v1.2
+
+59. Price History Analytics
+    - Target: v1.2
+
+60. Passenger Mission Intelligence
+    - Target: v1.2
+
+61. Ship Transfer Logistics
+    - Target: v1.2
+
+62. Trade Build Validator
+    - Target: v1.2
+
+63. Limpet Controller Optimization
+    - Target: v1.1
+
+64. Fleet Carrier Market Maker
+    - Target: v1.2
+
+65. Deep Space Refueling Network
+    - Target: v1.2
+
+66. Mining Yield Optimization
+    - Target: v1.1
+
+67. Smuggling Intelligence base
+    - Target: v1.2+
+
+68. Community Goal Trade Optimization
+    - Target: v1.1
+
+69. Illegal Ops: Heat-Level Management
+    - Target: v1.2
+
+70. Illegal Ops: Stealth Approach Coaching
+    - Target: v1.2
+
+71. Illegal Ops: Piracy Target Selection
+    - Target: v2.0
+
+72. Illegal Ops: Contraband Underground
+    - Target: v2.0
+
+73. Illegal Ops: Scan Evasion Tactics
+    - Target: v1.2
+
+74. Illegal Ops: Power & Kill Warrant Intelligence
+    - Target: v2.0
+
+75. Illegal Ops: Criminal Safe Haven Registry
+    - Target: v2.0
+
+76. Illegal Ops: Criminal Session Tracker
+    - Target: v1.2
+
+77. Illegal Ops: Crime Clearance Optimization
+    - Target: v1.2
+
+F. Pillar 6 — Engineering & Materials
+
+78. Detailed Phase 8 feature expansion
+    - Target: Phase 8 planning / v1.1 expansion track
+    - Note: Blueprint v4.2 preserves only totals for this pillar and instructs detailed expansion at Phase 8 start to avoid drift.
+
+G. Pillar 7 — Squadron & Social
+
+79. Peer-Relay Fallback
+    - Target: v1.1
+
+80. Shared Sub-Module Target Painting
+    - Target: v1.1
+
+81. Mission Synchronization
+    - Target: v1.1
+
+82. Wing-Based Mining Coordination
+    - Target: v1.1
+
+83. Top Secret Mode full spec
+    - Target: v1.1
+
+84. Burn Command full spec
+    - Target: v1.1
+
+85. Three-Tier Cross-Squadron Model
+    - Target: v1.2
+
+86. Shared Bookmarks
+    - Target: v1.1
+
+87. Role Assignments
+    - Target: v1.2
+
+88. Squadron Log
+    - Target: v1.2
+
+89. Emergency Broadcast
+    - Target: v1.1
+
+90. Loot Coordination
+    - Target: v2.0
+
+91. Discord Integration
+    - Target: v1.2
+
+H. Pillar 4 — Powerplay 2.0 & BGS
+
+92. Detailed Phase 9 feature expansion
+    - Target: Phase 9 planning / v1.1 expansion track
+    - Note: Blueprint v4.2 preserves only totals for this pillar and instructs detailed expansion at Phase 9 start to avoid drift.
+
+================================================================================
+3. QUICK VIEW BY TARGET
+================================================================================
+
+Phase 2.5:
+- Shield Intelligence
+- Repair & Rearm Intelligence
+- Predictive Module-Targeting Alerts
+- Tactical Threat Assessment
+- Multi-Ship State Tracking
+
+Phase 3:
+- Pillar 1 UI
+
+Phase 3.1+ (2026-04-29 — see docs/releases/phase3_1.md):
+- Global hotkey full handler implementation (RESOLVED)
+- Anchor-relative banner positioning (PARTIAL — banner alignment only)
+- Client-side settings persistence using DPAPI vault (RESOLVED)
+- Click-through state persistence across restarts (PARTIAL — JS-side only)
+
+Phase 3.1.1 / Phase 4 hardening:
+- Rust-side startup restore of overlay_click_through
+
+Phase 3+:
+- Voice Queries About The Ship
+- Voice I/O for ship queries
+- CAPI integration / CAPI ship loadout fetch
+- CAPI-dependent UI screens
+
+Phase 4+:
+- Tier 3 inline explainability population
+- Full KB audit dashboard
+
+Phase 5+:
+- EDDN heat/fuel contribution
+- EDDN submission UI
+
+Phase 7:
+- Squadron / P2P / Top Secret UI
+
+v1.1:
+- Module Priority Mapping
+- Ship Performance Logging
+- Multi-monitor overlay placement
+- Combat v1.1 additions
+- Exploration v1.1 additions
+- Trading/Mining v1.1 additions
+- Squadron v1.1 additions
+
+v1.2:
+- Lower-priority combat, exploration, trading, illegal ops, squadron stretch features
+
+v2.0:
+- Deep/deferred vision-complete features such as Codex Integration, Pretty System Finder, ED Observatory deeper integration, Loot Coordination, and advanced illegal ops registries.
+
+================================================================================
+4. UPDATE RULE
+================================================================================
+
+When a deferred feature is implemented:
+1. Move it out of this file or mark it RESOLVED with commit/date.
+2. Update the owning phase guide or release note.
+3. If scope changed, update the Master Blueprint with a changelog entry.
+4. Never silently delete a deferred item without recording where it landed.
