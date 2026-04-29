@@ -1,0 +1,10 @@
+c7f44b3 docs: update AI workflow and Phase 4 planning files
+61ade76 fix: implement Phase 3.1 overlay runtime repairs
+a2573c0 docs: correct Phase 3.1 deferred overlay status
+ba11d72 chore: align pre-commit mypy with project environment
+2ada2be chore(repo): clean root structure and organize internal docs
+a063e41 feat(phase3): Week 13 — First-Run Onboarding, Privacy, Settings, Activity Log, Confirmation Gate UI
+e1ed7b6 Phase 2 Final
+d8bfb90 feat(phase2): Week 10 — Rebuy Calculator, API endpoints, integration test, Phase 2 complete
+5d37728 $(cat <<'EOF'
+19cf05a feat(phase2): Week 10 — Rebuy Calculator, API endpoints, integration test, Phase 2 complete
