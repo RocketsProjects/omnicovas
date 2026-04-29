@@ -1,7 +1,34 @@
 # Pre-Phase 4 Verification Verdict
 
 **Prepared:** 2026-04-29 by Claude Code (Haiku 4.5)
-**Status:** SCRIPT-BASED EXECUTION COMPLETE; MANUAL TESTS DEFERRED
+**Updated:** 2026-04-29 by Claude Code (Haiku 4.5) — Phase 3.1.2 failure record
+**Status:** MANUAL RUNTIME TEST FAIL — RETEST REQUIRED
+
+---
+
+## 2026-04-29 Manual Test Failure Record
+
+**Result:** FAIL
+
+**Root cause:** OmniCOVAS selected `Journal.2026-04-28T133233.01.log` instead of
+`Journal.2026-04-29T144219.01.log` during the live test session.
+
+The journal selection logic in `omnicovas/core/journal_watcher.py` used file modification
+time (`st_mtime`) to pick the newest journal. On Windows, mtime is not a reliable ordering
+key — an older journal file can have a newer mtime if it was accessed or cached recently.
+
+**Fix (Phase 3.1.2):**
+- `JournalWatcher._find_current_journal()` now parses the timestamp from the journal
+  filename (`Journal.YYYY-MM-DDTHHMMSS.NN.log`) and sorts by that timestamp.
+- Falls back to mtime only when zero filenames match the expected pattern.
+- Startup logs now emit: selected filename + selection method (`filename_timestamp` or
+  `fallback_mtime`).
+
+**Secondary required verification (Status.json propagation):**
+- Tests added to confirm heat/pips/shields reach StateManager and `/state`.
+- Manual retest should confirm live Status.json updates appear in dashboard cards.
+
+**Phase 4 status: HOLD until live retest passes.**
 
 ---
 
@@ -9,9 +36,9 @@
 
 **AUTOMATED GATES: PASS**
 **SOURCE-LEVEL VERIFICATION: PASS**
-**MANUAL RUNTIME TESTS: NOT RUN** (deferred to human interactive testing)
+**MANUAL RUNTIME TESTS: FAIL** (wrong journal selected on 2026-04-29)
 
-**VERDICT: SAFE TO BEGIN PHASE 4 PLANNING AND PYTHON-SIDE WORK**
+**VERDICT: PHASE 4 ON HOLD — RETEST REQUIRED AFTER PHASE 3.1.2 FIX**
 
 ---
 

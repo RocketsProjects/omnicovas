@@ -135,3 +135,35 @@ async def test_absent_pips_does_not_clear_previous(
     await asyncio.sleep(0)
 
     assert prev_holder["value"] == (4, 4, 4)  # unchanged
+
+
+# ---------------------------------------------------------------------------
+# Phase 3.1.2 — broadcast payload correctness
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_pips_changed_broadcasts_correct_values(
+    broadcaster: ShipStateBroadcaster,
+    prev_holder: dict[str, tuple[int, int, int] | None],
+    captured: list[ShipStateEvent],
+    _capture: None,
+) -> None:
+    """
+    PIPS_CHANGED payload must contain the exact sys/eng/wep values from the
+    Status.json Pips array.
+
+    Phase 3.1.2 audit: confirms the broadcast carries the right data so
+    downstream UI and tests can rely on payload shape.
+    """
+    broadcaster.subscribe(PIPS_CHANGED, _capture)
+    await asyncio.sleep(0)
+
+    await handle_status_pips({"Pips": [8, 2, 2]}, broadcaster, prev_holder)
+    await asyncio.sleep(0)
+
+    assert len(captured) == 1
+    payload = captured[0].payload
+    assert payload["sys"] == 8
+    assert payload["eng"] == 2
+    assert payload["wep"] == 2

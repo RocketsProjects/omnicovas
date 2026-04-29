@@ -145,3 +145,38 @@ async def test_trend_steady_detected(heat_test_setup):
     from omnicovas.features.heat_management import _compute_trend
 
     assert _compute_trend(heat_buffer) == "steady"
+
+
+# ---------------------------------------------------------------------------
+# Phase 3.1.2 — StateManager field update verification
+# ---------------------------------------------------------------------------
+
+
+async def test_heat_level_written_to_state_manager(heat_test_setup) -> None:
+    """
+    handle_status_heat must write the current heat value to StateManager.heat_level.
+    Verified as part of Phase 3.1.2 Status.json propagation audit.
+    """
+    state, broadcaster, heat_buffer, prev_holder, _ = heat_test_setup
+
+    await handle_status_heat(
+        {"Heat": 0.50}, state, broadcaster, heat_buffer, prev_holder
+    )
+    await asyncio.sleep(0)
+
+    assert state.snapshot.heat_level == pytest.approx(0.50)
+
+
+async def test_heat_above_100_pct_written_to_state_manager(heat_test_setup) -> None:
+    """
+    Overheat values (Heat > 1.0) must also be written to StateManager.heat_level.
+    ED reports overheat during fuel-scoop or heat-sink depletion; values exceed 1.0.
+    """
+    state, broadcaster, heat_buffer, prev_holder, _ = heat_test_setup
+
+    await handle_status_heat(
+        {"Heat": 1.5}, state, broadcaster, heat_buffer, prev_holder
+    )
+    await asyncio.sleep(0)
+
+    assert state.snapshot.heat_level == pytest.approx(1.5)

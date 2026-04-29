@@ -26,6 +26,8 @@ import asyncio
 import json
 import logging
 import os
+import re
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Coroutine
 
@@ -144,9 +146,36 @@ class JournalWatcher:
         self._observer: Any = None
         self._current_journal: Path | None = None
 
+    # Matches Journal.YYYY-MM-DDTHHMMSS.NN.log and Journal.YYYY-MM-DDTHH:MM:SS.NN.log
+    _JOURNAL_TS_RE = re.compile(
+        r"^Journal\.(\d{4}-\d{2}-\d{2}T\d{2}:?\d{2}:?\d{2})\.\d+\.log$"
+    )
+
+    def _parse_journal_timestamp(self, filename: str) -> datetime | None:
+        """Parse a journal filename into a datetime for ordering.
+
+        Accepts both Journal.YYYY-MM-DDTHHMMSS.NN.log and the colon variant.
+        Returns None when the filename does not match the expected pattern.
+        """
+        m = self._JOURNAL_TS_RE.match(filename)
+        if not m:
+            return None
+        ts_str = m.group(1).replace(":", "")  # normalise HH:MM:SS → HHMMSS
+        try:
+            return datetime.strptime(ts_str, "%Y-%m-%dT%H%M%S")
+        except ValueError:
+            return None
+
     def _find_current_journal(self) -> Path | None:
         """
         Find the newest Journal.*.log file in the journal directory.
+
+        Selection order:
+        1. Parse the timestamp encoded in each filename and pick the newest.
+        2. Fall back to file modification time only when no filename is parseable.
+
+        Logs both the selected filename and the method used (filename_timestamp
+        or fallback_mtime) so failures are easy to diagnose.
 
         Returns:
             Path to the newest journal file, or None if none found.
@@ -166,8 +195,26 @@ class JournalWatcher:
             logger.warning("No journal files found in: %s", self._journal_path)
             return None
 
-        # Return the most recently modified journal file
-        return max(journal_files, key=lambda f: f.stat().st_mtime)
+        # Attempt filename-timestamp ordering first
+        timestamped = [
+            (f, self._parse_journal_timestamp(f.name)) for f in journal_files
+        ]
+        parseable = [(f, ts) for f, ts in timestamped if ts is not None]
+
+        if parseable:
+            selected = max(parseable, key=lambda ft: ft[1])[0]
+            logger.info(
+                "Journal selected: %s (method: filename_timestamp)", selected.name
+            )
+            return selected
+
+        # Fallback: use modification time when filenames cannot be parsed
+        selected = max(journal_files, key=lambda f: f.stat().st_mtime)
+        logger.warning(
+            "Journal selected: %s (method: fallback_mtime — filename parsing failed)",
+            selected.name,
+        )
+        return selected
 
     async def _catchup_read(self, journal_file: Path) -> int:
         """

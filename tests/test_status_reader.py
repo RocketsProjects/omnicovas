@@ -1,7 +1,7 @@
 """
 tests.test_status_reader
 
-Tests for the StatusReader sub-event detection logic.
+Tests for the StatusReader sub-event detection logic and _poll_once dispatch.
 
 Related to: Law 7 (Telemetry Rigidity) — every transition must fire correctly
 Related to: Phase 1 Development Guide Week 2, Part C
@@ -13,10 +13,19 @@ Tests:
     4. PipsChanged fires when pip distribution changes
     5. Timestamp deduplication prevents double-firing
     6. No sub-events fire on first read (old_state is None)
+
+Phase 3.1.2 dispatch propagation tests:
+    7. Heat > 1.0 (100%+) is dispatched correctly
+    8. Pips array is present in dispatched Status event
+    9. Shields-Up flag is present in dispatched Status event
+    10. Docked flag is present in dispatched Status event (Flags bit 0)
+    11. ShieldDown sub-event fires on shields-up to shields-down transition
 """
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -162,3 +171,165 @@ async def test_multiple_sub_events_fire_simultaneously() -> None:
     assert "HeatWarning" in sub_events
     assert "ShieldDown" in sub_events
     assert "PipsChanged" in sub_events
+
+
+# ---------------------------------------------------------------------------
+# Phase 3.1.2 — dispatch propagation tests
+# ---------------------------------------------------------------------------
+
+
+def _write_status(path: Path, data: dict[str, Any]) -> None:
+    path.write_text(json.dumps(data), encoding="utf-8")
+
+
+@pytest.mark.asyncio
+async def test_heat_above_100_pct_dispatched(tmp_path: Path) -> None:
+    """
+    Heat value > 1.0 (overheat, e.g. fuel-scoop overheat = 1.5) must be
+    dispatched exactly as-is. The dispatch must include a Heat key >= 1.0.
+    """
+    status_file = tmp_path / "Status.json"
+    _write_status(
+        status_file,
+        {"timestamp": "2026-04-29T14:42:00Z", "Heat": 1.5, "Flags": 0, "Pips": []},
+    )
+    dispatched: list[dict[str, Any]] = []
+
+    async def capture(line: str) -> None:
+        dispatched.append(json.loads(line))
+
+    reader = StatusReader(dispatch_fn=capture, status_path=status_file)
+    await reader._poll_once()
+
+    assert len(dispatched) >= 1
+    status_events = [e for e in dispatched if e.get("event") == "Status"]
+    assert status_events, "Expected at least one Status event"
+    assert status_events[0]["Heat"] >= 1.0
+
+
+@pytest.mark.asyncio
+async def test_pips_array_dispatch(tmp_path: Path) -> None:
+    """
+    Pips array from Status.json must appear in the dispatched Status event.
+    """
+    status_file = tmp_path / "Status.json"
+    _write_status(
+        status_file,
+        {
+            "timestamp": "2026-04-29T14:42:01Z",
+            "Heat": 0.3,
+            "Flags": 0,
+            "Pips": [8, 2, 2],
+        },
+    )
+    dispatched: list[dict[str, Any]] = []
+
+    async def capture(line: str) -> None:
+        dispatched.append(json.loads(line))
+
+    reader = StatusReader(dispatch_fn=capture, status_path=status_file)
+    await reader._poll_once()
+
+    status_events = [e for e in dispatched if e.get("event") == "Status"]
+    assert status_events
+    assert status_events[0]["Pips"] == [8, 2, 2]
+
+
+@pytest.mark.asyncio
+async def test_shields_up_flag_dispatch(tmp_path: Path) -> None:
+    """
+    Flags with bit 3 set (Shields Up) must be present in the dispatched event.
+    """
+    SHIELDS_UP = 1 << 3
+    status_file = tmp_path / "Status.json"
+    _write_status(
+        status_file,
+        {
+            "timestamp": "2026-04-29T14:42:02Z",
+            "Heat": 0.2,
+            "Flags": SHIELDS_UP,
+            "Pips": [4, 4, 4],
+        },
+    )
+    dispatched: list[dict[str, Any]] = []
+
+    async def capture(line: str) -> None:
+        dispatched.append(json.loads(line))
+
+    reader = StatusReader(dispatch_fn=capture, status_path=status_file)
+    await reader._poll_once()
+
+    status_events = [e for e in dispatched if e.get("event") == "Status"]
+    assert status_events
+    assert status_events[0]["Flags"] & SHIELDS_UP
+
+
+@pytest.mark.asyncio
+async def test_docked_flag_propagation(tmp_path: Path) -> None:
+    """
+    Flags with bit 0 set (Docked) must appear in the dispatched Status event.
+    """
+    DOCKED = 1 << 0
+    status_file = tmp_path / "Status.json"
+    _write_status(
+        status_file,
+        {
+            "timestamp": "2026-04-29T14:42:03Z",
+            "Heat": 0.1,
+            "Flags": DOCKED,
+            "Pips": [],
+        },
+    )
+    dispatched: list[dict[str, Any]] = []
+
+    async def capture(line: str) -> None:
+        dispatched.append(json.loads(line))
+
+    reader = StatusReader(dispatch_fn=capture, status_path=status_file)
+    await reader._poll_once()
+
+    status_events = [e for e in dispatched if e.get("event") == "Status"]
+    assert status_events
+    assert status_events[0]["Flags"] & DOCKED
+
+
+@pytest.mark.asyncio
+async def test_shield_down_sub_event_from_transition(tmp_path: Path) -> None:
+    """
+    When shields transition from up (bit 3 set) to down (bit 3 clear),
+    a ShieldDown sub-event must appear in the dispatched events.
+    """
+    SHIELDS_UP = 1 << 3
+    status_file = tmp_path / "Status.json"
+
+    dispatched: list[dict[str, Any]] = []
+
+    async def capture(line: str) -> None:
+        dispatched.append(json.loads(line))
+
+    reader = StatusReader(dispatch_fn=capture, status_path=status_file)
+
+    # Manually seed previous state with shields up
+    reader._last_timestamp = "2026-04-29T14:41:00Z"
+    reader._last_state = {
+        "timestamp": "2026-04-29T14:41:00Z",
+        "Heat": 0.2,
+        "Flags": SHIELDS_UP,
+        "Pips": [4, 4, 4],
+    }
+
+    # Write new status with shields down
+    _write_status(
+        status_file,
+        {
+            "timestamp": "2026-04-29T14:42:04Z",
+            "Heat": 0.2,
+            "Flags": 0,
+            "Pips": [4, 4, 4],
+        },
+    )
+
+    await reader._poll_once()
+
+    sub_event_names = [e.get("event") for e in dispatched]
+    assert "ShieldDown" in sub_event_names

@@ -21,7 +21,17 @@
 - First-run flow: source contract verified
 - Event flow (Pillar 1): integration tests pass
 
-⚠️ **MANUAL INTERACTIVE TESTS: NOT RUN**
+❌ **MANUAL INTERACTIVE TEST: FAIL — RETEST REQUIRED**
+- Date of manual test: 2026-04-29
+- Root cause: OmniCOVAS selected the wrong journal file (Journal.2026-04-28T133233.01.log
+  instead of Journal.2026-04-29T144219.01.log) because journal selection used file
+  modification time (mtime). Windows mtime is not a reliable ordering key for journal files.
+- Fix applied (Phase 3.1.2): Journal selection now uses the timestamp encoded in the
+  filename. Fallback to mtime only when no filename is parseable.
+- Secondary verification required: Status.json heat/pips/shields propagation to /state
+- **Phase 4 status: HOLD until live retest passes**
+
+⚠️ **MANUAL INTERACTIVE TESTS (OTHER): NOT RUN**
 - Reason: Playbook executed in server/CI environment without GUI, Elite Dangerous, or interactive Tauri dev capability
 - Status: Deferred to human manual testing
 
@@ -146,7 +156,11 @@ From `docs/releases/phase3_1.md` and `OmniCOVAS_Deferred_Work_Index.txt`:
 
 ## Blocking Issues
 
-**None identified.** All automated gates pass. Source-level verification complete for critical infrastructure.
+**BLOCKER: Manual live test FAIL — journal selection bug (Phase 3.1.2)**
+
+- The 2026-04-29 manual test selected the wrong journal file.
+- Root cause fix is applied in Phase 3.1.2 (journal_watcher.py filename-timestamp selection).
+- Phase 4 remains on HOLD until a live retest with the correct journal is confirmed to pass.
 
 ---
 
@@ -186,9 +200,15 @@ From `docs/releases/phase3_1.md` and `OmniCOVAS_Deferred_Work_Index.txt`:
 
 ## Verdict Summary
 
-**PASS — Safe to proceed with Phase 4 planning and Python-side implementation.**
+**FAIL — Manual live test failed on 2026-04-29. Phase 4 is on HOLD.**
 
-**Conditional:** Phase 4 combat overlay UX should include manual Elite integration test in Sprint 15 checklist.
+**Root cause resolved (Phase 3.1.2):** Journal selection now uses filename timestamp.
+
+**Required before Phase 4 GO:**
+1. Live retest with Elite Dangerous running and Journal.2026-04-29T144219.01.log (or newer)
+2. Confirm OmniCOVAS selects the correct active journal (check startup logs for "method: filename_timestamp")
+3. Confirm live events appear in the dashboard
+4. Confirm Status.json heat/pips/shields update in the UI
 
 ---
 
