@@ -26,8 +26,30 @@
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding-top: 10px;
+      padding: 10px;
       pointer-events: none;
+    }
+
+    /* Anchor classes control banner placement within the overlay window */
+    #overlay-container.anchor-center {
+      align-items: center;
+      justify-content: center;
+    }
+    #overlay-container.anchor-top-left {
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+    #overlay-container.anchor-top-right {
+      align-items: flex-start;
+      justify-content: flex-end;
+    }
+    #overlay-container.anchor-bottom-left {
+      align-items: flex-end;
+      justify-content: flex-start;
+    }
+    #overlay-container.anchor-bottom-right {
+      align-items: flex-end;
+      justify-content: flex-end;
     }
 
     .banner {

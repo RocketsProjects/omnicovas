@@ -63,6 +63,9 @@ CONFIG_KEYS = frozenset(
         "settings_ai_provider",
         "settings_overlay_opacity",
         "settings_overlay_anchor",
+        # Phase 3.1 overlay event toggles and click-through persistence
+        "overlay_events",
+        "overlay_click_through",
         # Privacy toggles (all default OFF)
         "privacy_eddn_submission",
         "privacy_edsm_tracking",

@@ -17,12 +17,17 @@ See: Phase 3 Development Guide Week 11, Part B
 
 from __future__ import annotations
 
+import json
+import logging
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter
 
 if TYPE_CHECKING:
+    from omnicovas.config.vault import ConfigVault
     from omnicovas.core.state_manager import StateManager
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/pillar1", tags=["pillar1"])
 
@@ -30,6 +35,7 @@ router = APIRouter(prefix="/pillar1", tags=["pillar1"])
 # the router is created before the StateManager.  ApiBridge injects it via
 # pillar1.set_state_manager() immediately after creating the router.
 _state: StateManager | None = None
+_vault: ConfigVault | None = None
 
 
 def set_state_manager(state: StateManager) -> None:
@@ -40,6 +46,16 @@ def set_state_manager(state: StateManager) -> None:
     """
     global _state  # noqa: PLW0603
     _state = state
+
+
+def set_config_vault(vault: ConfigVault) -> None:
+    """Inject the ConfigVault instance for overlay settings persistence.
+
+    Args:
+        vault: The application-wide ConfigVault instance.
+    """
+    global _vault  # noqa: PLW0603
+    _vault = vault
 
 
 def _snap() -> Any:
@@ -355,44 +371,122 @@ async def get_modules_summary() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
+_OVERLAY_EVENT_DEFAULTS: dict[str, bool] = {
+    "HULL_CRITICAL_10": True,
+    "SHIELDS_DOWN": True,
+    "HULL_CRITICAL_25": True,
+    "FUEL_CRITICAL": True,
+    "MODULE_CRITICAL": True,
+    "FUEL_LOW": True,
+    "HEAT_WARNING": True,
+}
+
+_VALID_ANCHORS = {"tl", "tr", "bl", "br", "center"}
+
+
 @router.get("/overlay/settings")
 async def get_overlay_settings() -> dict[str, Any]:
-    """Get current overlay settings.
-
-    Returns a dict containing opacity, anchor position, and per-event toggles.
-    All values default to safe initial state. Persistence is handled by the
-    config vault on the frontend (Tauri + DPAPI).
+    """Get current overlay settings, reading persisted values from vault when available.
 
     Returns:
         opacity: float from 0.5 to 1.0 (default 0.95)
         anchor: one of "tl", "tr", "bl", "br", "center" (default "center")
-        events: dict[str, bool] for each critical event type (all default True)
+        events: dict[str, bool] for each critical event type
+        click_through: bool (default True)
     """
+    opacity: float = 0.95
+    anchor: str = "center"
+    events: dict[str, bool] = dict(_OVERLAY_EVENT_DEFAULTS)
+    click_through: bool = True
+
+    if _vault is not None:
+        try:
+            raw_opacity = _vault.get("settings_overlay_opacity")
+            if raw_opacity is not None:
+                parsed = float(raw_opacity)
+                if 0.5 <= parsed <= 1.0:
+                    opacity = parsed
+        except (ValueError, TypeError):
+            logger.warning("Ignoring invalid persisted overlay opacity")
+
+        try:
+            raw_anchor = _vault.get("settings_overlay_anchor")
+            if raw_anchor is not None and raw_anchor in _VALID_ANCHORS:
+                anchor = raw_anchor
+        except Exception:
+            logger.warning("Ignoring invalid persisted overlay anchor")
+
+        try:
+            raw_events = _vault.get("overlay_events")
+            if raw_events is not None:
+                stored: Any = json.loads(raw_events)
+                if isinstance(stored, dict):
+                    for k, v in stored.items():
+                        if k in events and isinstance(v, bool):
+                            events[k] = v
+        except (ValueError, TypeError, json.JSONDecodeError):
+            logger.warning("Ignoring invalid persisted overlay events; using defaults")
+
+        try:
+            raw_ct = _vault.get("overlay_click_through")
+            if raw_ct is not None:
+                click_through = raw_ct.lower() != "false"
+        except Exception:
+            logger.warning("Ignoring invalid persisted click_through; using default")
+
     return {
-        "opacity": 0.95,
-        "anchor": "center",
-        "events": {
-            "HULL_CRITICAL_10": True,
-            "SHIELDS_DOWN": True,
-            "HULL_CRITICAL_25": True,
-            "FUEL_CRITICAL": True,
-            "MODULE_CRITICAL": True,
-            "FUEL_LOW": True,
-            "HEAT_WARNING": True,
-        },
+        "opacity": opacity,
+        "anchor": anchor,
+        "events": events,
+        "click_through": click_through,
     }
 
 
 @router.post("/overlay/settings")
 async def update_overlay_settings(body: dict[str, Any]) -> dict[str, str]:
-    """Update overlay settings (placeholder).
+    """Update and persist overlay settings via DPAPI vault.
 
-    In Phase 3, settings are persisted client-side via the Tauri config
-    vault (DPAPI on Windows). The backend is read-only for this endpoint.
+    Accepts partial updates — only present keys are changed.
 
     Returns:
         status: "ok"
     """
-    # Backend does not persist overlay settings in Phase 3.
-    # This endpoint exists for future expansion (Phase 3.1+).
+    if _vault is None:
+        logger.warning("update_overlay_settings: vault not injected; skipping persist")
+        return {"status": "ok"}
+
+    try:
+        if "opacity" in body:
+            val = float(body["opacity"])
+            if 0.5 <= val <= 1.0:
+                _vault.set("settings_overlay_opacity", str(val))
+
+        if "anchor" in body and body["anchor"] in _VALID_ANCHORS:
+            _vault.set("settings_overlay_anchor", str(body["anchor"]))
+
+        if "events" in body and isinstance(body["events"], dict):
+            # Merge with current stored events to avoid clobbering unmentioned keys
+            current_raw = _vault.get("overlay_events")
+            current: dict[str, bool] = dict(_OVERLAY_EVENT_DEFAULTS)
+            if current_raw is not None:
+                try:
+                    stored: Any = json.loads(current_raw)
+                    if isinstance(stored, dict):
+                        for k, v in stored.items():
+                            if k in current and isinstance(v, bool):
+                                current[k] = v
+                except (ValueError, json.JSONDecodeError):
+                    pass
+            for k, v in body["events"].items():
+                if k in current and isinstance(v, bool):
+                    current[k] = v
+            _vault.set("overlay_events", json.dumps(current))
+
+        if "click_through" in body and isinstance(body["click_through"], bool):
+            ct_val = "true" if body["click_through"] else "false"
+            _vault.set("overlay_click_through", ct_val)
+
+    except Exception as e:
+        logger.error("Failed to persist overlay settings: %s", e)
+
     return {"status": "ok"}

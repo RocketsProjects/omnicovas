@@ -6,7 +6,7 @@ use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
 use std::sync::{Mutex, OnceLock};
 use std::thread;
-use tauri::Emitter;
+use tauri::{Emitter, Manager};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct BridgeInfo {
@@ -46,6 +46,7 @@ pub fn run() {
         tauri_plugin_global_shortcut::Builder::default().build(),
       )?;
 
+      app.manage(overlay::OverlayState::default());
       overlay::init_overlay(app.handle())?;
 
       let app_handle = app.handle().clone();

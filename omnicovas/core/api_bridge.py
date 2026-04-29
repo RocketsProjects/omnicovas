@@ -153,6 +153,7 @@ class ApiBridge:
 
         # Phase 3: Pillar 1 endpoint router (Week 11 Part B)
         pillar1_router.set_state_manager(self._state)
+        pillar1_router.set_config_vault(self._vault)
         app.include_router(pillar1_router.router)
 
         # Phase 3 Week 13: Onboarding, Privacy, Settings, Confirmations

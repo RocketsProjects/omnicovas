@@ -236,8 +236,38 @@ function updateStatusDot(isClickThrough) {
   }, 3000);
 }
 
+const ANCHOR_CLASS_MAP = {
+  'center': 'anchor-center',
+  'tl': 'anchor-top-left',
+  'tr': 'anchor-top-right',
+  'bl': 'anchor-bottom-left',
+  'br': 'anchor-bottom-right',
+  // Accept long-form aliases too
+  'top-left': 'anchor-top-left',
+  'top-right': 'anchor-top-right',
+  'bottom-left': 'anchor-bottom-left',
+  'bottom-right': 'anchor-bottom-right',
+};
+
 /**
- * Load overlay settings from the API.
+ * Apply the anchor setting to the overlay container element.
+ * Falls back to center if anchor is invalid.
+ */
+function applyAnchor(anchor) {
+  const container = document.getElementById('overlay-container');
+  if (!container) return;
+
+  // Remove all existing anchor classes
+  for (const cls of Object.values(ANCHOR_CLASS_MAP)) {
+    container.classList.remove(cls);
+  }
+
+  const cls = ANCHOR_CLASS_MAP[anchor] || 'anchor-center';
+  container.classList.add(cls);
+}
+
+/**
+ * Load overlay settings from the API and apply them.
  */
 async function loadOverlaySettings() {
   try {
@@ -245,6 +275,10 @@ async function loadOverlaySettings() {
     if (response.ok) {
       const settings = await response.json();
       overlaySettings = { ...overlaySettings, ...settings };
+      if (typeof overlaySettings.click_through === 'boolean') {
+        clickThrough = overlaySettings.click_through;
+      }
+      applyAnchor(overlaySettings.anchor);
       console.log('[Overlay] Settings loaded:', overlaySettings);
     }
   } catch (e) {
@@ -268,6 +302,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       clickThrough = event.payload;
       updateStatusDot(clickThrough);
       console.log('[Overlay] Click-through toggled:', clickThrough);
+      // Persist the new click-through state so it survives restart
+      fetch('/pillar1/overlay/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ click_through: clickThrough }),
+      }).catch(e => console.warn('[Overlay] Failed to persist click-through:', e));
     });
   }
 

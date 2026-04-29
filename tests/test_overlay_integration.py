@@ -12,17 +12,31 @@ See: docs/internal/dev-guides/phase_3_dev_guide.txt Week 12 Part E
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+from unittest.mock import MagicMock
+
 import pytest
 
-from omnicovas.api.pillar1 import get_overlay_settings, update_overlay_settings
+from omnicovas.api.pillar1 import (
+    _OVERLAY_EVENT_DEFAULTS,
+    _VALID_ANCHORS,
+    get_overlay_settings,
+    set_config_vault,
+    update_overlay_settings,
+)
 
 
 class TestOverlayEndpoints:
     """Verify /pillar1/overlay/* endpoints."""
 
+    def setup_method(self) -> None:
+        # Reset vault injection before each test
+        set_config_vault(None)  # type: ignore[arg-type]
+
     @pytest.mark.asyncio
     async def test_get_overlay_settings_returns_defaults(self) -> None:
-        """GET /pillar1/overlay/settings returns sensible defaults."""
+        """GET /pillar1/overlay/settings returns sensible defaults when no vault."""
         result = await get_overlay_settings()
 
         assert result["opacity"] == 0.95
@@ -31,21 +45,10 @@ class TestOverlayEndpoints:
         assert result["events"]["HULL_CRITICAL_10"] is True
 
     @pytest.mark.asyncio
-    async def test_get_overlay_settings_all_event_types_present(
-        self,
-    ) -> None:
+    async def test_get_overlay_settings_all_event_types_present(self) -> None:
         """All critical event types have toggles."""
         result = await get_overlay_settings()
-        critical_events = {
-            "HULL_CRITICAL_10",
-            "SHIELDS_DOWN",
-            "HULL_CRITICAL_25",
-            "FUEL_CRITICAL",
-            "MODULE_CRITICAL",
-            "FUEL_LOW",
-            "HEAT_WARNING",
-        }
-        for event in critical_events:
+        for event in _OVERLAY_EVENT_DEFAULTS:
             assert event in result["events"]
             assert isinstance(result["events"][event], bool)
 
@@ -71,12 +74,121 @@ class TestOverlayEndpoints:
         assert result["status"] == "ok"
 
 
-class TestOverlayBannerQueue:
-    """Verify banner priority and queue logic.
+class TestOverlaySettingsPersistence:
+    """Verify overlay settings round-trip through the vault."""
 
-    These tests validate the banner.js queue behavior without a full
-    Tauri + WebView environment.
-    """
+    def _make_vault(self, stored: dict[str, str | None]) -> MagicMock:
+        """Build a minimal vault mock backed by a dict."""
+        vault = MagicMock()
+        vault.get.side_effect = lambda key: stored.get(key)
+        vault.set.side_effect = lambda key, val: stored.update({key: val})
+        return vault
+
+    def setup_method(self) -> None:
+        set_config_vault(None)  # type: ignore[arg-type]
+
+    @pytest.mark.asyncio
+    async def test_opacity_range(self) -> None:
+        """Default opacity must be between 0.5 and 1.0."""
+        result = await get_overlay_settings()
+        assert 0.5 <= result["opacity"] <= 1.0
+
+    @pytest.mark.asyncio
+    async def test_anchor_valid_values(self) -> None:
+        """Default anchor must be a valid value."""
+        result = await get_overlay_settings()
+        assert result["anchor"] in _VALID_ANCHORS
+
+    @pytest.mark.asyncio
+    async def test_click_through_default_true(self) -> None:
+        """Click-through defaults to True when no vault entry."""
+        result = await get_overlay_settings()
+        assert result["click_through"] is True
+
+    @pytest.mark.asyncio
+    async def test_vault_persists_opacity(self) -> None:
+        """Saved opacity is read back from vault."""
+        store: dict[str, str | None] = {"settings_overlay_opacity": "0.7"}
+        set_config_vault(self._make_vault(store))
+        result = await get_overlay_settings()
+        assert result["opacity"] == pytest.approx(0.7)
+
+    @pytest.mark.asyncio
+    async def test_vault_persists_anchor(self) -> None:
+        """Saved anchor is read back from vault."""
+        store: dict[str, str | None] = {"settings_overlay_anchor": "tr"}
+        set_config_vault(self._make_vault(store))
+        result = await get_overlay_settings()
+        assert result["anchor"] == "tr"
+
+    @pytest.mark.asyncio
+    async def test_vault_persists_event_toggle(self) -> None:
+        """Saved event toggle is read back."""
+        store: dict[str, str | None] = {
+            "overlay_events": json.dumps({"HEAT_WARNING": False}),
+        }
+        set_config_vault(self._make_vault(store))
+        result = await get_overlay_settings()
+        assert result["events"]["HEAT_WARNING"] is False
+        # Other events remain enabled
+        assert result["events"]["HULL_CRITICAL_10"] is True
+
+    @pytest.mark.asyncio
+    async def test_vault_persists_click_through_false(self) -> None:
+        """Saved click-through=false is read back correctly."""
+        store: dict[str, str | None] = {"overlay_click_through": "false"}
+        set_config_vault(self._make_vault(store))
+        result = await get_overlay_settings()
+        assert result["click_through"] is False
+
+    @pytest.mark.asyncio
+    async def test_update_writes_to_vault(self) -> None:
+        """POST /overlay/settings writes values to the vault."""
+        store: dict[str, str | None] = {}
+        set_config_vault(self._make_vault(store))
+        await update_overlay_settings(
+            {"opacity": 0.6, "anchor": "bl", "click_through": False}
+        )
+        assert store.get("settings_overlay_opacity") == "0.6"
+        assert store.get("settings_overlay_anchor") == "bl"
+        assert store.get("overlay_click_through") == "false"
+
+    @pytest.mark.asyncio
+    async def test_update_event_toggle_merges(self) -> None:
+        """Partial event update merges with defaults rather than clobbering."""
+        store: dict[str, str | None] = {}
+        set_config_vault(self._make_vault(store))
+        await update_overlay_settings({"events": {"HEAT_WARNING": False}})
+        saved = json.loads(store["overlay_events"])  # type: ignore[index]
+        assert saved["HEAT_WARNING"] is False
+        assert saved["HULL_CRITICAL_10"] is True
+
+    @pytest.mark.asyncio
+    async def test_invalid_opacity_from_vault_uses_default(self) -> None:
+        """Corrupt opacity in vault falls back to default."""
+        store: dict[str, str | None] = {"settings_overlay_opacity": "not_a_number"}
+        set_config_vault(self._make_vault(store))
+        result = await get_overlay_settings()
+        assert result["opacity"] == 0.95
+
+    @pytest.mark.asyncio
+    async def test_invalid_anchor_from_vault_uses_default(self) -> None:
+        """Unknown anchor in vault falls back to center."""
+        store: dict[str, str | None] = {"settings_overlay_anchor": "invalid_pos"}
+        set_config_vault(self._make_vault(store))
+        result = await get_overlay_settings()
+        assert result["anchor"] == "center"
+
+    @pytest.mark.asyncio
+    async def test_no_vault_update_still_returns_ok(self) -> None:
+        """POST without vault injected degrades gracefully."""
+        # vault is None (reset by setup_method)
+        result = await update_overlay_settings({"opacity": 0.8})
+        assert result["status"] == "ok"
+
+
+class TestOverlayBannerQueue:
+    """Verify banner priority and queue logic."""
 
     def test_critical_events_priority_order(self) -> None:
         """HULL_CRITICAL_10 has highest priority; HEAT_WARNING lowest."""
@@ -89,18 +201,12 @@ class TestOverlayBannerQueue:
             "FUEL_LOW": 6,
             "HEAT_WARNING": 7,
         }
-
-        # Validate priority order: lower number = higher priority
         priorities = sorted(critical_events.values())
         assert priorities == list(range(1, 8))
 
     def test_banner_config_has_required_fields(self) -> None:
-        """Each critical event has icon, label, severity, duration."""
-        # This validates the CRITICAL_EVENTS dict structure in overlay.js
-        # Snapshot test: if fields change, update this
+        """Each critical event has icon, label, severity, duration, priority."""
         expected_fields = {"icon", "label", "severity", "duration", "priority"}
-
-        # Check that all required fields would be present
         sample_config = {
             "icon": "⚠",
             "label": "TEST",
@@ -111,68 +217,78 @@ class TestOverlayBannerQueue:
         assert set(sample_config.keys()) == expected_fields
 
 
-class TestOverlaySettingsPersistence:
-    """Verify overlay settings round-trip correctly."""
+class TestOverlayAnchorPositioning:
+    """Verify anchor values map to valid CSS classes."""
 
-    @pytest.mark.asyncio
-    async def test_settings_opacity_range(self) -> None:
-        """Opacity must be between 0.5 and 1.0."""
-        result = await get_overlay_settings()
+    def test_all_anchors_have_css_class(self) -> None:
+        """Every valid anchor token must map to a known CSS class in overlay.html."""
+        overlay_html = Path("ui/overlay.html").read_text(encoding="utf-8")
+        for anchor in _VALID_ANCHORS:
+            # Short-form anchors map: tl->top-left, tr->top-right, etc.
+            css_class = {
+                "tl": "anchor-top-left",
+                "tr": "anchor-top-right",
+                "bl": "anchor-bottom-left",
+                "br": "anchor-bottom-right",
+                "center": "anchor-center",
+            }[anchor]
+            assert css_class in overlay_html, (
+                f"CSS class {css_class!r} missing for anchor {anchor!r}"
+            )
 
-        opacity = result["opacity"]
-        assert 0.5 <= opacity <= 1.0
+    def test_overlay_js_applies_anchor(self) -> None:
+        """overlay.js must contain applyAnchor function that sets anchor class."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "applyAnchor" in overlay_js
+        assert "ANCHOR_CLASS_MAP" in overlay_js
+        assert "anchor-center" in overlay_js
 
-    @pytest.mark.asyncio
-    async def test_settings_anchor_valid_values(self) -> None:
-        """Anchor must be one of: tl, tr, bl, br, center."""
-        result = await get_overlay_settings()
-
-        valid_anchors = {"tl", "tr", "bl", "br", "center"}
-        assert result["anchor"] in valid_anchors
+    def test_invalid_anchor_falls_back(self) -> None:
+        """Invalid anchors fall back to anchor-center."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        # The fallback line should read: || 'anchor-center'
+        assert "|| 'anchor-center'" in overlay_js
 
 
-class TestOverlayWebsocketIntegration:
-    """Verify the overlay correctly subscribes to /ws/events."""
+class TestOverlayShowHideNotStubs:
+    """Contract tests proving show_overlay / hide_overlay are not no-op stubs."""
 
-    def test_overlay_loads_on_critical_event(self) -> None:
-        """Critical events should trigger overlay.show() command."""
-        # This is validated in manual testing with Elite running.
-        # Automated test would require mocking window.__TAURI__.tauri.invoke.
-        pass
+    def test_show_overlay_calls_get_webview_window(self) -> None:
+        """show_overlay source must reference get_webview_window, not be a stub."""
+        # The Rust source is the authority; check the overlay.rs file directly.
+        overlay_rs = Path("src-tauri/src/overlay.rs").read_text(encoding="utf-8")
+        assert "get_webview_window" in overlay_rs
+        assert "Phase 3.1+ implementation pending" not in overlay_rs
 
-    def test_overlay_banner_respects_event_toggle(self) -> None:
-        """Disabled event types should not show banners."""
-        # Validated by showBanner() checking overlaySettings.events[eventType]
-        pass
+    def test_hide_overlay_calls_get_webview_window(self) -> None:
+        """hide_overlay source must reference get_webview_window."""
+        overlay_rs = Path("src-tauri/src/overlay.rs").read_text(encoding="utf-8")
+        # Both show and hide call get_webview_window
+        assert overlay_rs.count("get_webview_window") >= 2
+
+    def test_hotkey_binding_is_not_just_plugin_registration(self) -> None:
+        """init_overlay must register an on_shortcut handler."""
+        overlay_rs = Path("src-tauri/src/overlay.rs").read_text(encoding="utf-8")
+        assert "on_shortcut" in overlay_rs
+        assert "toggle_click_through" in overlay_rs
+
+    def test_overlay_errors_on_missing_window(self) -> None:
+        """show/hide commands return Err when window not found (source check)."""
+        overlay_rs = Path("src-tauri/src/overlay.rs").read_text(encoding="utf-8")
+        assert "not found" in overlay_rs  # error message text
+        assert "ok_or_else" in overlay_rs  # Err path wired
 
 
 class TestOverlayClickthrough:
     """Verify click-through toggle behavior."""
 
     def test_click_through_default_is_true(self) -> None:
-        """Overlay should be click-through by default."""
-        # Tauri window config: focus=false, ignore_cursor_events=true
-        # Validated in manual test: click-through doesn't steal input
-        pass
+        """OverlayState::default() sets click_through to true."""
+        overlay_rs = Path("src-tauri/src/overlay.rs").read_text(encoding="utf-8")
+        assert "AtomicBool::new(true)" in overlay_rs
 
-    def test_hotkey_ctrl_shift_o_toggles(self) -> None:
-        """Ctrl+Shift+O should toggle click-through state."""
-        # Registered via tauri-plugin-global-shortcut in overlay.rs
-        # Validated in manual test with keyboard input
-        pass
-
-
-class TestOverlayPerformance:
-    """Verify overlay meets resource budget (Law 6)."""
-
-    def test_banner_animation_is_smooth(self) -> None:
-        """Banner slide-in animation should be 300ms."""
-        # CSS animation: animation: slideIn 0.3s ease-out;
-        # Validated visually in manual test
-        pass
-
-    def test_status_dot_fadeout_is_3_seconds(self) -> None:
-        """Status dot should disappear after 3 seconds."""
-        # Timeout in overlay.js: setTimeout(..., 3000)
-        # Validated in manual test
-        pass
+    def test_hotkey_ctrl_shift_o_registered(self) -> None:
+        """Ctrl+Shift+O constant is defined and used in init_overlay."""
+        overlay_rs = Path("src-tauri/src/overlay.rs").read_text(encoding="utf-8")
+        assert "Ctrl+Shift+O" in overlay_rs
+        assert "global_shortcut" in overlay_rs
