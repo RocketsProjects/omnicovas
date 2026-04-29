@@ -1,0 +1,94 @@
+================================================================================
+WEEK 16 PLAYBOOK — Interdiction Warning and Escape Planner
+================================================================================
+
+OPERATING ASSUMPTIONS FOR SOLDIER
+
+You are executing this Playbook under Soldier.md.
+
+Rules:
+  1. Execute only the edits listed here.
+  2. Touch only the allowed files.
+  3. Do not explore the repository or search for related files.
+  4. Do not add dependencies.
+  5. Do not invent journal fixtures, KB values, thresholds, commander records,
+     ship stats, rank mappings, or external API behavior.
+  6. If a required file, fixture, or source is missing, output:
+     ESCALATE: <one-sentence reason>
+  7. End with the exact six-section Soldier output format.
+
+COMMANDER INTENT
+
+Implement the Phase 4 P1 feature: Interdiction Warning & Response. Add an advisory-only Escape Planner. Do not automate in-game actions. Do not implement PvP history, rewards, munitions, CZ, AX, or on-foot support in this Playbook.
+
+REQUIRED TAGGED FILES
+
+  - Soldier.md
+  - CLAUDE.MD
+  - OmniCOVAS_Phase4_Development_Guide.txt
+  - omnicovas/core/event_types.py
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/core/broadcaster.py
+  - omnicovas/core/activity_log.py or current Activity Log file
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/api/combat.py
+  - Existing overlay banner component files from Phase 3
+  - Existing Confirmation Gate UI component or middleware file
+  - Architect-supplied interdiction journal fixtures from real telemetry
+  - KB file containing any supplied escape/interdiction entries, if applicable
+
+ALLOWED FILES TO CREATE
+
+  - omnicovas/features/combat/interdiction.py
+  - omnicovas/features/combat/escape_planner.py
+  - tests/test_combat_interdiction.py
+  - tests/test_combat_escape_planner.py
+
+ALLOWED FILES TO MODIFY
+
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/api/combat.py
+  - Existing overlay banner component files from Phase 3
+  - Existing Confirmation Gate UI component or middleware file
+  - Existing combat UI/dashboard files created in Week 15
+
+EDIT STEPS
+
+1. Create interdiction.py with an InterdictionSnapshot or InterdictionState representation: state, started_at, ended_at, aggressor, outcome, source_refs.
+2. Implement handlers only for event names and fields present in attached real interdiction fixtures.
+3. Update existing StateManager/session state for each confirmed transition.
+4. Publish INTERDICTION_STARTED, INTERDICTION_ESCAPED, INTERDICTION_SUBMITTED, and INTERDICTION_FAILED when grounded by telemetry.
+5. Add Activity Log entries for each transition with source event, timestamp, known aggressor/null, and outcome/null.
+6. Create escape_planner.py with EscapeOption fields: label, description, confidence, source_refs, requires_user_action.
+7. Implement advisory-only option generation. It may return an empty list. It must not include callbacks, commands, keypresses, macros, or executable actions.
+8. If a KB value is required but missing, return no option and log why.
+9. Add GET /combat/interdiction and GET /combat/escape-options to combat.py.
+10. Update overlay banner files to show INTERDICTION_STARTED without focus theft and with click-through preserved.
+11. Wrap Escape Planner output in the existing Confirmation Gate UI surface. Confirm/Decline only acknowledges or hides suggestions.
+
+TESTS REQUIRED
+
+1. tests/test_combat_interdiction.py covers started, escaped, submitted if fixture supports it, failed if fixture supports it, missing aggressor as None, and duplicate handling.
+2. tests/test_combat_escape_planner.py covers empty ungrounded output, source_refs on generated options, no executable fields, and Confirmation Gate wrapper contract.
+
+VERIFICATION COMMANDS
+
+  ruff check omnicovas/
+  mypy omnicovas/
+  pytest tests/test_combat_interdiction.py tests/test_combat_escape_planner.py
+  pytest
+  npm run tauri build
+
+ESCALATE IF
+
+  - Interdiction fixtures are missing.
+  - A requested state transition is not represented in fixtures.
+  - Escape Planner requires a KB threshold/source not attached.
+  - Confirmation Gate files are missing.
+  - Overlay files are missing.
+  - Any test fails after the requested edits.
+
+END OF PLAYBOOK

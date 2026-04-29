@@ -1,0 +1,942 @@
+================================================================================
+OMNICOVAS — PHASE 4 DEVELOPMENT GUIDE
+Combat Pillar — Weeks 15-20
+Companion to Master Blueprint v4.2
+Phase 3 complete. Tactical and combat intelligence begins.
+================================================================================
+
+HOW TO USE THIS DOCUMENT
+
+This document is your step-by-step guide through Phase 4 of OmniCOVAS
+development. Phase 4 implements Pillar 2: Tactical & Combat. If Phase 2 made
+OmniCOVAS aware of the ship and Phase 3 made that awareness visible, Phase 4
+turns the system into a combat-aware copilot: it listens to combat telemetry,
+tracks targets and rewards, warns during interdictions, and surfaces tactical
+context without ever taking control away from the Commander.
+
+GOLDEN RULE: Phase 4 may advise, warn, explain, and display. It must never act.
+Every combat advisory that could affect commander behavior must pass through the
+Confirmation Gate surface before becoming a recommendation. Pure telemetry
+updates may broadcast directly, but any "you should" output is a suggestion,
+not an action.
+
+THE THREE-COLUMN TASK TABLES
+
+Every task appears with three columns plus a checkbox:
+  Task           — What you are doing, in plain English.
+  Why It Matters — The architectural reason.
+  Notes          — Specific traps, warnings, and things to double-check.
+
+ON GETTING HELP
+
+When asking for help, always provide:
+  - Which week and task (e.g. "Week 16, Part B, interdiction state task 3")
+  - The exact error message
+  - What you already tried
+  - Which layer of the combat stack: watcher / dispatcher / handler / state /
+    broadcaster / API endpoint / WebSocket / UI card / overlay / KB
+
+--------------------------------------------------------------------------------
+PHASE 4 AT A GLANCE
+--------------------------------------------------------------------------------
+
+Week 15 | Combat Backbone, Event Taxonomy, Target Intelligence       | ~15 hrs
+        | Output: Combat state contract, target snapshot, first broadcasts
+
+Week 16 | Interdiction Warning & Response, Escape Planner            | ~15 hrs
+        | Output: Interdiction flow tracked and Commander-facing response UI
+
+Week 17 | PvP Local Memory, CMDR Intelligence, Hostility Warnings    | ~15 hrs
+        | Output: Local gank log, commander lookup gate, threat warning engine
+
+Week 18 | Bounty/Bond Tracking, Combat Rank, Munitions Management    | ~15 hrs
+        | Output: Rewards and ammo/material counters visible in UI
+
+Week 19 | Combat Zone Intelligence, Pirate Hunting, Threat Scoring   | ~15 hrs
+        | Output: CZ state, faction context, combat classification, threat meter
+
+Week 20 | Integration, AX Partial, On-Foot Awareness, Release Notes   | ~15 hrs
+        | Output: All Phase 4 v1.0 combat features green and documented
+
+--------------------------------------------------------------------------------
+WHAT PHASE 4 DELIVERS
+--------------------------------------------------------------------------------
+
+P1 (1 — absolute blocker):
+  1. Interdiction Warning & Response
+
+P2 (9 — required for Phase 4 v1.0 combat usefulness):
+  2. Target Intelligence
+  3. PvP Gank Database, local log first; external lookup gated
+  4. Bounty & Combat Bond Tracking
+  5. Combat Zone Intelligence
+  6. Hostility & Threat Warnings
+  7. Combat Rank Tracking
+  8. Escape Planner
+  9. PvP CMDR Intelligence, basic and local-first
+ 10. Munitions Management
+
+P3 (best-effort within the 90-hour envelope; may slip to v1.1):
+ 11. Anti-Xeno Operations Suite, v1.0 partial only, Off/Light coaching
+ 12. Basic on-foot state awareness
+ 13. Post-Combat Debrief, telemetry summary only
+ 14. Combat Difficulty Meter, if grounded by real telemetry and KB entries
+
+Milestone deliverables (Week 20):
+  - Pillar 2 event types documented and tested
+  - Combat API endpoints added and covered by pytest
+  - Combat dashboard cards visible in the Phase 3 shell
+  - Overlay banners for interdiction and critical hostility warnings
+  - Local PvP encounter log with privacy-protective defaults
+  - Phase 4 integration replay test green
+  - Phase 4 release notes at docs/releases/phase4.md
+
+OUT OF SCOPE (do not build):
+  Massacre Mission Stacker, full Anti-Xeno coaching, Sub-Module Scanner,
+  Fighter Crew Support, Frontline Solutions tracking, Settlement raid
+  intelligence, Hardpoint & Utility Management, Thermal Attack Intelligence,
+  Wake Scanning Intelligence, Engagement Range Calculator, Critical State
+  Response automation, external API lookups without approval and opt-in,
+  squadron sharing, remote telemetry sync, Top Secret Mode, and any in-game
+  automation.
+
+--------------------------------------------------------------------------------
+BEFORE YOU WRITE A SINGLE LINE OF CODE
+--------------------------------------------------------------------------------
+
+Confirm the Phase 3 baseline is green:
+  ruff check omnicovas/
+  mypy omnicovas/
+  pytest
+  npm run tauri build
+
+All four must be green. Phase 4 must not be layered onto a broken UI shell or a
+partial WebSocket bridge. The Phase 3 event pipeline must already be stable:
+
+  Journal -> Dispatcher -> StateManager -> Broadcaster
+          -> FastAPI -> WebSocket -> Tauri -> UI -> Overlay
+
+Confirm the Phase 2 ship telemetry baseline still works:
+  - All 11 Pillar 1 features broadcast events.
+  - The Pillar 1 dashboard cards still update from replay fixtures.
+  - Latency budget tests still pass.
+  - Activity Log remains populated by every system action.
+
+Dependency rules for Phase 4:
+  - Python: no new runtime dependencies anticipated.
+  - Frontend: use the Phase 3 chosen UI approach; do not re-litigate it.
+  - External services: Inara lookup remains gated behind approval, explicit
+    user opt-in, privacy toggles, and rate-limit registry entries. Build the
+    local-first interface first; do not block Phase 4 on external approval.
+  - Voice: basic query plumbing may be shaped if Phase 3 opened the path, but
+    voice is not the load-bearing deliverable of Phase 4.
+
+--------------------------------------------------------------------------------
+ARCHITECTURE PATTERNS FOR PHASE 4
+--------------------------------------------------------------------------------
+
+Pattern 1 — Combat Event Boundary
+  - Extend the existing event taxonomy; do not create a second event bus.
+  - Combat event constants live in the same event type source of truth used by
+    Pillar 1.
+  - Every combat feature publishes typed, auditable events.
+  - Unknown journal fields remain unknown; do not fill with guesses.
+
+Pattern 2 — Combat State Extends Session State
+  - Add combat fields to the existing StateManager/session snapshot.
+  - Do not create CombatStateManager.
+  - Two combat state stores are a Law 7 violation.
+  - Every state write declares TelemetrySource.
+
+Pattern 3 — Target Snapshot Contract
+  - Target Intelligence reads the current target as a snapshot.
+  - A target snapshot may contain null fields.
+  - It may say "unknown" but must not infer ship, rank, power, faction, or
+    commander identity without telemetry or a verified local/external record.
+  - The UI renders unknowns honestly.
+
+Pattern 4 — Local-First PvP Intelligence
+  - Local encounter history is the first source.
+  - External CMDR lookup is optional, opt-in, and approval-gated.
+  - Top Secret or privacy-restricted modes disable outbound lookup regardless
+    of feature toggles.
+  - Raw commander encounter logs stay local unless the user explicitly exports
+    them.
+
+Pattern 5 — Combat Advisory Gate
+  - "Target is hostile" is telemetry when directly grounded.
+  - "You should high-wake" is an advisory and must pass the Confirmation Gate
+    surface.
+  - Escape Planner outputs options, not actions.
+  - No macro, keypress, or game action is triggered by Phase 4 code.
+
+Pattern 6 — Overlay-First Critical Combat UX
+  - Interdiction, hostile player, hull danger, and CZ-critical warnings belong
+    in the overlay.
+  - Combat history, reward tracking, and target details belong in the main UI.
+  - Overlay banners must remain click-through by default.
+  - Combat UI must not steal focus from Elite Dangerous.
+
+Pattern 7 — KB-Grounded Threat Labels
+  - Thresholds, classifications, and coaching labels come from the Knowledge
+    Base.
+  - If a threshold is not in the KB, the feature must either remain telemetry
+    only or add a properly sourced KB entry.
+  - Never invent combat mechanics or rank mappings in code.
+
+Pattern 8 — Replay-Driven Combat Verification
+  - Every combat feature needs journal replay fixtures.
+  - Fixtures are architect-supplied or recorded from real sessions.
+  - Soldier must never invent journal samples.
+  - Integration tests replay target, interdiction, bounty, CZ, and PvP cases.
+
+================================================================================
+WEEK 15 | Combat Backbone, Event Taxonomy, Target Intelligence | ~15 hours
+================================================================================
+
+STATUS: PLANNED
+
+ARCHITECTURAL NOTE: Week 15 builds the combat foundation. Target Intelligence
+is the first combat feature because every later warning, PvP check, and threat
+classification needs a reliable target snapshot.
+
+--------------------------------------------------------------------------------
+PART A — Combat Scope Lock and File Layout
+--------------------------------------------------------------------------------
+
+[ ] Create docs/decisions/0003-phase4-combat-scope.md
+    Why: Phase 4 has many tempting v1.1/v1.2 combat ideas. Scope must be
+    frozen before implementation.
+    Note: Record required, best-effort, and out-of-scope items exactly as this
+    guide defines them. Do not expand scope during coding.
+
+[ ] Create omnicovas/features/combat/ package
+    Why: Combat has enough handlers to deserve a feature package.
+    Note: __init__.py only exports registration helpers. Do not put feature
+    logic inside __init__.py.
+
+[ ] Create tests/fixtures/combat_replay/ directory
+    Why: Combat features must be replay-driven.
+    Note: Fixtures must come from real journal samples or architect-supplied
+    anonymized samples. Do not invent event fields.
+
+[ ] Create docs/releases/phase4.md placeholder
+    Why: Release notes should be updated throughout the phase, not written from
+    memory at the end.
+    Note: Include sections for delivered, deferred, known limits, and test
+    count.
+
+--------------------------------------------------------------------------------
+PART B — Combat Event Taxonomy
+--------------------------------------------------------------------------------
+
+[ ] Add combat event constants to the existing event type file
+    Why: Combat subscribers need the same single source of truth as Pillar 1.
+    Note: Include TARGET_CHANGED, TARGET_LOST, TARGET_HOSTILE,
+    INTERDICTION_STARTED, INTERDICTION_ESCAPED, INTERDICTION_SUBMITTED,
+    INTERDICTION_FAILED, PVP_CONTACT_DETECTED, PVP_THREAT_FLAGGED,
+    BOUNTY_AWARDED, COMBAT_BOND_AWARDED, COMBAT_RANK_CHANGED,
+    MUNITIONS_CHANGED, COMBAT_ZONE_ENTERED, COMBAT_ZONE_LEFT,
+    COMBAT_THREAT_CHANGED, AX_CONTEXT_DETECTED, ON_FOOT_COMBAT_STATE_CHANGED.
+
+[ ] Add combat event grouping helper
+    Why: The UI bridge may need to subscribe to all combat events without
+    hard-coding each constant in multiple places.
+    Note: Keep helper deterministic and tested. Do not remove existing Pillar 1
+    groups.
+
+[ ] Add tests for event constant uniqueness
+    Why: Duplicate strings silently break subscribers.
+    Note: Test all event constants, not just combat constants.
+
+--------------------------------------------------------------------------------
+PART C — Combat State Extension
+--------------------------------------------------------------------------------
+
+[ ] Extend the existing session state with combat fields
+    Why: Combat features need current target, threat, rank, and reward state.
+    Note: All fields nullable unless telemetry guarantees a value. Suggested
+    fields: current_target, current_target_is_player, current_target_is_hostile,
+    current_target_rank, current_target_faction, current_target_bounty,
+    interdiction_state, last_pvp_contact, combat_rank, bounty_session_total,
+    combat_bond_session_total, munitions_snapshot, current_combat_zone,
+    combat_threat_level.
+
+[ ] Define small combat dataclasses
+    Why: Typed state prevents dict-of-dicts drift.
+    Note: TargetSnapshot, PvPContact, MunitionsSnapshot, CombatZoneSnapshot.
+    Keep raw journal fields in a raw block if needed, but expose typed fields to
+    the UI.
+
+[ ] Add source-priority tests for combat fields
+    Why: Status, journal, external lookup, and inferred data must not override
+    each other incorrectly.
+    Note: Journal beats external lookup. Inferred never overrides telemetry.
+
+--------------------------------------------------------------------------------
+PART D — Target Intelligence Baseline
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/target_intelligence.py
+    Why: Central handler for target changes and target snapshots.
+    Note: Register journal handlers only for event types confirmed by fixtures.
+    Do not invent event fields.
+
+[ ] Implement target snapshot parsing
+    Why: UI and warnings need a consistent target shape.
+    Note: Unknown fields remain None. Use TelemetrySource.JOURNAL for direct
+    journal values and TelemetrySource.INFERRED only for explicit derived flags.
+
+[ ] Publish TARGET_CHANGED and TARGET_LOST
+    Why: UI cards and other combat features subscribe to target updates.
+    Note: Payload includes the full TargetSnapshot serialization plus source
+    and timestamp.
+
+[ ] Add API endpoint GET /combat/target
+    Why: Dashboard needs a snapshot fallback when WebSocket reconnects.
+    Note: Mount under a combat router, not the Pillar 1 router.
+
+[ ] Add UI Target Intelligence card
+    Why: Commander must see what OmniCOVAS knows and what it does not know.
+    Note: Render ship/name/rank/faction/wanted/hostility fields only when
+    known. Use explicit "unknown" placeholders.
+
+--------------------------------------------------------------------------------
+PART E — Week 15 Verification
+--------------------------------------------------------------------------------
+
+[ ] Replay a target-change fixture through the full pipeline
+    Why: Validates Journal -> State -> Broadcaster -> API -> UI.
+    Note: Confirm target card updates without polling when WebSocket is live.
+
+[ ] Add test file tests/test_combat_target_intelligence.py
+    Why: Target snapshot contract is foundational.
+    Note: Test known fields, missing optional fields, target lost, broadcast
+    payload shape, and API endpoint shape.
+
+--------------------------------------------------------------------------------
+WEEK 15 — MILESTONE CHECKLIST
+--------------------------------------------------------------------------------
+
+[ ] Phase 4 scope decision exists
+[ ] combat package created
+[ ] combat replay fixture directory created
+[ ] Phase 4 release notes placeholder exists
+[ ] Combat event constants added and uniqueness-tested
+[ ] Combat state fields added with source-priority tests
+[ ] TargetSnapshot and related dataclasses defined
+[ ] target_intelligence handler implemented and registered
+[ ] TARGET_CHANGED and TARGET_LOST broadcasts working
+[ ] GET /combat/target endpoint returns correct snapshot shape
+[ ] Target Intelligence UI card renders from WebSocket and snapshot fallback
+[ ] pytest green, mypy green, ruff green
+[ ] Tauri build green
+[ ] Phase 1-3 tests still passing
+
+================================================================================
+WEEK 16 | Interdiction Warning & Response, Escape Planner | ~15 hours
+================================================================================
+
+STATUS: PLANNED
+
+WARNING: Interdiction response is the only P1 blocker in Phase 4. Keep it
+simple, fast, and honest. OmniCOVAS may warn and explain options. It must not
+press keys, steer, throttle, submit, high-wake, low-wake, or otherwise automate
+any in-game response.
+
+--------------------------------------------------------------------------------
+PART A — Interdiction State Machine
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/interdiction.py
+    Why: Interdiction handling needs isolated state transitions.
+    Note: Track state, timestamps, actor if known, submitted/escaped/failed
+    outcome if known.
+
+[ ] Define InterdictionState dataclass or enum-backed snapshot
+    Why: UI and overlay need a stable contract.
+    Note: States: unknown, started, escaping, submitted, escaped, failed,
+    completed. If actual fixture semantics differ, adjust only to real
+    telemetry.
+
+[ ] Register handlers for confirmed interdiction journal events
+    Why: Do not rely on guessed event fields.
+    Note: Use architect-supplied fixtures. If a required fixture is missing,
+    stop and request one.
+
+[ ] Publish interdiction events
+    Why: Overlay and Escape Planner need immediate notification.
+    Note: Publish INTERDICTION_STARTED, INTERDICTION_ESCAPED,
+    INTERDICTION_SUBMITTED, INTERDICTION_FAILED as applicable.
+
+--------------------------------------------------------------------------------
+PART B — Interdiction Overlay Warning
+--------------------------------------------------------------------------------
+
+[ ] Add overlay banner for INTERDICTION_STARTED
+    Why: Interdictions are time-sensitive and belong in the overlay.
+    Note: Keep click-through default. Do not steal focus.
+
+[ ] Add state-aware banner copy
+    Why: Commander needs concise information while flying.
+    Note: Text must be telemetry-grounded. Do not invent threat labels.
+
+[ ] Add Activity Log entries for each interdiction transition
+    Why: Law 8 requires auditability.
+    Note: Include source event type, timestamp, outcome, and known aggressor.
+
+--------------------------------------------------------------------------------
+PART C — Escape Planner, Advisory Only
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/escape_planner.py
+    Why: Escape Planner is a Phase 4 P2 v1.0 addition.
+    Note: Output options, not commands. Every recommendation goes through the
+    Confirmation Gate UI surface.
+
+[ ] Define EscapeOption dataclass
+    Why: Advisory cards need consistent fields.
+    Note: Fields: label, description, confidence, source_refs,
+    requires_user_action. Do not include executable action callbacks.
+
+[ ] Implement telemetry-only option generation
+    Why: NullProvider must work.
+    Note: Use current ship state, target/interdiction state, and KB entries.
+    If a KB entry is missing, return no recommendation and log why.
+
+[ ] Add Confirmation Gate UI wrapper for escape options
+    Why: Law 1.
+    Note: Confirm/Decline means acknowledge/hide the suggestion, not execute
+    game actions.
+
+--------------------------------------------------------------------------------
+PART D — API and UI
+--------------------------------------------------------------------------------
+
+[ ] Add GET /combat/interdiction
+    Why: Snapshot fallback for UI reconnect.
+    Note: Return state, started_at, ended_at, aggressor if known, outcome.
+
+[ ] Add GET /combat/escape-options
+    Why: UI needs current advisory options.
+    Note: Return empty list when no grounded options exist.
+
+[ ] Add Interdiction panel to combat dashboard
+    Why: Main UI should show history and last outcome.
+    Note: Overlay handles immediacy; main panel handles audit/context.
+
+--------------------------------------------------------------------------------
+WEEK 16 — MILESTONE CHECKLIST
+--------------------------------------------------------------------------------
+
+[ ] Interdiction handler implemented and registered
+[ ] Interdiction state transitions tested
+[ ] INTERDICTION_* broadcasts published correctly
+[ ] Overlay banner appears without stealing focus
+[ ] Activity Log records all transitions
+[ ] Escape Planner returns advisory-only options
+[ ] Escape options pass through Confirmation Gate UI
+[ ] GET /combat/interdiction and /combat/escape-options implemented
+[ ] UI panel renders current and historical interdiction state
+[ ] pytest green, mypy green, ruff green
+[ ] Tauri build green
+
+================================================================================
+WEEK 17 | PvP Local Memory, CMDR Intelligence, Hostility Warnings | ~15 hours
+================================================================================
+
+STATUS: PLANNED
+
+WARNING: PvP intelligence is sensitive. Default to local-only. External lookup
+requires user opt-in, approval status, rate-limit registry support, privacy page
+visibility, and transparent Activity Log entries. If any gate is missing, ship
+the local-only path.
+
+--------------------------------------------------------------------------------
+PART A — Local PvP Encounter Log
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/pvp.py
+    Why: PvP encounter handling should be isolated from generic target parsing.
+    Note: Subscribe to target updates and confirmed PvP journal signals.
+
+[ ] Define PvPContact dataclass
+    Why: Local memory needs a stable schema.
+    Note: Fields: commander_name, first_seen_at, last_seen_at, system, ship,
+    rank_if_known, hostility_if_known, encounter_count, raw_source_refs.
+
+[ ] Add SQLite model and migration for PvP contacts
+    Why: Local gank database persists between sessions.
+    Note: Store local history only. Do not store external lookup responses until
+    opt-in and approval are verified.
+
+[ ] Implement local encounter upsert
+    Why: Repeated sightings should update last_seen and encounter_count.
+    Note: Do not create duplicate contacts for same commander name unless the
+    schema has a clear reason.
+
+--------------------------------------------------------------------------------
+PART B — PvP CMDR Intelligence, Basic
+--------------------------------------------------------------------------------
+
+[ ] Add local lookup service
+    Why: Basic PvP intelligence must work offline.
+    Note: Query the local PvP contacts table by commander name.
+
+[ ] Add external lookup gate interface, disabled by default
+    Why: Blueprint mentions Inara lookup, but compliance gates must control it.
+    Note: Interface returns disabled reason when approval, opt-in, privacy, or
+    rate-limit gates are not satisfied.
+
+[ ] Add Activity Log records for lookup attempts
+    Why: Law 8 transparency.
+    Note: Log local lookup, external lookup blocked, or external lookup allowed.
+    Never log API keys.
+
+[ ] Add GET /combat/pvp/contact/{name}
+    Why: UI needs a single contact lookup endpoint.
+    Note: Return local record plus external_status: disabled|blocked|available.
+
+--------------------------------------------------------------------------------
+PART C — Hostility & Threat Warnings
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/hostility.py
+    Why: Threat warnings combine target, PvP memory, and combat state.
+    Note: Keep labels grounded. Unknown is acceptable.
+
+[ ] Define threat labels in KB
+    Why: Labels must not be magic strings hidden in code.
+    Note: Add only labels and thresholds with sources supplied by the architect.
+    If no sources are supplied, implement telemetry-only hostility display.
+
+[ ] Publish PVP_CONTACT_DETECTED and PVP_THREAT_FLAGGED
+    Why: Overlay and UI subscribe to these warnings.
+    Note: PVP_THREAT_FLAGGED requires grounded local history or explicit
+    telemetry. Do not label a commander dangerous without source.
+
+[ ] Add overlay banner for hostile or flagged PvP contact
+    Why: Time-sensitive warning.
+    Note: Keep wording precise: "Known local contact" is safer than "ganker"
+    unless a local record explicitly supports the label.
+
+--------------------------------------------------------------------------------
+PART D — UI and Privacy
+--------------------------------------------------------------------------------
+
+[ ] Add PvP Contacts card
+    Why: Commander needs to see local encounter memory.
+    Note: Show current contact, prior sightings, and source of the label.
+
+[ ] Add Privacy page toggles for PvP lookup/export
+    Why: Privacy-by-default.
+    Note: Defaults OFF. External lookup OFF. Export OFF.
+
+[ ] Add Data Flow Transparency Map entries
+    Why: Any external PvP lookup path must be visible even when disabled.
+    Note: Baseline should show zero active outbound flows unless user enables.
+
+--------------------------------------------------------------------------------
+WEEK 17 — MILESTONE CHECKLIST
+--------------------------------------------------------------------------------
+
+[ ] PvPContact dataclass defined
+[ ] SQLite model and migration created
+[ ] Local encounter upsert implemented
+[ ] Local PvP lookup endpoint implemented
+[ ] External lookup gate exists and defaults disabled
+[ ] Activity Log records lookup path and blocked reasons
+[ ] Hostility warnings implemented without invented labels
+[ ] PVP_CONTACT_DETECTED and PVP_THREAT_FLAGGED broadcasts working
+[ ] Overlay warning for grounded hostile/flagged contacts
+[ ] Privacy toggles and transparency map entries added
+[ ] pytest green, mypy green, ruff green
+[ ] Tauri build green
+
+================================================================================
+WEEK 18 | Bounty/Bond Tracking, Combat Rank, Munitions Management | ~15 hours
+================================================================================
+
+STATUS: PLANNED
+
+ARCHITECTURAL NOTE: Week 18 makes combat sessions measurable. Reward tracking
+and munitions tracking are telemetry features first. Keep them exact, local,
+and auditable.
+
+--------------------------------------------------------------------------------
+PART A — Bounty and Combat Bond Tracking
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/rewards.py
+    Why: Combat rewards should not be scattered across target or CZ code.
+    Note: Track bounties and combat bonds separately.
+
+[ ] Define CombatReward dataclass
+    Why: UI and history need a stable shape.
+    Note: Fields: reward_type, amount, faction, target, voucher_type,
+    timestamp, source_event.
+
+[ ] Implement journal handlers for confirmed reward events
+    Why: Session totals derive from real telemetry.
+    Note: Use fixtures. Do not invent field names.
+
+[ ] Update session totals in StateManager
+    Why: UI needs zero-latency reads.
+    Note: bounty_session_total and combat_bond_session_total must be separate.
+
+[ ] Publish BOUNTY_AWARDED and COMBAT_BOND_AWARDED
+    Why: UI cards and Activity Log subscribe.
+    Note: Payload includes amount, type, faction/target if known, source.
+
+--------------------------------------------------------------------------------
+PART B — Combat Rank Tracking
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/rank.py
+    Why: Rank changes should be isolated and tested.
+    Note: Do not invent rank order. Add KB/source mapping only when supplied.
+
+[ ] Capture current combat rank from known telemetry
+    Why: Combat dashboard needs current rank if known.
+    Note: Unknown is acceptable until telemetry arrives.
+
+[ ] Publish COMBAT_RANK_CHANGED
+    Why: UI and Activity Log need rank transition audit.
+    Note: Include previous, new, source, and timestamp when known.
+
+[ ] Add rank display card
+    Why: Commander-facing progress.
+    Note: Do not show progress percentages unless telemetry supplies them.
+
+--------------------------------------------------------------------------------
+PART C — Munitions Management
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/munitions.py
+    Why: Ammo and synthesis material awareness belong in combat but must remain
+    telemetry-first.
+
+[ ] Define MunitionsSnapshot dataclass
+    Why: Stable endpoint shape.
+    Note: Include slot, item, ammo_clip, ammo_hopper, synthesized_capacity if
+    known, updated_at, and source_refs. Unknown fields remain None.
+
+[ ] Update munitions snapshot from telemetry
+    Why: Commander needs current ammo state.
+    Note: Do not infer ammo from time firing unless verified telemetry supports
+    it.
+
+[ ] Publish MUNITIONS_CHANGED
+    Why: Overlay can warn only when a grounded state changes.
+    Note: Low-ammo thresholds require KB entries. If not sourced, show raw ammo
+    only.
+
+--------------------------------------------------------------------------------
+PART D — API and UI
+--------------------------------------------------------------------------------
+
+[ ] Add GET /combat/rewards
+[ ] Add GET /combat/rank
+[ ] Add GET /combat/munitions
+[ ] Add UI cards for Rewards, Rank, and Munitions
+
+--------------------------------------------------------------------------------
+WEEK 18 — MILESTONE CHECKLIST
+--------------------------------------------------------------------------------
+
+[ ] Reward handlers implemented and registered
+[ ] CombatReward dataclass defined
+[ ] Bounty and bond session totals tracked separately
+[ ] BOUNTY_AWARDED and COMBAT_BOND_AWARDED broadcasts working
+[ ] Combat rank tracking implemented without invented rank mapping
+[ ] COMBAT_RANK_CHANGED broadcast working
+[ ] MunitionsSnapshot dataclass defined
+[ ] Munitions updates from telemetry only
+[ ] GET /combat/rewards, /combat/rank, /combat/munitions implemented
+[ ] Rewards, Rank, and Munitions UI cards render
+[ ] pytest green, mypy green, ruff green
+[ ] Tauri build green
+
+================================================================================
+WEEK 19 | Combat Zone Intelligence, Pirate Hunting, Threat Scoring | ~15 hours
+================================================================================
+
+STATUS: PLANNED
+
+ARCHITECTURAL NOTE: Week 19 connects target state, reward state, and location
+state into useful combat context. Keep classifications conservative. When the
+system does not know whether the Commander is in a CZ, RES, mission instance,
+or pirate-hunting loop, it must say unknown.
+
+--------------------------------------------------------------------------------
+PART A — Combat Zone Intelligence
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/combat_zone.py
+    Why: Combat Zone state has its own events and UI needs.
+    Note: Use only confirmed journal/location telemetry.
+
+[ ] Define CombatZoneSnapshot dataclass
+    Why: Stable UI and endpoint shape.
+    Note: Fields: active, type_if_known, faction_a, faction_b, chosen_side,
+    intensity_if_known, bonds_session_total, started_at, updated_at.
+
+[ ] Implement CZ enter/update/leave handlers
+    Why: Commander needs current CZ context.
+    Note: If telemetry does not clearly indicate a CZ, do not set active=true.
+
+[ ] Publish COMBAT_ZONE_ENTERED and COMBAT_ZONE_LEFT
+    Why: UI and Activity Log need state transitions.
+    Note: Include known factions/side only when telemetry supplies them.
+
+--------------------------------------------------------------------------------
+PART B — Pirate Hunting Context
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/pirate_hunting.py
+    Why: Pirate hunting is part of the Pillar 2 architecture summary.
+    Note: This is context classification, not mission optimization.
+
+[ ] Define conservative classification rules
+    Why: Pirate hunting labels are useful only when grounded.
+    Note: Use KB entries only if architect supplies sources. Otherwise classify
+    from direct telemetry such as target wanted status and bounty awards.
+
+[ ] Add Activity Log entries for classification changes
+    Why: Commander should know why a session was labeled pirate hunting.
+    Note: Include source event IDs/refs.
+
+--------------------------------------------------------------------------------
+PART C — Threat Scoring, Conservative Baseline
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/threat.py
+    Why: Hostility warnings need a unified threat output.
+    Note: Threat score is optional; threat state can be categorical if KB only
+    supports labels.
+
+[ ] Define CombatThreatSnapshot dataclass
+    Why: UI and overlay need a single object.
+    Note: Fields: level, reasons, confidence, source_refs, updated_at. Level may
+    be unknown.
+
+[ ] Implement grounded threat updates
+    Why: Warnings must be explainable.
+    Note: Reasons must cite telemetry or local record. No hidden scoring magic.
+
+[ ] Publish COMBAT_THREAT_CHANGED
+    Why: Overlay and combat dashboard subscribe.
+    Note: Only publish on actual change, not every tick.
+
+--------------------------------------------------------------------------------
+PART D — API and UI
+--------------------------------------------------------------------------------
+
+[ ] Add GET /combat/zone
+[ ] Add GET /combat/threat
+[ ] Add Combat Zone card
+[ ] Add Threat meter/card
+
+--------------------------------------------------------------------------------
+WEEK 19 — MILESTONE CHECKLIST
+--------------------------------------------------------------------------------
+
+[ ] CombatZoneSnapshot implemented
+[ ] CZ handlers registered
+[ ] COMBAT_ZONE_ENTERED and COMBAT_ZONE_LEFT broadcasts working
+[ ] Pirate hunting classification implemented conservatively
+[ ] CombatThreatSnapshot implemented
+[ ] COMBAT_THREAT_CHANGED broadcast working
+[ ] GET /combat/zone and /combat/threat implemented
+[ ] Combat Zone and Threat UI cards render
+[ ] Activity Log explains classifications and threat reasons
+[ ] pytest green, mypy green, ruff green
+[ ] Tauri build green
+
+================================================================================
+WEEK 20 | Integration, AX Partial, On-Foot Awareness, Release Notes | ~15 hours
+================================================================================
+
+STATUS: PLANNED
+
+WARNING: Week 20 is for integration and stabilization. Do not add deep combat
+features here. Anti-Xeno and on-foot support are partial v1.0 surfaces only.
+Full AX, Frontline Solutions, and settlement intelligence are later work.
+
+--------------------------------------------------------------------------------
+PART A — Anti-Xeno Partial, Off/Light Coaching Only
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/ax.py
+    Why: Blueprint marks AX as v1.0 partial and v1.1 complete.
+    Note: Phase 4 only detects AX context and displays Off/Light telemetry or
+    advisory copy when grounded.
+
+[ ] Define AXContextSnapshot dataclass
+    Why: Keep partial support explicit.
+    Note: Fields: active, target_species_if_known, target_name_if_known,
+    location_context_if_known, coaching_level, source_refs.
+
+[ ] Implement AX context detection from confirmed telemetry
+    Why: Avoid fake AX advice.
+    Note: If fixtures are missing, ship only the dataclass and disabled UI
+    state. Do not invent Thargoid mechanics.
+
+[ ] Publish AX_CONTEXT_DETECTED only when grounded
+    Why: Overlay should not fire on weak guesses.
+    Note: Unknown or suspected context remains silent unless explicitly labeled
+    inferred and low-confidence.
+
+--------------------------------------------------------------------------------
+PART B — Basic On-Foot Combat State Awareness
+--------------------------------------------------------------------------------
+
+[ ] Create omnicovas/features/combat/on_foot.py
+    Why: Blueprint includes basic on-foot state awareness for v1.0.
+    Note: This is not Frontline Solutions tracking or settlement raid intel.
+
+[ ] Define OnFootCombatSnapshot dataclass
+    Why: Keep ship combat and on-foot combat separate but in the same combat
+    package.
+    Note: Fields: active, location_if_known, suit_if_known, weapon_if_known,
+    hostility_if_known, source_refs.
+
+[ ] Implement status/journal handling for confirmed on-foot combat state
+    Why: UI should not show ship combat cards as active when on foot.
+    Note: Unknown fields remain None.
+
+[ ] Publish ON_FOOT_COMBAT_STATE_CHANGED
+    Why: UI needs to switch surfaces.
+    Note: Do not build settlement raid intelligence.
+
+--------------------------------------------------------------------------------
+PART C — Phase 4 Full Integration Replay
+--------------------------------------------------------------------------------
+
+[ ] Create tests/test_phase4_combat_integration.py
+    Why: Single replay should prove the combat pipeline works end-to-end.
+    Note: Use architect-supplied fixtures only.
+
+[ ] Replay target, interdiction, PvP, reward, rank, munitions, CZ, AX/on-foot
+    where fixtures exist
+    Why: Ensures features cooperate.
+    Note: Missing AX/on-foot fixtures mean those assertions are skipped with a
+    documented reason, not invented.
+
+[ ] Measure combat dispatch latency
+    Why: Law 6.
+    Note: Target local budgets should be documented in docs/perf/phase4.md. Do
+    not fail CI until budgets are intentionally registered.
+
+[ ] Verify UI state reset after death/session reset
+    Why: Combat stale state is dangerous.
+    Note: Target, interdiction, threat, CZ, and munitions surfaces should clear
+    or show unknown after reset events.
+
+--------------------------------------------------------------------------------
+PART D — Documentation and Release Notes
+--------------------------------------------------------------------------------
+
+[ ] Complete docs/releases/phase4.md
+[ ] Update README development status
+[ ] Add docs/perf/phase4.md
+[ ] Add docs/privacy/pvp_intelligence.md
+
+--------------------------------------------------------------------------------
+WEEK 20 — MILESTONE CHECKLIST
+--------------------------------------------------------------------------------
+
+[ ] AXContextSnapshot implemented
+[ ] AX partial support either grounded and active or explicitly disabled
+[ ] OnFootCombatSnapshot implemented
+[ ] Basic on-foot combat state awareness implemented from real telemetry
+[ ] Phase 4 integration replay test exists
+[ ] Combat state reset verified
+[ ] docs/releases/phase4.md complete
+[ ] docs/perf/phase4.md complete
+[ ] docs/privacy/pvp_intelligence.md complete
+[ ] README status updated only if Phase 4 is actually complete
+[ ] ruff green
+[ ] mypy green
+[ ] pytest green
+[ ] Tauri build green
+[ ] Phase 4 complete and ready for Phase 5 planning
+
+================================================================================
+APPENDIX A — PHASE 4 FILE LAYOUT REFERENCE
+================================================================================
+
+Core feature package:
+  omnicovas/features/combat/__init__.py
+  omnicovas/features/combat/target_intelligence.py
+  omnicovas/features/combat/interdiction.py
+  omnicovas/features/combat/escape_planner.py
+  omnicovas/features/combat/pvp.py
+  omnicovas/features/combat/hostility.py
+  omnicovas/features/combat/rewards.py
+  omnicovas/features/combat/rank.py
+  omnicovas/features/combat/munitions.py
+  omnicovas/features/combat/combat_zone.py
+  omnicovas/features/combat/pirate_hunting.py
+  omnicovas/features/combat/threat.py
+  omnicovas/features/combat/ax.py
+  omnicovas/features/combat/on_foot.py
+
+API:
+  omnicovas/api/combat.py
+
+Core/shared files expected to be extended carefully:
+  omnicovas/core/event_types.py
+  omnicovas/core/state.py
+  omnicovas/core/dispatcher.py
+  omnicovas/core/broadcaster.py
+  omnicovas/core/activity_log.py
+
+Knowledge Base:
+  omnicovas/kb/combat_mechanics.json
+  omnicovas/kb/_metadata.json
+
+Tests:
+  tests/fixtures/combat_replay/
+  tests/test_combat_target_intelligence.py
+  tests/test_combat_interdiction.py
+  tests/test_combat_escape_planner.py
+  tests/test_combat_pvp.py
+  tests/test_combat_hostility.py
+  tests/test_combat_rewards.py
+  tests/test_combat_rank.py
+  tests/test_combat_munitions.py
+  tests/test_combat_zone.py
+  tests/test_combat_threat.py
+  tests/test_phase4_combat_integration.py
+
+Docs:
+  docs/decisions/0003-phase4-combat-scope.md
+  docs/releases/phase4.md
+  docs/perf/phase4.md
+  docs/privacy/pvp_intelligence.md
+
+================================================================================
+APPENDIX B — DAILY VERIFICATION COMMANDS
+================================================================================
+
+  ruff check omnicovas/
+  mypy omnicovas/
+  pytest
+  npm run tauri build
+
+================================================================================
+APPENDIX C — ESCALATION RULES
+================================================================================
+
+Escalate to Commander when any of the following occurs:
+  1. A Playbook requires a journal fixture that is not attached.
+  2. A task needs a combat threshold but no KB source is supplied.
+  3. A task would add a new dependency.
+  4. A task would call an external service without approval and opt-in gates.
+  5. A task would automate an in-game action.
+  6. Source priority blocks a write in a way the Playbook did not anticipate.
+  7. Tests fail after the requested implementation.
+  8. A v1.1/v1.2 feature appears necessary to complete a v1.0 task.
+
+END OF PHASE 4 DEVELOPMENT GUIDE

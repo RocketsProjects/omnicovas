@@ -1,0 +1,595 @@
+================================================================================
+WEEK 15 PLAYBOOK — Combat Backbone and Target Intelligence
+================================================================================
+
+OPERATING ASSUMPTIONS FOR SOLDIER
+
+You are executing this Playbook under Soldier.md.
+
+Rules:
+  1. Execute only the edits listed here.
+  2. Touch only the allowed files.
+  3. Do not explore the repository or search for related files.
+  4. Do not add dependencies.
+  5. Do not invent journal fixtures, KB values, thresholds, commander records,
+     ship stats, rank mappings, or external API behavior.
+  6. If a required file, fixture, or source is missing, output:
+     ESCALATE: <one-sentence reason>
+  7. End with the exact six-section Soldier output format.
+
+COMMANDER INTENT
+
+Implement the Phase 4 combat foundation: combat event constants, combat state extensions, TargetSnapshot contract, Target Intelligence handler, combat API router, and the first combat UI card. Do not implement interdiction, PvP, rewards, munitions, CZ, AX, or on-foot logic in this Playbook.
+
+REQUIRED TAGGED FILES
+
+  - Soldier.md
+  - CLAUDE.MD
+  - OmniCOVAS_Phase4_Development_Guide.txt
+  - omnicovas/core/event_types.py
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/core/broadcaster.py
+  - omnicovas/api/api_bridge.py or current bridge/router mount file
+  - Existing UI dashboard shell files from Phase 3
+  - Existing API test pattern file, preferably tests/test_api_pillar1.py
+  - One architect-supplied target journal fixture from real telemetry
+
+ALLOWED FILES TO CREATE
+
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/features/combat/target_intelligence.py
+  - omnicovas/api/combat.py
+  - tests/fixtures/combat_replay/target_sample.json
+  - tests/test_combat_event_types.py
+  - tests/test_combat_target_intelligence.py
+  - docs/decisions/0003-phase4-combat-scope.md
+  - docs/releases/phase4.md
+
+ALLOWED FILES TO MODIFY
+
+  - omnicovas/core/event_types.py
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/api/api_bridge.py or current bridge/router mount file
+  - Existing Phase 3 UI dashboard shell files needed to add one Target card
+
+EDIT STEPS
+
+1. Create docs/decisions/0003-phase4-combat-scope.md with required, best-effort, out-of-scope, and external-lookup gate sections from the Phase 4 guide.
+2. Create docs/releases/phase4.md with placeholder headings: Delivered, Deferred, Known limitations, Privacy posture, Test count, Manual smoke tests.
+3. Add combat event constants: TARGET_CHANGED, TARGET_LOST, TARGET_HOSTILE, INTERDICTION_STARTED, INTERDICTION_ESCAPED, INTERDICTION_SUBMITTED, INTERDICTION_FAILED, PVP_CONTACT_DETECTED, PVP_THREAT_FLAGGED, BOUNTY_AWARDED, COMBAT_BOND_AWARDED, COMBAT_RANK_CHANGED, MUNITIONS_CHANGED, COMBAT_ZONE_ENTERED, COMBAT_ZONE_LEFT, COMBAT_THREAT_CHANGED, AX_CONTEXT_DETECTED, ON_FOOT_COMBAT_STATE_CHANGED.
+4. Add a combat-event grouping helper only if event_types.py already has grouping helpers. If not, skip and note it.
+5. Extend state.py with nullable combat fields and the dataclasses TargetSnapshot, PvPContact, MunitionsSnapshot, and CombatZoneSnapshot.
+6. Create omnicovas/features/combat/__init__.py with registration exports only.
+7. Create target_intelligence.py. Parse only fields present in the attached target fixture. Unknown optional fields become None. Direct journal values use TelemetrySource.JOURNAL; explicit derived flags use TelemetrySource.INFERRED.
+8. Publish TARGET_CHANGED when a target snapshot is known and TARGET_LOST when telemetry indicates target loss.
+9. Register the target intelligence handler using the attached dispatcher pattern.
+10. Create omnicovas/api/combat.py with APIRouter prefix /combat and GET /combat/target.
+11. Mount the combat router in the attached bridge/router mount file.
+12. Add one Target Intelligence UI card. It consumes TARGET_CHANGED/TARGET_LOST over WebSocket and GET /combat/target as fallback. Unknown fields render honestly.
+
+TESTS REQUIRED
+
+1. tests/test_combat_event_types.py verifies event constants are unique.
+2. tests/test_combat_target_intelligence.py verifies fixture parsing, missing optional fields, TARGET_CHANGED broadcast, TARGET_LOST if represented, and GET /combat/target shape.
+
+VERIFICATION COMMANDS
+
+  ruff check omnicovas/
+  mypy omnicovas/
+  pytest tests/test_combat_event_types.py tests/test_combat_target_intelligence.py
+  pytest
+  npm run tauri build
+
+ESCALATE IF
+
+  - The target fixture is missing.
+  - The attached state file has no clear TelemetrySource pattern.
+  - Registering the handler requires reading untagged files.
+  - The UI shell file needed for the card is not attached.
+  - Any test fails after the requested edits.
+
+END OF PLAYBOOK
+
+
+================================================================================
+WEEK 16 PLAYBOOK — Interdiction Warning and Escape Planner
+================================================================================
+
+OPERATING ASSUMPTIONS FOR SOLDIER
+
+You are executing this Playbook under Soldier.md.
+
+Rules:
+  1. Execute only the edits listed here.
+  2. Touch only the allowed files.
+  3. Do not explore the repository or search for related files.
+  4. Do not add dependencies.
+  5. Do not invent journal fixtures, KB values, thresholds, commander records,
+     ship stats, rank mappings, or external API behavior.
+  6. If a required file, fixture, or source is missing, output:
+     ESCALATE: <one-sentence reason>
+  7. End with the exact six-section Soldier output format.
+
+COMMANDER INTENT
+
+Implement the Phase 4 P1 feature: Interdiction Warning & Response. Add an advisory-only Escape Planner. Do not automate in-game actions. Do not implement PvP history, rewards, munitions, CZ, AX, or on-foot support in this Playbook.
+
+REQUIRED TAGGED FILES
+
+  - Soldier.md
+  - CLAUDE.MD
+  - OmniCOVAS_Phase4_Development_Guide.txt
+  - omnicovas/core/event_types.py
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/core/broadcaster.py
+  - omnicovas/core/activity_log.py or current Activity Log file
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/api/combat.py
+  - Existing overlay banner component files from Phase 3
+  - Existing Confirmation Gate UI component or middleware file
+  - Architect-supplied interdiction journal fixtures from real telemetry
+  - KB file containing any supplied escape/interdiction entries, if applicable
+
+ALLOWED FILES TO CREATE
+
+  - omnicovas/features/combat/interdiction.py
+  - omnicovas/features/combat/escape_planner.py
+  - tests/test_combat_interdiction.py
+  - tests/test_combat_escape_planner.py
+
+ALLOWED FILES TO MODIFY
+
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/api/combat.py
+  - Existing overlay banner component files from Phase 3
+  - Existing Confirmation Gate UI component or middleware file
+  - Existing combat UI/dashboard files created in Week 15
+
+EDIT STEPS
+
+1. Create interdiction.py with an InterdictionSnapshot or InterdictionState representation: state, started_at, ended_at, aggressor, outcome, source_refs.
+2. Implement handlers only for event names and fields present in attached real interdiction fixtures.
+3. Update existing StateManager/session state for each confirmed transition.
+4. Publish INTERDICTION_STARTED, INTERDICTION_ESCAPED, INTERDICTION_SUBMITTED, and INTERDICTION_FAILED when grounded by telemetry.
+5. Add Activity Log entries for each transition with source event, timestamp, known aggressor/null, and outcome/null.
+6. Create escape_planner.py with EscapeOption fields: label, description, confidence, source_refs, requires_user_action.
+7. Implement advisory-only option generation. It may return an empty list. It must not include callbacks, commands, keypresses, macros, or executable actions.
+8. If a KB value is required but missing, return no option and log why.
+9. Add GET /combat/interdiction and GET /combat/escape-options to combat.py.
+10. Update overlay banner files to show INTERDICTION_STARTED without focus theft and with click-through preserved.
+11. Wrap Escape Planner output in the existing Confirmation Gate UI surface. Confirm/Decline only acknowledges or hides suggestions.
+
+TESTS REQUIRED
+
+1. tests/test_combat_interdiction.py covers started, escaped, submitted if fixture supports it, failed if fixture supports it, missing aggressor as None, and duplicate handling.
+2. tests/test_combat_escape_planner.py covers empty ungrounded output, source_refs on generated options, no executable fields, and Confirmation Gate wrapper contract.
+
+VERIFICATION COMMANDS
+
+  ruff check omnicovas/
+  mypy omnicovas/
+  pytest tests/test_combat_interdiction.py tests/test_combat_escape_planner.py
+  pytest
+  npm run tauri build
+
+ESCALATE IF
+
+  - Interdiction fixtures are missing.
+  - A requested state transition is not represented in fixtures.
+  - Escape Planner requires a KB threshold/source not attached.
+  - Confirmation Gate files are missing.
+  - Overlay files are missing.
+  - Any test fails after the requested edits.
+
+END OF PLAYBOOK
+
+
+================================================================================
+WEEK 17 PLAYBOOK — PvP Local Memory and Hostility Warnings
+================================================================================
+
+OPERATING ASSUMPTIONS FOR SOLDIER
+
+You are executing this Playbook under Soldier.md.
+
+Rules:
+  1. Execute only the edits listed here.
+  2. Touch only the allowed files.
+  3. Do not explore the repository or search for related files.
+  4. Do not add dependencies.
+  5. Do not invent journal fixtures, KB values, thresholds, commander records,
+     ship stats, rank mappings, or external API behavior.
+  6. If a required file, fixture, or source is missing, output:
+     ESCALATE: <one-sentence reason>
+  7. End with the exact six-section Soldier output format.
+
+COMMANDER INTENT
+
+Implement local-first PvP memory, basic CMDR intelligence, and grounded hostility warnings. External lookup must remain disabled unless all approval, opt-in, privacy, and rate-limit gates already exist in attached files.
+
+REQUIRED TAGGED FILES
+
+  - Soldier.md
+  - CLAUDE.MD
+  - OmniCOVAS_Phase4_Development_Guide.txt
+  - omnicovas/core/event_types.py
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/core/broadcaster.py
+  - omnicovas/core/activity_log.py or current Activity Log file
+  - omnicovas/db models/session file and latest Alembic migration pattern
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/features/combat/target_intelligence.py
+  - omnicovas/api/combat.py
+  - Existing Privacy page files from Phase 3
+  - Existing Data Flow Transparency Map files from Phase 3
+  - Existing overlay banner component files from Phase 3
+  - Architect-supplied PvP target/contact fixtures from real telemetry
+  - KB source entries for any threat labels, if labels are requested
+
+ALLOWED FILES TO CREATE
+
+  - omnicovas/features/combat/pvp.py
+  - omnicovas/features/combat/hostility.py
+  - tests/test_combat_pvp.py
+  - tests/test_combat_hostility.py
+  - New Alembic migration for local PvP contacts, if migration pattern attached
+
+ALLOWED FILES TO MODIFY
+
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/api/combat.py
+  - Attached DB model files
+  - Attached Privacy page files
+  - Attached Data Flow Transparency Map files
+  - Attached overlay files
+  - Existing combat UI/dashboard files
+
+EDIT STEPS
+
+1. Create pvp.py and define/reuse PvPContact fields: commander_name, first_seen_at, last_seen_at, system, ship, rank_if_known, hostility_if_known, encounter_count, raw_source_refs.
+2. Add a local SQLite model and Alembic migration for PvP contacts using attached patterns.
+3. Implement local encounter upsert. Same commander_name updates last_seen_at and encounter_count.
+4. Implement local contact lookup by commander_name.
+5. Add an external lookup gate interface that defaults disabled and returns a reason string. Do not call external services unless all gates are already attached.
+6. Add Activity Log records for local contact stored, local lookup, external lookup blocked, and external lookup allowed if applicable.
+7. Add GET /combat/pvp/contact/{name} to combat.py.
+8. Create hostility.py. Implement warnings from direct hostile telemetry, local PvP history, or supplied KB labels only.
+9. Publish PVP_CONTACT_DETECTED when a commander contact is detected.
+10. Publish PVP_THREAT_FLAGGED only when the threat label is grounded.
+11. Add overlay warning for PVP_THREAT_FLAGGED with click-through preserved.
+12. Add PvP Contacts UI card showing current contact, prior sightings, source of label, and external lookup status.
+13. Add Privacy page toggles for external PvP lookup OFF and PvP export OFF.
+14. Add Data Flow Transparency Map entries for PvP external lookup/export with zero active outbound flows by default.
+
+TESTS REQUIRED
+
+1. tests/test_combat_pvp.py covers insert, update, lookup, blocked external lookup, and Activity Log record.
+2. tests/test_combat_hostility.py covers unknown target, local contact, hostile telemetry, and no false positives when data is missing.
+
+VERIFICATION COMMANDS
+
+  ruff check omnicovas/
+  mypy omnicovas/
+  pytest tests/test_combat_pvp.py tests/test_combat_hostility.py
+  pytest
+  npm run tauri build
+
+ESCALATE IF
+
+  - PvP fixtures are missing.
+  - DB model or migration pattern files are missing.
+  - Threat labels are requested but KB sources are missing.
+  - Privacy or transparency map files are missing.
+  - A step would require external lookup without gates.
+  - Any test fails after the requested edits.
+
+END OF PLAYBOOK
+
+
+================================================================================
+WEEK 18 PLAYBOOK — Rewards, Combat Rank, and Munitions
+================================================================================
+
+OPERATING ASSUMPTIONS FOR SOLDIER
+
+You are executing this Playbook under Soldier.md.
+
+Rules:
+  1. Execute only the edits listed here.
+  2. Touch only the allowed files.
+  3. Do not explore the repository or search for related files.
+  4. Do not add dependencies.
+  5. Do not invent journal fixtures, KB values, thresholds, commander records,
+     ship stats, rank mappings, or external API behavior.
+  6. If a required file, fixture, or source is missing, output:
+     ESCALATE: <one-sentence reason>
+  7. End with the exact six-section Soldier output format.
+
+COMMANDER INTENT
+
+Implement telemetry-driven bounty tracking, combat bond tracking, combat rank tracking, and munitions snapshots. Do not infer missing ammo. Do not implement CZ, AX, on-foot, or advanced debrief features.
+
+REQUIRED TAGGED FILES
+
+  - Soldier.md
+  - CLAUDE.MD
+  - OmniCOVAS_Phase4_Development_Guide.txt
+  - omnicovas/core/event_types.py
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/core/broadcaster.py
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/api/combat.py
+  - Existing combat UI/dashboard files
+  - Architect-supplied bounty and combat bond journal fixtures
+  - Architect-supplied combat rank fixture, if rank tracking is expected
+  - Architect-supplied munitions/ammo telemetry fixture, if munitions tracking is expected
+  - KB source entries for rank mapping or ammo thresholds, if used
+
+ALLOWED FILES TO CREATE
+
+  - omnicovas/features/combat/rewards.py
+  - omnicovas/features/combat/rank.py
+  - omnicovas/features/combat/munitions.py
+  - tests/test_combat_rewards.py
+  - tests/test_combat_rank.py
+  - tests/test_combat_munitions.py
+
+ALLOWED FILES TO MODIFY
+
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/api/combat.py
+  - Existing combat UI/dashboard files
+
+EDIT STEPS
+
+1. Create rewards.py and CombatReward fields: reward_type, amount, faction, target, voucher_type, timestamp, source_event.
+2. Implement handlers only for reward event names and fields present in attached bounty/bond fixtures.
+3. Track bounty_session_total and combat_bond_session_total separately.
+4. Publish BOUNTY_AWARDED and COMBAT_BOND_AWARDED with amount, type, optional faction/target, timestamp, and source.
+5. Create rank.py. Capture combat rank only from attached telemetry. Unknown remains None.
+6. Do not create rank order or rank mapping unless KB/source entries are attached.
+7. Publish COMBAT_RANK_CHANGED when a real rank transition occurs.
+8. Create munitions.py and MunitionsSnapshot fields: slot, item, ammo_clip, ammo_hopper, synthesized_capacity, updated_at, source_refs.
+9. Implement munitions updates only from attached telemetry. Unknown ammo remains None, not zero.
+10. Publish MUNITIONS_CHANGED only when munitions state changes.
+11. Add GET /combat/rewards, GET /combat/rank, and GET /combat/munitions to combat.py.
+12. Add UI cards for Rewards, Rank, and Munitions. Use WebSocket first and endpoint fallback second.
+
+TESTS REQUIRED
+
+1. tests/test_combat_rewards.py covers bounty, bond, separate totals, duplicate replay if idempotency pattern exists, and endpoint shape.
+2. tests/test_combat_rank.py covers unknown initial rank, transition if fixture supports it, and broadcast.
+3. tests/test_combat_munitions.py covers nullable unknown ammo, known ammo from fixture, broadcast, and endpoint shape.
+
+VERIFICATION COMMANDS
+
+  ruff check omnicovas/
+  mypy omnicovas/
+  pytest tests/test_combat_rewards.py tests/test_combat_rank.py tests/test_combat_munitions.py
+  pytest
+  npm run tauri build
+
+ESCALATE IF
+
+  - Reward fixtures are missing.
+  - Rank tracking is expected but no rank fixture is attached.
+  - Munitions tracking is expected but no munitions fixture is attached.
+  - A requested rank mapping or ammo threshold lacks KB/source entries.
+  - Existing idempotency pattern is not attached but duplicate replay behavior is required.
+  - Any test fails after the requested edits.
+
+END OF PLAYBOOK
+
+
+================================================================================
+WEEK 19 PLAYBOOK — Combat Zone Intelligence and Threat State
+================================================================================
+
+OPERATING ASSUMPTIONS FOR SOLDIER
+
+You are executing this Playbook under Soldier.md.
+
+Rules:
+  1. Execute only the edits listed here.
+  2. Touch only the allowed files.
+  3. Do not explore the repository or search for related files.
+  4. Do not add dependencies.
+  5. Do not invent journal fixtures, KB values, thresholds, commander records,
+     ship stats, rank mappings, or external API behavior.
+  6. If a required file, fixture, or source is missing, output:
+     ESCALATE: <one-sentence reason>
+  7. End with the exact six-section Soldier output format.
+
+COMMANDER INTENT
+
+Implement conservative Combat Zone Intelligence, pirate-hunting context, and a grounded combat threat snapshot. Do not implement AX or on-foot support. Do not invent CZ type, faction, side, or threat labels.
+
+REQUIRED TAGGED FILES
+
+  - Soldier.md
+  - CLAUDE.MD
+  - OmniCOVAS_Phase4_Development_Guide.txt
+  - omnicovas/core/event_types.py
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/core/broadcaster.py
+  - omnicovas/core/activity_log.py or current Activity Log file
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/features/combat/target_intelligence.py
+  - omnicovas/features/combat/rewards.py
+  - omnicovas/features/combat/pvp.py if Week 17 is complete
+  - omnicovas/features/combat/hostility.py if Week 17 is complete
+  - omnicovas/api/combat.py
+  - Existing combat UI/dashboard files
+  - Architect-supplied CZ journal fixtures from real telemetry
+  - Architect-supplied pirate-hunting fixtures or explicit source rules
+  - KB source entries for threat labels, if labels are requested
+
+ALLOWED FILES TO CREATE
+
+  - omnicovas/features/combat/combat_zone.py
+  - omnicovas/features/combat/pirate_hunting.py
+  - omnicovas/features/combat/threat.py
+  - tests/test_combat_zone.py
+  - tests/test_combat_threat.py
+
+ALLOWED FILES TO MODIFY
+
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/api/combat.py
+  - Existing combat UI/dashboard files
+
+EDIT STEPS
+
+1. Create combat_zone.py and CombatZoneSnapshot fields: active, type_if_known, faction_a, faction_b, chosen_side, intensity_if_known, bonds_session_total, started_at, updated_at, source_refs.
+2. Implement CZ enter/update/leave handlers only for fields present in attached fixtures.
+3. Set active=true only when telemetry clearly indicates a Combat Zone.
+4. Publish COMBAT_ZONE_ENTERED and COMBAT_ZONE_LEFT.
+5. Create pirate_hunting.py. Classify conservatively from wanted target telemetry, bounty awards, or attached source rules only.
+6. Add Activity Log entries for classification changes with source_refs.
+7. Create threat.py and CombatThreatSnapshot fields: level, reasons, confidence, source_refs, updated_at.
+8. Implement grounded threat updates using only telemetry, local PvP records, hostility warnings, and supplied KB entries.
+9. Publish COMBAT_THREAT_CHANGED only when the snapshot changes.
+10. Add GET /combat/zone and GET /combat/threat to combat.py.
+11. Add Combat Zone and Threat cards to the existing combat UI.
+
+TESTS REQUIRED
+
+1. tests/test_combat_zone.py covers enter, update if fixture supports it, leave, non-CZ unknown, and endpoint shape.
+2. tests/test_combat_threat.py covers no-data unknown, hostile target, local PvP contact if available, CZ contribution only if sourced, no repeated broadcast, and endpoint shape.
+
+VERIFICATION COMMANDS
+
+  ruff check omnicovas/
+  mypy omnicovas/
+  pytest tests/test_combat_zone.py tests/test_combat_threat.py
+  pytest
+  npm run tauri build
+
+ESCALATE IF
+
+  - CZ fixtures are missing.
+  - Pirate-hunting classification is requested without fixtures or source rules.
+  - Threat labels are requested without KB/source entries.
+  - Week 17 files are referenced but not attached.
+  - Any test fails after the requested edits.
+
+END OF PLAYBOOK
+
+
+================================================================================
+WEEK 20 PLAYBOOK — Integration, AX Partial, and On-Foot Awareness
+================================================================================
+
+OPERATING ASSUMPTIONS FOR SOLDIER
+
+You are executing this Playbook under Soldier.md.
+
+Rules:
+  1. Execute only the edits listed here.
+  2. Touch only the allowed files.
+  3. Do not explore the repository or search for related files.
+  4. Do not add dependencies.
+  5. Do not invent journal fixtures, KB values, thresholds, commander records,
+     ship stats, rank mappings, or external API behavior.
+  6. If a required file, fixture, or source is missing, output:
+     ESCALATE: <one-sentence reason>
+  7. End with the exact six-section Soldier output format.
+
+COMMANDER INTENT
+
+Close Phase 4. Add only partial AX context and basic on-foot combat awareness when grounded by real telemetry. Build the Phase 4 integration replay and final docs. Do not add full AX coaching, settlement raid intelligence, Frontline Solutions, or new v1.1/v1.2 combat features.
+
+REQUIRED TAGGED FILES
+
+  - Soldier.md
+  - CLAUDE.MD
+  - OmniCOVAS_Phase4_Development_Guide.txt
+  - README.md
+  - docs/releases/phase4.md
+  - omnicovas/core/event_types.py
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/core/broadcaster.py
+  - omnicovas/features/combat/__init__.py
+  - All Week 15-19 combat feature files
+  - omnicovas/api/combat.py
+  - Existing combat UI/dashboard files
+  - Existing overlay files
+  - Architect-supplied AX fixtures, if AX partial support is expected
+  - Architect-supplied on-foot fixtures, if on-foot awareness is expected
+  - Architect-supplied full Phase 4 combat replay fixture set
+
+ALLOWED FILES TO CREATE
+
+  - omnicovas/features/combat/ax.py
+  - omnicovas/features/combat/on_foot.py
+  - tests/test_combat_ax.py
+  - tests/test_combat_on_foot.py
+  - tests/test_phase4_combat_integration.py
+  - docs/perf/phase4.md
+  - docs/privacy/pvp_intelligence.md
+
+ALLOWED FILES TO MODIFY
+
+  - omnicovas/core/state.py
+  - omnicovas/core/dispatcher.py
+  - omnicovas/features/combat/__init__.py
+  - omnicovas/api/combat.py
+  - Existing combat UI/dashboard files
+  - Existing overlay files
+  - docs/releases/phase4.md
+  - README.md
+
+EDIT STEPS
+
+1. Create ax.py and AXContextSnapshot fields: active, target_species_if_known, target_name_if_known, location_context_if_known, coaching_level, source_refs.
+2. If AX fixtures are attached, implement AX context detection only from confirmed fields. If not, leave AX support disabled and expose a clear disabled snapshot.
+3. Publish AX_CONTEXT_DETECTED only when grounded by telemetry.
+4. Create on_foot.py and OnFootCombatSnapshot fields: active, location_if_known, suit_if_known, weapon_if_known, hostility_if_known, source_refs.
+5. If on-foot fixtures are attached, implement basic on-foot combat state only from confirmed fields. If not, leave on-foot support disabled/unknown and document why.
+6. Publish ON_FOOT_COMBAT_STATE_CHANGED only when grounded by telemetry.
+7. Add GET /combat/ax and GET /combat/on-foot to combat.py.
+8. Add minimal UI surfaces for AX partial state and on-foot combat state. Do not add deep coaching or settlement intelligence.
+9. Create tests/test_phase4_combat_integration.py replaying all available Phase 4 fixture types and verifying combat state reset when fixture exists.
+10. Create docs/perf/phase4.md with replay method and measured timings if available.
+11. Create docs/privacy/pvp_intelligence.md documenting local-first storage, external lookup default OFF, export default OFF, and Activity Log transparency.
+12. Complete docs/releases/phase4.md with delivered, deferred, known limits, privacy posture, test count, and smoke notes.
+13. Update README status only if all verification commands pass.
+
+TESTS REQUIRED
+
+1. tests/test_combat_ax.py covers disabled without fixture/source, grounded detection if fixture exists, and no event on weak/unknown data.
+2. tests/test_combat_on_foot.py covers disabled/unknown without fixture/source, grounded state if fixture exists, and no settlement/Frontline fields.
+3. tests/test_phase4_combat_integration.py covers target, interdiction, PvP if present, rewards, rank if present, munitions if present, CZ if present, AX/on-foot only if present, and reset behavior if fixture exists.
+
+VERIFICATION COMMANDS
+
+  ruff check omnicovas/
+  mypy omnicovas/
+  pytest tests/test_combat_ax.py tests/test_combat_on_foot.py tests/test_phase4_combat_integration.py
+  pytest
+  npm run tauri build
+
+ESCALATE IF
+
+  - Full replay fixtures are missing for required Phase 4 features.
+  - AX or on-foot support is requested but fixtures are missing.
+  - Updating README would claim completion before tests pass.
+  - Any attached Week 15-19 feature file is missing.
+  - Any test fails after the requested edits.
+
+END OF PLAYBOOK
