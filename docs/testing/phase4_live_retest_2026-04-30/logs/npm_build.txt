@@ -1,0 +1,32 @@
+
+> build
+> tauri build
+
+        Info Looking up installed tauri packages to check mismatched versions...
+warning: structure field `httpBase` should have a snake case name
+  --> src\lib.rs:14:3
+   |
+14 |   httpBase: String,
+   |   ^^^^^^^^ help: convert the identifier to snake case: `http_base`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: structure field `wsBase` should have a snake case name
+  --> src\lib.rs:15:3
+   |
+15 |   wsBase: String,
+   |   ^^^^^^ help: convert the identifier to snake case: `ws_base`
+
+warning: `omnicovas` (lib) generated 2 warnings
+    Finished `release` profile [optimized] target(s) in 7.76s
+       Built application at: C:\Projects\OmniCOVAS\src-tauri\target\release\omnicovas.exe
+        Info Patching C:\Projects\OmniCOVAS\src-tauri\target\release\omnicovas.exe with bundle type information: msi
+        Info Target: x64
+     Running candle for "C:\\Projects\\OmniCOVAS\\src-tauri\\target\\release\\wix\\x64\\main.wxs"
+     Running light to produce C:\Projects\OmniCOVAS\src-tauri\target\release\bundle\msi\OmniCOVAS_0.1.0_x64_en-US.msi
+        Info Patching C:\Projects\OmniCOVAS\src-tauri\target\release\omnicovas.exe with bundle type information: nsis
+        Info Target: x64
+     Running makensis to produce C:\Projects\OmniCOVAS\src-tauri\target\release\bundle\nsis\OmniCOVAS_0.1.0_x64-setup.exe
+    Finished 2 bundles at:
+        C:\Projects\OmniCOVAS\src-tauri\target\release\bundle\msi\OmniCOVAS_0.1.0_x64_en-US.msi
+        C:\Projects\OmniCOVAS\src-tauri\target\release\bundle\nsis\OmniCOVAS_0.1.0_x64-setup.exe

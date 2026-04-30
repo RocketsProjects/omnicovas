@@ -1,0 +1,10 @@
+946e0d1 chore: reset Phase 4 retest evidence folder
+51b71fd chore: reset Phase 4 retest evidence folder
+224ba40 docs: add internal Soldier alignment guide
+159e1bc fix: repair live journal selection and telemetry contracts
+c7039bc test: add pre-Phase 4 verification evidence
+c7f44b3 docs: update AI workflow and Phase 4 planning files
+61ade76 fix: implement Phase 3.1 overlay runtime repairs
+a2573c0 docs: correct Phase 3.1 deferred overlay status
+ba11d72 chore: align pre-commit mypy with project environment
+2ada2be chore(repo): clean root structure and organize internal docs

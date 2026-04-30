@@ -1,0 +1,16 @@
+warning: structure field `httpBase` should have a snake case name
+  --> src\lib.rs:14:3
+   |
+14 |   httpBase: String,
+   |   ^^^^^^^^ help: convert the identifier to snake case: `http_base`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: structure field `wsBase` should have a snake case name
+  --> src\lib.rs:15:3
+   |
+15 |   wsBase: String,
+   |   ^^^^^^ help: convert the identifier to snake case: `ws_base`
+
+warning: `omnicovas` (lib) generated 2 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.59s

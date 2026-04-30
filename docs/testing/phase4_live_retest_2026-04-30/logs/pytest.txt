@@ -1,0 +1,45 @@
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-9.0.3, pluggy-1.6.0
+rootdir: C:\Projects\OmniCOVAS
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.13.0, asyncio-1.3.0, stub-1.1.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 328 items
+
+tests\test_ai_providers.py ............                                  [  3%]
+tests\test_api_pillar1.py .......................                        [ 10%]
+tests\test_broadcaster.py .......                                        [ 12%]
+tests\test_cargo.py ......                                               [ 14%]
+tests\test_config_vault.py ........                                      [ 17%]
+tests\test_confirmation_gate.py ...........                              [ 20%]
+tests\test_critical_broadcaster.py .....                                 [ 21%]
+tests\test_dispatcher.py ......                                          [ 23%]
+tests\test_extended_broadcaster.py .......                               [ 25%]
+tests\test_fuel.py ..............                                        [ 30%]
+tests\test_heat_management.py .........                                  [ 32%]
+tests\test_hull_triggers.py .......                                      [ 35%]
+tests\test_journal_watcher.py ......                                     [ 36%]
+tests\test_knowledge_base.py ............                                [ 40%]
+tests\test_latency_budgets.py ............                               [ 44%]
+tests\test_live_ship_state.py ..................                         [ 49%]
+tests\test_loadout_awareness.py ......                                   [ 51%]
+tests\test_logging_and_resources.py ..........                           [ 54%]
+tests\test_migrations.py ss                                              [ 55%]
+tests\test_module_health.py .....                                        [ 56%]
+tests\test_overlay_integration.py ...........................            [ 64%]
+tests\test_phase2_integration.py .....                                   [ 66%]
+tests\test_placeholder.py .                                              [ 66%]
+tests\test_power_distribution.py ......                                  [ 68%]
+tests\test_rebuy.py ...........                                          [ 71%]
+tests\test_recorder.py ......                                            [ 73%]
+tests\test_state_contract.py .........                                   [ 76%]
+tests\test_state_manager.py ...............................              [ 85%]
+tests\test_status_reader.py .............                                [ 89%]
+tests\test_tauri_autoconnect_bridge.py ...                               [ 90%]
+tests\test_tauri_cargo_contract.py .                                     [ 91%]
+tests\test_tauri_config_contract.py ..                                   [ 91%]
+tests\test_ui_shell_autoconnect_contract.py ....                         [ 92%]
+tests\test_week13_endpoints.py .......................                   [100%]
+
+======================= 326 passed, 2 skipped in 5.12s ========================

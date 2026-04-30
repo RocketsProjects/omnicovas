@@ -1,0 +1,21 @@
+﻿
+docs\testing\phase4_live_retest_2026-04-30\logs\tauri_dev_live_journal_check.txt:58:Journal selected:
+Journal.2026-04-30T110541.01.log (method: filename_timestamp)
+docs\testing\phase4_live_retest_2026-04-30\logs\tauri_dev_live_journal_check.txt:59:Started DB session
+id=22 for Journal.2026-04-30T110541.01.log
+docs\testing\phase4_live_retest_2026-04-30\logs\tauri_dev_live_journal_check.txt:60:Journal selected:
+Journal.2026-04-30T110541.01.log (method: filename_timestamp)
+docs\testing\phase4_live_retest_2026-04-30\logs\tauri_dev_live_journal_check.txt:61:Starting journal
+watcher for: Journal.2026-04-30T110541.01.log
+docs\testing\phase4_live_retest_2026-04-30\logs\tauri_dev_live_journal_check.txt:62:Catch-up reading
+journal: Journal.2026-04-30T110541.01.log
+docs\testing\phase4_live_retest_2026-04-30\logs\tauri_dev_live_journal_check.txt:136:Catch-up
+complete: 572 events from Journal.2026-04-30T110541.01.log
+docs\testing\phase4_live_retest_2026-04-30\logs\tauri_dev_live_journal_check.txt:138:StatusReader
+started.
+docs\testing\phase4_live_retest_2026-04-30\logs\tauri_dev_live_journal_check.txt:141:ApiBridge ready
+at http://127.0.0.1:63642
+docs\testing\phase4_live_retest_2026-04-30\logs\tauri_dev_live_journal_check.txt:164:WebSocket client
+connected (1 total)
+docs\testing\phase4_live_retest_2026-04-30\logs\tauri_dev_live_journal_check.txt:165:WebSocket client
+connected (2 total)
