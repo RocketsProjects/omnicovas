@@ -440,3 +440,55 @@ class TestModulesSummary:
         assert data["ok"] == 0
         assert data["warning"] == 0
         assert data["critical"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Pips Stability (Phase 3.1.3 Repair)
+# ---------------------------------------------------------------------------
+
+
+class TestPipsStability:
+    def test_wep_zero_is_not_null(self) -> None:
+        """WEP=0 must be returned as 0, not null."""
+        state = StateManager()
+        ts = "2026-04-30T12:00:00Z"
+        state.update_field("sys_pips", 8, TelemetrySource.STATUS_JSON, ts)
+        state.update_field("eng_pips", 4, TelemetrySource.STATUS_JSON, ts)
+        state.update_field("wep_pips", 0, TelemetrySource.STATUS_JSON, ts)
+        client = make_app(state)
+
+        data = client.get("/pillar1/pips").json()
+        assert data["sys"] == 8
+        assert data["eng"] == 4
+        assert data["wep"] == 0
+
+    def test_missing_pips_does_not_clear_state(self) -> None:
+        """If handle_status receives missing Pips, state must NOT be cleared."""
+        from omnicovas.core.handlers import make_handlers
+
+        state = StateManager()
+        ts1 = "2026-04-30T12:00:00Z"
+        state.update_field("sys_pips", 4, TelemetrySource.STATUS_JSON, ts1)
+        state.update_field("eng_pips", 4, TelemetrySource.STATUS_JSON, ts1)
+        state.update_field("wep_pips", 4, TelemetrySource.STATUS_JSON, ts1)
+
+        handlers = make_handlers(state)
+        handle_status = handlers["Status"]
+
+        # Status event with NO pips
+        ts2 = "2026-04-30T12:05:00Z"
+        status_event = {
+            "timestamp": ts2,
+            "event": "Status",
+            "Flags": 0,
+            # Pips missing
+        }
+
+        import asyncio
+
+        asyncio.run(handle_status(status_event))
+
+        # Pips should remain 4, 4, 4
+        assert state.snapshot.sys_pips == 4
+        assert state.snapshot.eng_pips == 4
+        assert state.snapshot.wep_pips == 4

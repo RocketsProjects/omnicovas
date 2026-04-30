@@ -167,3 +167,23 @@ async def test_pips_changed_broadcasts_correct_values(
     assert payload["sys"] == 8
     assert payload["eng"] == 2
     assert payload["wep"] == 2
+
+
+async def test_zero_wep_publishes_correctly(
+    broadcaster: ShipStateBroadcaster,
+    prev_holder: dict[str, tuple[int, int, int] | None],
+    captured: list[ShipStateEvent],
+    _capture: None,
+) -> None:
+    """WEP=0 is a valid state and must trigger broadcast if changed."""
+    prev_holder["value"] = (4, 4, 4)
+    broadcaster.subscribe(PIPS_CHANGED, _capture)
+    await asyncio.sleep(0)
+
+    # 8-4-0 is a common combat state
+    event = {"Pips": [8, 4, 0]}
+    await handle_status_pips(event, broadcaster, prev_holder)
+    await asyncio.sleep(0)
+
+    assert len(captured) == 1
+    assert captured[0].payload == {"sys": 8, "eng": 4, "wep": 0}

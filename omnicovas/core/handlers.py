@@ -176,6 +176,7 @@ def make_handlers(
         )
 
         # Pips: [SYS, ENG, WEP] list. Absent when on-foot (Odyssey).
+        # Only update if present and valid (Law 5 — Zero Hallucination).
         if isinstance(pips, list) and len(pips) == 3:
             state.update_field(
                 "sys_pips", int(pips[0]), TelemetrySource.STATUS_JSON, ts
