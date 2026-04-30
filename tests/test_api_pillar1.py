@@ -348,6 +348,23 @@ class TestHeat:
         assert data["state"] is None
         assert isinstance(data["samples"], list)
 
+    def test_heat_specific_values(self) -> None:
+        """Verify level and level_pct for specific values 0.21 and 1.30."""
+        state = StateManager()
+        client = make_app(state)
+
+        # Test 0.21
+        state.update_field("heat_level", 0.21, TelemetrySource.STATUS_JSON)
+        data = client.get("/pillar1/heat").json()
+        assert data["level"] == pytest.approx(0.21)
+        assert data["level_pct"] == 21.0
+
+        # Test 1.30
+        state.update_field("heat_level", 1.30, TelemetrySource.STATUS_JSON)
+        data = client.get("/pillar1/heat").json()
+        assert data["level"] == pytest.approx(1.30)
+        assert data["level_pct"] == 130.0
+
 
 # ---------------------------------------------------------------------------
 # /pillar1/pips

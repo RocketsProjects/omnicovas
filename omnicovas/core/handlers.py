@@ -135,7 +135,6 @@ def make_handlers(
         Journal events use fuel_capacity_main, Status.json uses the same.
         """
         flags = event.get("Flags", 0)
-        heat = event.get("Heat", 0.0)
         fuel: dict[str, Any] = event.get("Fuel", {})
         fuel_main = float(fuel.get("FuelMain", 0.0))
         fuel_reservoir = float(fuel.get("FuelReservoir", 0.0))
@@ -152,7 +151,14 @@ def make_handlers(
             TelemetrySource.STATUS_JSON,
             ts,
         )
-        state.update_field("heat_level", float(heat), TelemetrySource.STATUS_JSON, ts)
+
+        # Heat is 0.0-1.0+ from Status.json.
+        # Only update if present in event (Law 5 — Zero Hallucination).
+        heat = event.get("Heat")
+        if heat is not None:
+            state.update_field(
+                "heat_level", float(heat), TelemetrySource.STATUS_JSON, ts
+            )
 
         # Flags bit 3 is "Shields Up"
         SHIELDS_UP = 1 << 3

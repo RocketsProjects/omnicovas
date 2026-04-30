@@ -180,3 +180,58 @@ async def test_heat_above_100_pct_written_to_state_manager(heat_test_setup) -> N
     await asyncio.sleep(0)
 
     assert state.snapshot.heat_level == pytest.approx(1.5)
+
+
+async def test_heat_propagation_specific_values(heat_test_setup) -> None:
+    """
+    Verify specific values from playbook: 0.21 and 1.30.
+    """
+    state, broadcaster, heat_buffer, prev_holder, _ = heat_test_setup
+
+    # Test 0.21
+    await handle_status_heat(
+        {"Heat": 0.21}, state, broadcaster, heat_buffer, prev_holder
+    )
+    await asyncio.sleep(0)
+    assert state.snapshot.heat_level == pytest.approx(0.21)
+
+    # Test 1.30
+    await handle_status_heat(
+        {"Heat": 1.30}, state, broadcaster, heat_buffer, prev_holder
+    )
+    await asyncio.sleep(0)
+    assert state.snapshot.heat_level == pytest.approx(1.30)
+
+
+async def test_handlers_status_no_heat_preserves_state(heat_test_setup) -> None:
+    """
+    The main Status handler in handlers.py must not reset heat_level to 0.0
+    if the Heat key is missing from the event.
+    """
+    from omnicovas.core.handlers import make_handlers
+    from omnicovas.core.state_manager import TelemetrySource
+
+    state, broadcaster, _, _, _ = heat_test_setup
+    ts = "2026-04-30T12:00:00Z"
+
+    # Set initial heat
+    state.update_field("heat_level", 0.45, TelemetrySource.STATUS_JSON, ts)
+    assert state.snapshot.heat_level == 0.45
+
+    # Run the core Status handler with an event MISSING Heat
+    handlers = make_handlers(state, broadcaster)
+    status_handler = handlers["Status"]
+
+    event = {
+        "event": "Status",
+        "timestamp": ts,
+        "Flags": 0,
+        "Fuel": {"FuelMain": 16.0, "FuelReservoir": 0.5},
+        "Pips": [4, 4, 4],
+    }
+
+    await status_handler(event)
+    await asyncio.sleep(0)
+
+    # Verification: heat_level should still be 0.45, NOT 0.0
+    assert state.snapshot.heat_level == 0.45, "Heat was reset to 0.0 by handlers.py!"
