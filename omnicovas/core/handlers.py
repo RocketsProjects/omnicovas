@@ -132,25 +132,28 @@ def make_handlers(
         """Handle Status -- synthetic event from Status.json poll.
 
         Status.json provides fuel data mapped to our dual-field structure.
-        Journal events use fuel_capacity_main, Status.json uses the same.
         """
         flags = event.get("Flags", 0)
-        fuel: dict[str, Any] = event.get("Fuel", {})
-        fuel_main = float(fuel.get("FuelMain", 0.0))
-        fuel_reservoir = float(fuel.get("FuelReservoir", 0.0))
+        fuel: dict[str, Any] | None = event.get("Fuel")
         pips = event.get("Pips")
         ts = event.get("timestamp")
 
-        # Status.json is lower priority than journal
-        state.update_field(
-            "fuel_capacity_main", float(fuel_main), TelemetrySource.STATUS_JSON, ts
-        )
-        state.update_field(
-            "fuel_capacity_reserve",
-            float(fuel_reservoir),
-            TelemetrySource.STATUS_JSON,
-            ts,
-        )
+        # Fuel: only update if Fuel object is present (Law 5 — Zero Hallucination)
+        if fuel is not None:
+            fuel_main = fuel.get("FuelMain")
+            fuel_reservoir = fuel.get("FuelReservoir")
+
+            if fuel_main is not None:
+                state.update_field(
+                    "fuel_main", float(fuel_main), TelemetrySource.STATUS_JSON, ts
+                )
+            if fuel_reservoir is not None:
+                state.update_field(
+                    "fuel_reservoir",
+                    float(fuel_reservoir),
+                    TelemetrySource.STATUS_JSON,
+                    ts,
+                )
 
         # Heat is 0.0-1.0+ from Status.json.
         # Only update if present in event (Law 5 — Zero Hallucination).
@@ -186,10 +189,10 @@ def make_handlers(
 
         sub_events = event.get("SubEvents", [])
         logger.debug(
-            "[STATE] Status -> flags=0x%x heat=%.2f fuel=%.1f subs=%s",
+            "[STATE] Status -> flags=0x%x heat=%s fuel=%s subs=%s",
             flags,
             heat,
-            fuel_main,
+            state.snapshot.fuel_main,
             sub_events,
         )
 

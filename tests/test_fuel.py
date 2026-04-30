@@ -24,6 +24,7 @@ import pytest
 
 from omnicovas.core.broadcaster import ShipStateBroadcaster, ShipStateEvent
 from omnicovas.core.event_types import FUEL_CRITICAL, FUEL_LOW
+from omnicovas.core.handlers import make_handlers
 from omnicovas.core.state_manager import StateManager, TelemetrySource
 from omnicovas.features.fuel import (
     handle_fuel_scoop,
@@ -357,3 +358,57 @@ async def test_start_jump_does_not_update_fuel(
     await handle_start_jump(event, state, broadcaster)
 
     assert state.snapshot.fuel_main == pytest.approx(16.0)  # unchanged
+
+
+# ---------------------------------------------------------------------------
+# Status Updates (from core/handlers.py)
+# ---------------------------------------------------------------------------
+
+
+async def test_status_updates_fuel_main_and_reservoir(state: StateManager) -> None:
+    """Status update must update fuel_main and fuel_reservoir, NOT capacity."""
+    handlers = make_handlers(state)
+    handle_status = handlers["Status"]
+
+    status_event = {
+        "timestamp": "2026-04-30T12:00:00Z",
+        "event": "Status",
+        "Flags": 0,
+        "Fuel": {
+            "FuelMain": 19.2,
+            "FuelReservoir": 0.45,
+        },
+    }
+
+    # Set initial capacity via Journal
+    state.update_field("fuel_capacity_main", 32.0, TelemetrySource.JOURNAL)
+
+    await handle_status(status_event)
+
+    # Current fuel should be updated
+    assert state.snapshot.fuel_main == pytest.approx(19.2)
+    assert state.snapshot.fuel_reservoir == pytest.approx(0.45)
+
+    # Capacity should remain unchanged (not overwritten by Status)
+    assert state.snapshot.fuel_capacity_main == 32.0
+
+
+async def test_status_omitting_fuel_does_not_reset_to_zero(state: StateManager) -> None:
+    """If Status omits Fuel object, fuel_main must NOT be reset to 0.0."""
+    handlers = make_handlers(state)
+    handle_status = handlers["Status"]
+
+    # Initial state
+    state.update_field("fuel_main", 19.2, TelemetrySource.STATUS_JSON)
+
+    status_event = {
+        "timestamp": "2026-04-30T12:05:00Z",
+        "event": "Status",
+        "Flags": 0,
+        # Fuel missing
+    }
+
+    await handle_status(status_event)
+
+    # Should remain 19.2, not 0.0
+    assert state.snapshot.fuel_main == pytest.approx(19.2)
