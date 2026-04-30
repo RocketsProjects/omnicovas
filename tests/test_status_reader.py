@@ -333,3 +333,195 @@ async def test_shield_down_sub_event_from_transition(tmp_path: Path) -> None:
 
     sub_event_names = [e.get("event") for e in dispatched]
     assert "ShieldDown" in sub_event_names
+
+
+@pytest.mark.asyncio
+async def test_heat_value_transition_dispatch(tmp_path: Path) -> None:
+    """
+    Verify Heat changes from 0.21 to 1.30 are dispatched correctly.
+    """
+    status_file = tmp_path / "Status.json"
+    dispatched: list[dict[str, Any]] = []
+
+    async def capture(line: str) -> None:
+        dispatched.append(json.loads(line))
+
+    reader = StatusReader(dispatch_fn=capture, status_path=status_file)
+
+    # Initial state
+    _write_status(
+        status_file,
+        {
+            "timestamp": "2026-04-30T12:00:00Z",
+            "Heat": 0.21,
+            "Flags": 0,
+            "Pips": [4, 4, 4],
+        },
+    )
+    await reader._poll_once()
+    assert dispatched[-1]["Heat"] == 0.21
+
+    # Transition to 1.30
+    _write_status(
+        status_file,
+        {
+            "timestamp": "2026-04-30T12:00:01Z",
+            "Heat": 1.30,
+            "Flags": 0,
+            "Pips": [4, 4, 4],
+        },
+    )
+    await reader._poll_once()
+    # HeatWarning might be dispatched after Status
+    status_events = [e for e in dispatched if e.get("event") == "Status"]
+    assert status_events[-1]["Heat"] == 1.30
+
+
+@pytest.mark.asyncio
+async def test_fuel_partial_usage_dispatch(tmp_path: Path) -> None:
+    """
+    Verify Fuel changes from full (32.0) to partial (16.0) are dispatched correctly.
+    """
+    status_file = tmp_path / "Status.json"
+    dispatched: list[dict[str, Any]] = []
+
+    async def capture(line: str) -> None:
+        dispatched.append(json.loads(line))
+
+    reader = StatusReader(dispatch_fn=capture, status_path=status_file)
+
+    # Full fuel
+    _write_status(
+        status_file,
+        {
+            "timestamp": "2026-04-30T12:05:00Z",
+            "Fuel": {"FuelMain": 32.0, "FuelReservoir": 0.5},
+            "Flags": 0,
+        },
+    )
+    await reader._poll_once()
+    status_events = [e for e in dispatched if e.get("event") == "Status"]
+    assert status_events[-1]["Fuel"]["FuelMain"] == 32.0
+
+    # Partial fuel
+    _write_status(
+        status_file,
+        {
+            "timestamp": "2026-04-30T12:05:10Z",
+            "Fuel": {"FuelMain": 16.0, "FuelReservoir": 0.5},
+            "Flags": 0,
+        },
+    )
+    await reader._poll_once()
+    status_events = [e for e in dispatched if e.get("event") == "Status"]
+    assert status_events[-1]["Fuel"]["FuelMain"] == 16.0
+
+
+@pytest.mark.asyncio
+async def test_pips_transition_dispatch(tmp_path: Path) -> None:
+    """
+    Verify transition between two valid pip distributions, including WEP 0.
+    """
+    status_file = tmp_path / "Status.json"
+    dispatched: list[dict[str, Any]] = []
+
+    async def capture(line: str) -> None:
+        dispatched.append(json.loads(line))
+
+    reader = StatusReader(dispatch_fn=capture, status_path=status_file)
+
+    # Pips 2/2/2 (represented as 4/4/4 in half-pips)
+    _write_status(
+        status_file,
+        {"timestamp": "2026-04-30T12:10:00Z", "Pips": [4, 4, 4], "Flags": 0},
+    )
+    await reader._poll_once()
+    status_events = [e for e in dispatched if e.get("event") == "Status"]
+    assert status_events[-1]["Pips"] == [4, 4, 4]
+
+    # Pips 4/4/0 (represented as 8/8/0) - WEP 0
+    _write_status(
+        status_file,
+        {"timestamp": "2026-04-30T12:10:05Z", "Pips": [8, 8, 0], "Flags": 0},
+    )
+    await reader._poll_once()
+    status_events = [e for e in dispatched if e.get("event") == "Status"]
+    assert status_events[-1]["Pips"] == [8, 8, 0]
+
+
+@pytest.mark.asyncio
+async def test_missing_pips_handling(tmp_path: Path) -> None:
+    """
+    Verify how missing Pips field is handled.
+    If Pips is missing, it should be OMITTED from the event
+    to prevent clearing previous valid ship pips.
+    """
+    status_file = tmp_path / "Status.json"
+    dispatched: list[dict[str, Any]] = []
+
+    async def capture(line: str) -> None:
+        dispatched.append(json.loads(line))
+
+    reader = StatusReader(dispatch_fn=capture, status_path=status_file)
+
+    # Status without Pips
+    _write_status(
+        status_file,
+        {"timestamp": "2026-04-30T12:15:00Z", "Flags": 0},
+    )
+    await reader._poll_once()
+    assert "Pips" not in dispatched[-1]
+
+
+@pytest.mark.asyncio
+async def test_fuel_heat_omitted_if_missing(tmp_path: Path) -> None:
+    """
+    Verify that Fuel and Heat are omitted from the Status event if missing
+    in Status.json, preventing override with default 0.0 values.
+    """
+    status_file = tmp_path / "Status.json"
+    dispatched: list[dict[str, Any]] = []
+
+    async def capture(line: str) -> None:
+        dispatched.append(json.loads(line))
+
+    reader = StatusReader(dispatch_fn=capture, status_path=status_file)
+
+    _write_status(
+        status_file,
+        {"timestamp": "2026-04-30T12:17:00Z", "Flags": 0},
+    )
+    await reader._poll_once()
+    assert "Fuel" not in dispatched[-1]
+    assert "Heat" not in dispatched[-1]
+
+
+@pytest.mark.asyncio
+async def test_partial_write_recovery(tmp_path: Path) -> None:
+    """
+    Verify that a partial/invalid JSON write does not crash the reader
+    and it recovers when the file becomes valid again.
+    """
+    status_file = tmp_path / "Status.json"
+    dispatched: list[dict[str, Any]] = []
+
+    async def capture(line: str) -> None:
+        dispatched.append(json.loads(line))
+
+    reader = StatusReader(dispatch_fn=capture, status_path=status_file)
+
+    # 1. Valid write
+    _write_status(status_file, {"timestamp": "T1", "Heat": 0.2})
+    await reader._poll_once()
+    assert len(dispatched) == 1
+
+    # 2. Invalid/Partial write (invalid JSON)
+    status_file.write_text('{"timestamp": "T2", "Heat": ', encoding="utf-8")
+    await reader._poll_once()  # Should not raise
+    assert len(dispatched) == 1  # No new event
+
+    # 3. Recover with valid write
+    _write_status(status_file, {"timestamp": "T3", "Heat": 0.5})
+    await reader._poll_once()
+    assert len(dispatched) == 2
+    assert dispatched[-1]["Heat"] == 0.5

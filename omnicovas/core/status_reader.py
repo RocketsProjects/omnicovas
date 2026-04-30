@@ -181,15 +181,24 @@ class StatusReader:
         sub_events = self._detect_sub_events(self._last_state, new_state)
 
         # Build the synthetic Status event
-        status_event = {
+        status_event: dict[str, Any] = {
             "event": "Status",
             "timestamp": timestamp,
             "Flags": new_state.get("Flags", 0),
-            "Pips": new_state.get("Pips", []),
-            "Fuel": new_state.get("Fuel", {}),
-            "Heat": new_state.get("Heat", 0.0),
             "SubEvents": sub_events,
         }
+
+        # Law 7 (Telemetry Rigidity): Only include fields present in Status.json.
+        # This prevents defaulting (e.g. 0.0 heat or empty pips) from overriding
+        # valid state if Status.json happens to omit a field during a transition.
+        if "Pips" in new_state:
+            status_event["Pips"] = new_state["Pips"]
+
+        if "Fuel" in new_state:
+            status_event["Fuel"] = new_state["Fuel"]
+
+        if "Heat" in new_state:
+            status_event["Heat"] = new_state["Heat"]
 
         # Dispatch the main Status event
         await self._dispatch_fn(json.dumps(status_event))
