@@ -356,11 +356,21 @@ async function loadDashboard() {
   if (rebuy) renderRebuy(rebuy);
 }
 
-function scheduleDashboardLoad(attempts = 10) {
+let shipRefreshTimer = null;
+function requestShipStateRefresh(reason) {
+  if (shipRefreshTimer) return;
+  console.log(`Dashboard: scheduling refresh, reason: ${reason}`);
+  shipRefreshTimer = setTimeout(() => {
+    refreshShipState();
+    shipRefreshTimer = null;
+  }, 250);
+}
+
+function scheduleDashboardLoad(attempts = 20) {
   if (window.OMNICOVAS_PORT) {
     loadDashboard();
   } else if (attempts > 0) {
-    setTimeout(() => scheduleDashboardLoad(attempts - 1), 500);
+    setTimeout(() => scheduleDashboardLoad(attempts - 1), 1000);
   } else {
     console.warn('Dashboard: Bridge not ready after multiple retries.');
   }
@@ -370,39 +380,40 @@ function scheduleDashboardLoad(attempts = 10) {
    WebSocket event handlers
 ───────────────────────────────────────────── */
 function onStateUpdate(state) {
-  refreshShipState();
+  requestShipStateRefresh('state_update');
 }
 
 function onEvent(msg) {
   const { event_type, payload } = msg;
-  if (!payload) return;
+  // Handle case where payload might be missing or event is raw Status
+  const type = event_type || msg.event;
 
-  switch (event_type) {
+  switch (type) {
     case 'SHIP_STATE_CHANGED':
     case 'LOADOUT_CHANGED':
       loadDashboard();
       break;
 
+    case 'Status':
     case 'HULL_DAMAGE':
-      refreshShipState();
-      break;
-
+    case 'HullDamage':
     case 'HULL_CRITICAL_25':
     case 'HULL_CRITICAL_10':
-      setCardState('card-hull', 'critical');
+      requestShipStateRefresh(type);
       break;
 
     case 'SHIELDS_DOWN':
-      refreshShipState();
-      break;
-
+    case 'ShieldsDown':
+    case 'ShieldDown':
     case 'SHIELDS_UP':
-      refreshShipState();
+    case 'ShieldsUp':
+    case 'ShieldUp':
+      requestShipStateRefresh(type);
       break;
 
     case 'FUEL_LOW':
     case 'FUEL_CRITICAL':
-      refreshShipState();
+      requestShipStateRefresh(type);
       break;
 
     case 'HEAT_WARNING':
@@ -412,7 +423,9 @@ function onEvent(msg) {
       break;
 
     case 'PIPS_CHANGED':
+    case 'PipsChanged':
       refreshPips();
+      requestShipStateRefresh(type);
       break;
 
     case 'CARGO_CHANGED':
@@ -435,9 +448,12 @@ function onEvent(msg) {
       break;
 
     case 'FSD_JUMP':
+    case 'FSDJump':
     case 'DOCKED':
+    case 'Docked':
     case 'UNDOCKED':
-      refreshShipState();
+    case 'Undocked':
+      requestShipStateRefresh(type);
       break;
   }
 }
