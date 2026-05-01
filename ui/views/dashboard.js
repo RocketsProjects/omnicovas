@@ -311,9 +311,7 @@ function renderFullState(state) {
   renderFuel(state);
 }
 
-/* ─────────────────────────────────────────────
-   Fetch helpers
-───────────────────────────────────────────── */
+/* ── Fetch helpers ── */
 async function fetchJSON(path) {
   if (!window.OMNICOVAS_PORT) return null;
   try {
@@ -322,30 +320,57 @@ async function fetchJSON(path) {
   } catch { return null; }
 }
 
+async function refreshShipState() {
+  const s = await fetchJSON('/pillar1/ship-state');
+  if (s) {
+    window._lastShipState = s;
+    renderShipState(s);
+    renderHullShields(s);
+    renderFuel(s);
+    renderPips(s);
+  }
+  return s;
+}
+
+async function refreshPips() {
+  const p = await fetchJSON('/pillar1/pips');
+  if (!p) return false;
+  if (p.sys != null) renderPipsGroup('pips-sys', p.sys);
+  if (p.eng != null) renderPipsGroup('pips-eng', p.eng);
+  if (p.wep != null) renderPipsGroup('pips-wep', p.wep);
+  return true;
+}
+
 async function loadDashboard() {
   const [ship, cargo, heat, mods, rebuy] = await Promise.all([
-    fetchJSON('/pillar1/ship-state'),
+    refreshShipState(),
     fetchJSON('/pillar1/cargo'),
     fetchJSON('/pillar1/heat'),
     fetchJSON('/pillar1/modules/summary'),
     fetchJSON('/rebuy'),
   ]);
 
-  if (ship)  { renderShipState(ship); renderHullShields(ship); renderFuel(ship); renderPips(ship); }
   if (cargo) renderCargo(ship || {}, cargo.inventory);
   if (heat)  renderHeat(ship || {}, heat.trend, heat.samples);
   if (mods)  renderModules(mods);
   if (rebuy) renderRebuy(rebuy);
 }
 
+function scheduleDashboardLoad(attempts = 10) {
+  if (window.OMNICOVAS_PORT) {
+    loadDashboard();
+  } else if (attempts > 0) {
+    setTimeout(() => scheduleDashboardLoad(attempts - 1), 500);
+  } else {
+    console.warn('Dashboard: Bridge not ready after multiple retries.');
+  }
+}
+
 /* ─────────────────────────────────────────────
    WebSocket event handlers
 ───────────────────────────────────────────── */
 function onStateUpdate(state) {
-  renderShipState(state);
-  renderHullShields(state);
-  renderFuel(state);
-  renderPips(state);
+  refreshShipState();
 }
 
 function onEvent(msg) {
@@ -359,11 +384,7 @@ function onEvent(msg) {
       break;
 
     case 'HULL_DAMAGE':
-      renderHullShields({
-        hull_health: payload.hull_health != null ? payload.hull_health * 100 : null,
-        shield_up: window._lastShipState?.shield_up,
-        shield_strength_pct: window._lastShipState?.shield_strength_pct,
-      });
+      refreshShipState();
       break;
 
     case 'HULL_CRITICAL_25':
@@ -372,16 +393,16 @@ function onEvent(msg) {
       break;
 
     case 'SHIELDS_DOWN':
-      renderHullShields({ ...(window._lastShipState || {}), shield_up: false });
+      refreshShipState();
       break;
 
     case 'SHIELDS_UP':
-      renderHullShields({ ...(window._lastShipState || {}), shield_up: true });
+      refreshShipState();
       break;
 
     case 'FUEL_LOW':
     case 'FUEL_CRITICAL':
-      fetchJSON('/pillar1/ship-state').then(s => { if (s) renderFuel(s); });
+      refreshShipState();
       break;
 
     case 'HEAT_WARNING':
@@ -391,9 +412,7 @@ function onEvent(msg) {
       break;
 
     case 'PIPS_CHANGED':
-      renderPipsGroup('pips-sys', payload.sys_pips);
-      renderPipsGroup('pips-eng', payload.eng_pips);
-      renderPipsGroup('pips-wep', payload.wep_pips);
+      refreshPips();
       break;
 
     case 'CARGO_CHANGED':
@@ -418,7 +437,7 @@ function onEvent(msg) {
     case 'FSD_JUMP':
     case 'DOCKED':
     case 'UNDOCKED':
-      fetchJSON('/pillar1/ship-state').then(s => { if (s) renderShipState(s); });
+      refreshShipState();
       break;
   }
 }
@@ -427,7 +446,6 @@ function onEvent(msg) {
    Init
 ───────────────────────────────────────────── */
 window.OmniEvents.addEventListener('state', (ev) => {
-  window._lastShipState = ev.detail;
   onStateUpdate(ev.detail);
 });
 
@@ -440,5 +458,6 @@ window.addEventListener('hashchange', () => {
   if (window.location.hash === '#/dashboard' || !window.location.hash) loadDashboard();
 });
 
-// Initial load — wait a tick for shell.js to discover the port
-setTimeout(loadDashboard, 200);
+// Hydration listener
+window.OmniEvents.addEventListener('bridge-connected', loadDashboard);
+scheduleDashboardLoad();
