@@ -58,6 +58,9 @@ PIPS_CHANGED: Final[str] = "PIPS_CHANGED"
 
 # --- Heat management (Week 9 Part E — Tier 2) -------------------------------
 HEAT_WARNING: Final[str] = "HEAT_WARNING"
+# HEAT_DAMAGE maps to the real Elite journal HeatDamage event (distinct from
+# threshold-inferred HEAT_WARNING so the overlay can label it separately).
+HEAT_DAMAGE: Final[str] = "HEAT_DAMAGE"
 
 # --- Cargo (Week 8 — Cargo Monitoring) --------------------------------------
 CARGO_CHANGED: Final[str] = "CARGO_CHANGED"
@@ -91,6 +94,7 @@ ALL_EVENT_TYPES: Final[frozenset[str]] = frozenset(
         DESTROYED,
         PIPS_CHANGED,
         HEAT_WARNING,
+        HEAT_DAMAGE,
         CARGO_CHANGED,
         MODULE_DAMAGED,
         MODULE_CRITICAL,
@@ -107,5 +111,13 @@ CRITICAL_EVENT_TYPES: Final[frozenset[str]] = frozenset(
         FUEL_LOW,
         FUEL_CRITICAL,
         MODULE_CRITICAL,
+    }
+)
+
+# Heat-specific critical events (Phase 3.4 addition).
+HEAT_CRITICAL_EVENT_TYPES: Final[frozenset[str]] = frozenset(
+    {
+        HEAT_WARNING,
+        HEAT_DAMAGE,
     }
 )

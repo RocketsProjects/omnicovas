@@ -561,3 +561,41 @@ async def test_shield_down_handler_publishes_shields_down_broadcast() -> None:
     assert len(captured) == 1
     assert captured[0].event_type == SHIELDS_DOWN
     assert captured[0].payload["shields_down"] is True
+
+
+@pytest.mark.asyncio
+async def test_handle_status_restores_shield_up_after_journal_shields_down() -> None:
+    """Status handler must restore shield_up=True after journal ShieldsDown blocked it.
+
+    hull_triggers.handle_shields_down writes shield_up=False via JOURNAL source
+    (priority 1). Without the STATUS_JSON pass-through for shield_up, the next
+    Status.json poll cannot restore True. This test confirms the fix.
+    """
+    import asyncio
+
+    from omnicovas.core.broadcaster import ShipStateBroadcaster
+    from omnicovas.core.handlers import make_handlers
+    from omnicovas.core.state_manager import StateManager, TelemetrySource
+
+    state = StateManager()
+    broadcaster = ShipStateBroadcaster()
+    handlers = make_handlers(state, broadcaster)
+
+    # Simulate journal ShieldsDown having locked shield_up=False at JOURNAL priority
+    state.update_field(
+        "shield_up", False, TelemetrySource.JOURNAL, "2026-05-01T10:00:00Z"
+    )
+    assert state.snapshot.shield_up is False
+
+    # Simulate next Status.json poll with shields back up (Flags bit 3 set)
+    SHIELDS_UP_FLAG = 1 << 3
+    await handlers["Status"](
+        {
+            "event": "Status",
+            "timestamp": "2026-05-01T10:00:01Z",
+            "Flags": SHIELDS_UP_FLAG,
+        }
+    )
+    await asyncio.sleep(0)
+
+    assert state.snapshot.shield_up is True

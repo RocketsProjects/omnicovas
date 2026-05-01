@@ -164,7 +164,10 @@ function renderHullShields(s) {
   }
 
   const shieldPctEl = el('dash-shield-pct');
-  if (shieldPctEl) shieldPctEl.textContent = fmt.pct(s.shield_strength_pct);
+  if (shieldPctEl) {
+    shieldPctEl.textContent = s.shield_strength_pct != null ? fmt.pct(s.shield_strength_pct) : '—';
+    shieldPctEl.className = 'field-value' + (s.shield_strength_pct == null ? ' unknown' : '');
+  }
 }
 
 /* ─────────────────────────────────────────────
@@ -252,8 +255,8 @@ function renderHeat(heat) {
 
   const stateEl = el('dash-heat-state');
   if (stateEl) {
-    stateEl.textContent = state ? state.toUpperCase() : '';
-    stateEl.className = 'badge ' + (state === 'warning' ? 'warn' : (state === 'damage' ? 'critical' : ''));
+    stateEl.textContent = state ? state.toUpperCase() : 'NORMAL';
+    stateEl.className = 'badge ' + (state === 'warning' ? 'warn' : (state === 'damage' || state === 'critical' ? 'critical' : 'ok'));
   }
 
   drawSparkline(el('dash-heat-sparkline'), samples);
@@ -370,6 +373,8 @@ async function loadDashboard() {
 }
 
 let shipRefreshTimer = null;
+let heatTtlTimer = null;
+
 function requestShipStateRefresh(reason) {
   if (shipRefreshTimer) return;
   console.log(`Dashboard: scheduling refresh, reason: ${reason}`);
@@ -430,9 +435,17 @@ function onEvent(msg) {
       break;
 
     case 'HEAT_WARNING':
+    case 'HEAT_DAMAGE':
       fetchJSON('/pillar1/heat').then(h => {
         if (h) renderHeat(h);
       });
+      // Re-fetch after backend TTL + buffer (60s TTL + 7s) because no event
+      // is emitted when heat state expires; clears stale WARNING display.
+      if (heatTtlTimer) clearTimeout(heatTtlTimer);
+      heatTtlTimer = setTimeout(() => {
+        heatTtlTimer = null;
+        fetchJSON('/pillar1/heat').then(h => { if (h) renderHeat(h); });
+      }, 67000);
       break;
 
     case 'PIPS_CHANGED':

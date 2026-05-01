@@ -13,7 +13,7 @@ from collections import deque
 import pytest
 
 from omnicovas.core.broadcaster import ShipStateBroadcaster, ShipStateEvent
-from omnicovas.core.event_types import HEAT_WARNING
+from omnicovas.core.event_types import HEAT_DAMAGE, HEAT_WARNING
 from omnicovas.core.state_manager import StateManager, TelemetrySource
 from omnicovas.features.heat_management import (
     _compute_trend,
@@ -36,6 +36,7 @@ def heat_test_setup():
         captured.append(event)
 
     broadcaster.subscribe(HEAT_WARNING, _capture)
+    broadcaster.subscribe(HEAT_DAMAGE, _capture)
 
     return state, broadcaster, heat_buffer, prev_holder, captured
 
@@ -235,7 +236,7 @@ async def test_heat_warning_journal_sets_state(heat_test_setup) -> None:
 
 @pytest.mark.asyncio
 async def test_heat_damage_journal_sets_state(heat_test_setup) -> None:
-    """HeatDamage journal event sets heat_state = damage."""
+    """HeatDamage journal event sets heat_state = damage and publishes HEAT_DAMAGE."""
     state, broadcaster, _, _, captured = heat_test_setup
 
     event = {"timestamp": "2026-05-01T12:00:00Z"}
@@ -245,8 +246,35 @@ async def test_heat_damage_journal_sets_state(heat_test_setup) -> None:
     assert state.snapshot.heat_state == "damage"
     assert state.snapshot.heat_suggestion is not None
     assert len(captured) == 1
+    assert captured[0].event_type == HEAT_DAMAGE
     assert captured[0].payload["heat"] is None
     assert captured[0].payload["state"] == "damage"
+
+
+@pytest.mark.asyncio
+async def test_heat_damage_does_not_set_fake_heat_level(heat_test_setup) -> None:
+    """HeatDamage journal event must not set a fabricated numeric heat_level."""
+    state, broadcaster, _, _, _ = heat_test_setup
+
+    event = {"timestamp": "2026-05-01T12:00:00Z"}
+    await handle_heat_damage(event, state, broadcaster)
+
+    assert state.snapshot.heat_level is None
+
+
+@pytest.mark.asyncio
+async def test_heat_damage_publishes_heat_damage_not_heat_warning(
+    heat_test_setup,
+) -> None:
+    """HeatDamage must publish HEAT_DAMAGE event, not HEAT_WARNING."""
+    state, broadcaster, _, _, captured = heat_test_setup
+
+    event = {"timestamp": "2026-05-01T12:00:00Z"}
+    await handle_heat_damage(event, state, broadcaster)
+    await asyncio.sleep(0)
+
+    assert any(e.event_type == HEAT_DAMAGE for e in captured)
+    assert not any(e.event_type == HEAT_WARNING for e in captured)
 
 
 async def test_handlers_status_no_heat_preserves_state(heat_test_setup) -> None:

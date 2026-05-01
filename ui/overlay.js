@@ -56,6 +56,13 @@ const CRITICAL_EVENTS = {
     duration: 8000,
     priority: 7,
   },
+  HEAT_DAMAGE: {
+    icon: '🔥',
+    label: 'CRITICAL HEAT',
+    severity: 'critical',
+    duration: 15000,
+    priority: 3,
+  },
   OMNICOVAS_TEST: {
     icon: '⚙',
     label: 'OMNICOVAS TEST BANNER',
@@ -86,6 +93,7 @@ let overlaySettings = {
     MODULE_CRITICAL: true,
     FUEL_LOW: true,
     HEAT_WARNING: true,
+    HEAT_DAMAGE: true,
   },
 };
 

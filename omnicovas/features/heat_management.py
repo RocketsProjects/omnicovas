@@ -25,7 +25,7 @@ from collections import deque
 from typing import Any
 
 from omnicovas.core.broadcaster import ShipStateBroadcaster, ShipStateEvent
-from omnicovas.core.event_types import HEAT_WARNING
+from omnicovas.core.event_types import HEAT_DAMAGE, HEAT_WARNING
 from omnicovas.core.state_manager import StateManager, TelemetrySource
 
 logger = logging.getLogger(__name__)
@@ -163,15 +163,15 @@ async def handle_heat_warning(
 async def handle_heat_damage(
     event: dict[str, Any], state: StateManager, broadcaster: ShipStateBroadcaster
 ) -> None:
-    """Handle journal HeatDamage event."""
+    """Handle journal HeatDamage event — publishes HEAT_DAMAGE (not HEAT_WARNING)."""
     ts = event.get("timestamp")
     state.update_field("heat_state", "damage", TelemetrySource.JOURNAL, ts)
     state.update_field("heat_last_event_at", ts, TelemetrySource.JOURNAL, ts)
     state.update_field("heat_suggestion", _RULE_CRITICAL, TelemetrySource.JOURNAL, ts)
     await broadcaster.publish(
-        HEAT_WARNING,
+        HEAT_DAMAGE,
         ShipStateEvent.now(
-            HEAT_WARNING,
+            HEAT_DAMAGE,
             {"state": "damage", "heat": None, "suggestion": _RULE_CRITICAL},
             source="journal",
         ),

@@ -328,6 +328,39 @@ def test_phase2_hull_shield_additions_default_none() -> None:
     assert state.shield_strength_pct is None
 
 
+@pytest.mark.asyncio
+async def test_status_json_updates_shield_up_after_journal_set() -> None:
+    """STATUS_JSON must always update shield_up even after JOURNAL set it.
+
+    hull_triggers sets shield_up=False via JOURNAL on ShieldsDown. The next
+    Status.json poll (STATUS_JSON) must be able to restore shield_up=True
+    when the shields are back up. Without this pass-through, STATUS_JSON
+    would be permanently blocked by the prior JOURNAL write.
+    """
+    state = StateManager()
+
+    # Simulate journal ShieldsDown setting shield_up=False (JOURNAL priority)
+    accepted = state.update_field("shield_up", False, TelemetrySource.JOURNAL)
+    assert accepted is True
+    assert state.snapshot.shield_up is False
+
+    # Simulate next Status.json poll with shields back up (STATUS_JSON priority)
+    accepted = state.update_field("shield_up", True, TelemetrySource.STATUS_JSON)
+    assert accepted is True
+    assert state.snapshot.shield_up is True
+
+
+@pytest.mark.asyncio
+async def test_status_json_updates_shield_up_false_after_journal_set_true() -> None:
+    """STATUS_JSON can set shield_up=False even after JOURNAL set it True."""
+    state = StateManager()
+
+    state.update_field("shield_up", True, TelemetrySource.JOURNAL)
+    accepted = state.update_field("shield_up", False, TelemetrySource.STATUS_JSON)
+    assert accepted is True
+    assert state.snapshot.shield_up is False
+
+
 def test_phase2_fuel_fields_default_none() -> None:
     """fuel_reservoir and jump_range_ly must default to None."""
     state = SessionState()

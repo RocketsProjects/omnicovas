@@ -423,6 +423,7 @@ _OVERLAY_EVENT_DEFAULTS: dict[str, bool] = {
     "MODULE_CRITICAL": True,
     "FUEL_LOW": True,
     "HEAT_WARNING": True,
+    "HEAT_DAMAGE": True,
 }
 
 _VALID_ANCHORS = {"tl", "tr", "bl", "br", "center"}

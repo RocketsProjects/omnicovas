@@ -269,11 +269,14 @@ class StateManager:
             logger.warning("Rejected update to unknown field: %s", field_name)
             return False
 
-        # Phase 3.4 Patch: Allow STATUS_JSON to update fuel fields
-        # (continuous live updates) even if JOURNAL set base value.
+        # Phase 3.4 Patch: Allow STATUS_JSON to update continuously-polled fields
+        # (fuel and shield state) even if JOURNAL set a prior value.
+        # Status.json bit 3 is the live shield truth; a journal ShieldsDown event
+        # must not permanently block the next Status.json shield-up reading.
         is_fuel_update = source == TelemetrySource.STATUS_JSON and field_name in (
             "fuel_main",
             "fuel_reservoir",
+            "shield_up",
         )
 
         existing = self._state._field_sources.get(field_name)
