@@ -195,6 +195,12 @@ class SessionState:
     # 1.0 = 100% heat (damage threshold). Values above 1.0 are possible
     # during fuel scoop overheat. None until first Status read.
     heat_level: float | None = None
+    # Grounded heat state ("normal", "warning", "damage").
+    heat_state: str | None = None
+    # Timestamp of last heat warning/damage event.
+    heat_last_event_at: str | None = None
+    # Grounded heat suggestion.
+    heat_suggestion: str | None = None
 
     # --- Phase 2 -- Rebuy Calculator (Feature 11, Week 10) -----------------
     # hull_value: insured hull value in credits from Loadout.HullValue.

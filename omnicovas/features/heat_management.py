@@ -92,23 +92,7 @@ async def handle_status_heat(
     heat_buffer: deque[float],
     prev_holder: dict[str, float | None],
 ) -> None:
-    """Handle Status heat event — publish HEAT_WARNING on threshold crossing.
-
-    Journal fields:
-        Heat    -- 0.0-1.0+ float from Status.json
-
-    Behavior:
-        Only broadcasts HEAT_WARNING when heat crosses upward through
-        _HEAT_WARNING_FRACTION (0.80). Suggestion text includes current
-        heat level, trend, and KB-grounded rule.
-
-    Args:
-        event: Status event from Status.json poll
-        state: The shared StateManager instance
-        broadcaster: The shared ShipStateBroadcaster instance
-        heat_buffer: deque of last 10 heat readings for trend calculation
-        prev_holder: dict with "value" key holding previous heat or None
-    """
+    """Handle Status heat event — publish HEAT_WARNING on threshold crossing."""
     ts = event.get("timestamp")
     heat_raw = event.get("Heat")
 
@@ -156,6 +140,44 @@ async def handle_status_heat(
         )
 
 
+async def handle_heat_warning(
+    event: dict[str, Any], state: StateManager, broadcaster: ShipStateBroadcaster
+) -> None:
+    """Handle journal HeatWarning event."""
+    ts = event.get("timestamp")
+    state.update_field("heat_state", "warning", TelemetrySource.JOURNAL, ts)
+    state.update_field("heat_last_event_at", ts, TelemetrySource.JOURNAL, ts)
+    state.update_field(
+        "heat_suggestion", _RULE_HIGH_RISING, TelemetrySource.JOURNAL, ts
+    )
+    await broadcaster.publish(
+        HEAT_WARNING,
+        ShipStateEvent.now(
+            HEAT_WARNING,
+            {"state": "warning", "heat": None, "suggestion": _RULE_HIGH_RISING},
+            source="journal",
+        ),
+    )
+
+
+async def handle_heat_damage(
+    event: dict[str, Any], state: StateManager, broadcaster: ShipStateBroadcaster
+) -> None:
+    """Handle journal HeatDamage event."""
+    ts = event.get("timestamp")
+    state.update_field("heat_state", "damage", TelemetrySource.JOURNAL, ts)
+    state.update_field("heat_last_event_at", ts, TelemetrySource.JOURNAL, ts)
+    state.update_field("heat_suggestion", _RULE_CRITICAL, TelemetrySource.JOURNAL, ts)
+    await broadcaster.publish(
+        HEAT_WARNING,
+        ShipStateEvent.now(
+            HEAT_WARNING,
+            {"state": "damage", "heat": None, "suggestion": _RULE_CRITICAL},
+            source="journal",
+        ),
+    )
+
+
 # Module-level reference so pillar1.py can read trend + samples without
 # coupling to the dispatcher internals.
 _heat_buffer: deque[float] = deque(maxlen=10)
@@ -192,6 +214,14 @@ def register(
     async def _status_heat(event: dict[str, Any]) -> None:
         await handle_status_heat(event, state, broadcaster, _heat_buffer, _prev_holder)
 
-    dispatcher_register("Status", _status_heat)
+    async def _journal_heat_warning(event: dict[str, Any]) -> None:
+        await handle_heat_warning(event, state, broadcaster)
 
-    logger.info("Heat Management handler registered (Status)")
+    async def _journal_heat_damage(event: dict[str, Any]) -> None:
+        await handle_heat_damage(event, state, broadcaster)
+
+    dispatcher_register("Status", _status_heat)
+    dispatcher_register("HeatWarning", _journal_heat_warning)
+    dispatcher_register("HeatDamage", _journal_heat_damage)
+
+    logger.info("Heat Management handler registered (Status, HeatWarning, HeatDamage)")

@@ -14,8 +14,13 @@ import pytest
 
 from omnicovas.core.broadcaster import ShipStateBroadcaster, ShipStateEvent
 from omnicovas.core.event_types import HEAT_WARNING
-from omnicovas.core.state_manager import StateManager
-from omnicovas.features.heat_management import handle_status_heat
+from omnicovas.core.state_manager import StateManager, TelemetrySource
+from omnicovas.features.heat_management import (
+    _compute_trend,
+    handle_heat_damage,
+    handle_heat_warning,
+    handle_status_heat,
+)
 
 
 @pytest.fixture
@@ -66,8 +71,33 @@ async def test_heat_crosses_warning_threshold_fires_heat_warning(heat_test_setup
     assert captured[0].payload["heat"] == pytest.approx(0.85)
 
 
-async def test_critical_heat_uses_critical_suggestion(heat_test_setup):
-    """Critical heat (>0.95) uses critical suggestion text."""
+async def test_heat_contract_missing_status_does_not_fabricate_state(
+    heat_test_setup,
+) -> None:
+    """Missing Heat in Status must not fabricate heat or state.
+
+    Phase 3.4 truth: live Status.json captured at ~130% in-game heat did
+    not contain Heat. Empty / Heat-less Status events must leave heat_level
+    None and emit no warning broadcast.
+    """
+    state, broadcaster, heat_buffer, prev_holder, captured = heat_test_setup
+
+    await handle_status_heat({}, state, broadcaster, heat_buffer, prev_holder)
+
+    assert state.snapshot.heat_level is None
+    assert state.snapshot.heat_state is None
+    assert len(captured) == 0
+
+
+async def test_explicit_heat_critical_path_uses_critical_suggestion(
+    heat_test_setup,
+) -> None:
+    """Explicit Heat path: Heat>=0.95 still produces critical suggestion.
+
+    Phase 3.4 truth: live Status.json does not provide exact Heat. This
+    test exercises the synthetic / future-compatible explicit-Heat code
+    path -- it does not assert that live Elite supplies these values.
+    """
     state, broadcaster, heat_buffer, prev_holder, captured = heat_test_setup
     prev_holder["value"] = 0.60  # already below threshold
 
@@ -76,10 +106,7 @@ async def test_critical_heat_uses_critical_suggestion(heat_test_setup):
     )
     await asyncio.sleep(0)
     assert len(captured) == 1
-    assert (
-        "Critical" in captured[0].payload["suggestion"]
-        or "critical" in captured[0].payload["suggestion"]
-    )
+    assert "critical" in captured[0].payload["suggestion"].lower()
 
 
 async def test_no_repeat_broadcast_while_above_threshold(heat_test_setup):
@@ -116,8 +143,6 @@ async def test_trend_rising_detected(heat_test_setup):
     for r in readings:
         heat_buffer.append(r)
 
-    from omnicovas.features.heat_management import _compute_trend
-
     assert _compute_trend(heat_buffer) == "rising"
 
 
@@ -128,8 +153,6 @@ async def test_trend_falling_detected(heat_test_setup):
     readings = [0.90, 0.88, 0.86, 0.84, 0.82, 0.80, 0.78, 0.76, 0.74, 0.72]
     for r in readings:
         heat_buffer.append(r)
-
-    from omnicovas.features.heat_management import _compute_trend
 
     assert _compute_trend(heat_buffer) == "falling"
 
@@ -142,35 +165,32 @@ async def test_trend_steady_detected(heat_test_setup):
     for r in readings:
         heat_buffer.append(r)
 
-    from omnicovas.features.heat_management import _compute_trend
-
     assert _compute_trend(heat_buffer) == "steady"
 
 
-# ---------------------------------------------------------------------------
-# Phase 3.1.2 — StateManager field update verification
-# ---------------------------------------------------------------------------
+async def test_status_with_heat_updates_state(heat_test_setup) -> None:
+    """Explicit Heat path: Status event with exact Heat updates heat_level.
 
-
-async def test_heat_level_written_to_state_manager(heat_test_setup) -> None:
-    """
-    handle_status_heat must write the current heat value to StateManager.heat_level.
-    Verified as part of Phase 3.1.2 Status.json propagation audit.
+    Phase 3.4 truth: live Status.json does not provide exact Heat. This
+    test exercises the synthetic / future-compatible explicit-Heat path.
     """
     state, broadcaster, heat_buffer, prev_holder, _ = heat_test_setup
 
-    await handle_status_heat(
-        {"Heat": 0.50}, state, broadcaster, heat_buffer, prev_holder
-    )
-    await asyncio.sleep(0)
+    event = {"timestamp": "2026-05-01T12:00:00Z", "Heat": 0.5}
+    await handle_status_heat(event, state, broadcaster, heat_buffer, prev_holder)
 
-    assert state.snapshot.heat_level == pytest.approx(0.50)
+    assert state.snapshot.heat_level == 0.5
 
 
-async def test_heat_above_100_pct_written_to_state_manager(heat_test_setup) -> None:
-    """
-    Overheat values (Heat > 1.0) must also be written to StateManager.heat_level.
-    ED reports overheat during fuel-scoop or heat-sink depletion; values exceed 1.0.
+async def test_explicit_heat_overheat_path_propagates_to_state(
+    heat_test_setup,
+) -> None:
+    """Explicit Heat path: overheat values (Heat > 1.0) propagate to state.
+
+    ED reports overheat during fuel-scoop or heat-sink depletion as
+    fractions above 1.0. If a future / synthetic source supplies that
+    explicit Heat, heat_level must reflect it. This is not a claim that
+    live Status.json supplies these values today.
     """
     state, broadcaster, heat_buffer, prev_holder, _ = heat_test_setup
 
@@ -182,25 +202,51 @@ async def test_heat_above_100_pct_written_to_state_manager(heat_test_setup) -> N
     assert state.snapshot.heat_level == pytest.approx(1.5)
 
 
-async def test_heat_propagation_specific_values(heat_test_setup) -> None:
-    """
-    Verify specific values from playbook: 0.21 and 1.30.
-    """
+async def test_status_without_heat_does_not_update_state(heat_test_setup) -> None:
+    """Status event without Heat does not update state.heat_level."""
     state, broadcaster, heat_buffer, prev_holder, _ = heat_test_setup
 
-    # Test 0.21
-    await handle_status_heat(
-        {"Heat": 0.21}, state, broadcaster, heat_buffer, prev_holder
-    )
-    await asyncio.sleep(0)
-    assert state.snapshot.heat_level == pytest.approx(0.21)
+    # Initial set
+    state.update_field("heat_level", 0.4, TelemetrySource.STATUS_JSON)
 
-    # Test 1.30
-    await handle_status_heat(
-        {"Heat": 1.30}, state, broadcaster, heat_buffer, prev_holder
-    )
+    # Event without heat
+    event = {"timestamp": "2026-05-01T12:00:00Z"}
+    await handle_status_heat(event, state, broadcaster, heat_buffer, prev_holder)
+
+    assert state.snapshot.heat_level == 0.4
+    assert len(heat_buffer) == 0
+
+
+@pytest.mark.asyncio
+async def test_heat_warning_journal_sets_state(heat_test_setup) -> None:
+    """HeatWarning journal event sets heat_state = warning."""
+    state, broadcaster, _, _, captured = heat_test_setup
+
+    event = {"timestamp": "2026-05-01T12:00:00Z"}
+    await handle_heat_warning(event, state, broadcaster)
     await asyncio.sleep(0)
-    assert state.snapshot.heat_level == pytest.approx(1.30)
+
+    assert state.snapshot.heat_state == "warning"
+    assert state.snapshot.heat_suggestion is not None
+    assert len(captured) == 1
+    assert captured[0].payload["heat"] is None
+    assert captured[0].payload["state"] == "warning"
+
+
+@pytest.mark.asyncio
+async def test_heat_damage_journal_sets_state(heat_test_setup) -> None:
+    """HeatDamage journal event sets heat_state = damage."""
+    state, broadcaster, _, _, captured = heat_test_setup
+
+    event = {"timestamp": "2026-05-01T12:00:00Z"}
+    await handle_heat_damage(event, state, broadcaster)
+    await asyncio.sleep(0)
+
+    assert state.snapshot.heat_state == "damage"
+    assert state.snapshot.heat_suggestion is not None
+    assert len(captured) == 1
+    assert captured[0].payload["heat"] is None
+    assert captured[0].payload["state"] == "damage"
 
 
 async def test_handlers_status_no_heat_preserves_state(heat_test_setup) -> None:
@@ -209,7 +255,6 @@ async def test_handlers_status_no_heat_preserves_state(heat_test_setup) -> None:
     if the Heat key is missing from the event.
     """
     from omnicovas.core.handlers import make_handlers
-    from omnicovas.core.state_manager import TelemetrySource
 
     state, broadcaster, _, _, _ = heat_test_setup
     ts = "2026-04-30T12:00:00Z"

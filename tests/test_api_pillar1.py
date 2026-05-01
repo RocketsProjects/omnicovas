@@ -365,10 +365,37 @@ class TestHeat:
         assert data["level"] == pytest.approx(1.30)
         assert data["level_pct"] == 130.0
 
+    async def test_heat_contract_missing_telemetry(self) -> None:
+        """/pillar1/heat with no state returns all nulls/empty."""
+        state = StateManager()
+        pillar1_module.set_state_manager(state)
 
-# ---------------------------------------------------------------------------
-# /pillar1/pips
-# ---------------------------------------------------------------------------
+        result = await pillar1_module.get_heat()
+        assert result["level"] is None
+        assert result["state"] is None
+        assert result["samples"] == []
+        assert result["trend"] == "steady"
+        assert result["suggestion"] is None
+
+    async def test_heat_contract_warning_state(self) -> None:
+        """/pillar1/heat with grounded warning returns warning state."""
+        state = StateManager()
+        pillar1_module.set_state_manager(state)
+        state.update_field("heat_state", "warning", TelemetrySource.JOURNAL)
+
+        result = await pillar1_module.get_heat()
+        assert result["state"] == "warning"
+        assert result["level"] is None
+
+    async def test_heat_contract_damage_state(self) -> None:
+        """/pillar1/heat with grounded damage returns damage state."""
+        state = StateManager()
+        pillar1_module.set_state_manager(state)
+        state.update_field("heat_state", "damage", TelemetrySource.JOURNAL)
+
+        result = await pillar1_module.get_heat()
+        assert result["state"] == "damage"
+        assert result["level"] is None
 
 
 class TestPips:

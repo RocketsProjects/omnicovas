@@ -250,9 +250,13 @@ def test_module_info_optional_fields_accept_none() -> None:
     assert mod.priority is None
 
 
-# ---------------------------------------------------------------------------
-# Phase 3.4 Patch: Fuel priority exceptions
-# ---------------------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_heat_fields_default_to_none() -> None:
+    """Verify that new heat fields default to None."""
+    state = StateManager()
+    assert state.snapshot.heat_state is None
+    assert state.snapshot.heat_last_event_at is None
+    assert state.snapshot.heat_suggestion is None
 
 
 @pytest.mark.asyncio

@@ -254,6 +254,8 @@ async def get_heat() -> dict[str, Any]:
         trend: 'rising' | 'falling' | 'steady' | null
         samples: last up-to-10 heat readings (for sparkline), list[float]
         state: 'normal' | 'warning' | 'critical' | 'damage' | null
+        last_event_at: timestamp of last warning/damage, or null
+        suggestion: grounded suggestion text, or null
     """
     s = _snap()
     if s is None:
@@ -263,24 +265,38 @@ async def get_heat() -> dict[str, Any]:
             "trend": None,
             "samples": [],
             "state": None,
+            "last_event_at": None,
+            "suggestion": None,
         }
 
     level = s.heat_level
     level_pct = round(level * 100, 1) if level is not None else None
 
+    # Determine state: priority is damage > warning.
+    # We use both grounded event state AND numeric heat levels if available.
     heat_state: str | None = None
+
+    # Check grounded events first
+    if s.heat_state == "damage":
+        heat_state = "damage"
+    elif s.heat_state == "warning":
+        heat_state = "warning"
+
+    # Numeric override if high heat
     if level is not None:
         if level >= 1.20:
             heat_state = "damage"
         elif level >= 0.95:
             heat_state = "critical"
-        elif level >= 0.80:
+        elif level >= 0.80 and heat_state != "damage":
             heat_state = "warning"
-        else:
+        elif heat_state is None:
             heat_state = "normal"
+    elif heat_state is None:
+        # If no grounded state and no level, state remains None
+        pass
 
     # Trend and samples come from the HeatManagement feature's rolling window.
-    # We reach into it via the feature module if available; fall back to None.
     trend: str | None = None
     samples: list[float] = []
     try:
@@ -296,6 +312,8 @@ async def get_heat() -> dict[str, Any]:
         "trend": trend,
         "samples": samples,
         "state": heat_state,
+        "last_event_at": s.heat_last_event_at,
+        "suggestion": s.heat_suggestion,
     }
 
 
