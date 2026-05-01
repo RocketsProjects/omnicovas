@@ -263,15 +263,34 @@ class StateManager:
             logger.warning("Rejected update to unknown field: %s", field_name)
             return False
 
+        # Phase 3.4 Patch: Allow STATUS_JSON to update fuel fields
+        # (continuous live updates) even if JOURNAL set base value.
+        is_fuel_update = source == TelemetrySource.STATUS_JSON and field_name in (
+            "fuel_main",
+            "fuel_reservoir",
+        )
+
         existing = self._state._field_sources.get(field_name)
 
-        if existing is not None and existing.source < source:
+        if not is_fuel_update and existing is not None and existing.source < source:
             logger.debug(
                 "Rejected %s update to %r: existing source %s outranks %s",
                 field_name,
                 value,
                 existing.source.name,
                 source.name,
+            )
+            return False
+
+        # Law 5: Never overwrite a known fuel value with None from STATUS_JSON
+        if (
+            is_fuel_update
+            and value is None
+            and getattr(self._state, field_name) is not None
+        ):
+            logger.debug(
+                "Rejected %s: cannot overwrite known value with None from STATUS_JSON",
+                field_name,
             )
             return False
 

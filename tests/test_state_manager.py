@@ -251,8 +251,62 @@ def test_module_info_optional_fields_accept_none() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Phase 2 SessionState fields -- default to None
+# Phase 3.4 Patch: Fuel priority exceptions
 # ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_fuel_status_overrides_journal() -> None:
+    """
+    Phase 3.4 Patch: Status.json must be able to update fuel_main and
+    fuel_reservoir even if journal previously set them.
+    """
+    state = StateManager()
+
+    # Initial set by JOURNAL
+    state.update_field("fuel_main", 32.0, TelemetrySource.JOURNAL)
+    state.update_field("fuel_reservoir", 0.5, TelemetrySource.JOURNAL)
+
+    # Status.json update should succeed now
+    accepted_main = state.update_field("fuel_main", 31.8, TelemetrySource.STATUS_JSON)
+    accepted_res = state.update_field(
+        "fuel_reservoir", 0.4, TelemetrySource.STATUS_JSON
+    )
+
+    assert accepted_main is True
+    assert accepted_res is True
+    assert state.snapshot.fuel_main == 31.8
+    assert state.snapshot.fuel_reservoir == 0.4
+
+
+@pytest.mark.asyncio
+async def test_fuel_none_update_rejected() -> None:
+    """
+    Law 5: Never overwrite known fuel value with None.
+    """
+    state = StateManager()
+    state.update_field("fuel_main", 32.0, TelemetrySource.JOURNAL)
+
+    # Update with None should be rejected
+    accepted = state.update_field("fuel_main", None, TelemetrySource.STATUS_JSON)
+    assert accepted is False
+    assert state.snapshot.fuel_main == 32.0
+
+
+@pytest.mark.asyncio
+async def test_status_cannot_override_other_journal_fields() -> None:
+    """
+    Ensure the fuel override is narrow and doesn't break Law 7 for other fields.
+    """
+    state = StateManager()
+    state.update_field("current_system", "Sol", TelemetrySource.JOURNAL)
+
+    # Other field should still reject STATUS_JSON
+    accepted = state.update_field(
+        "current_system", "HIP 2797", TelemetrySource.STATUS_JSON
+    )
+    assert accepted is False
+    assert state.snapshot.current_system == "Sol"
 
 
 def test_phase2_ship_identity_fields_default_none() -> None:
