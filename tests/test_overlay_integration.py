@@ -216,6 +216,13 @@ class TestOverlayBannerQueue:
         }
         assert set(sample_config.keys()) == expected_fields
 
+    def test_overlay_js_has_test_banner_config(self) -> None:
+        """overlay.js must contain OMNICOVAS_TEST config for visibility checks."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "OMNICOVAS_TEST" in overlay_js
+        assert "OMNICOVAS TEST BANNER" in overlay_js
+        assert "priority: 99" in overlay_js
+
 
 class TestOverlayAnchorPositioning:
     """Verify anchor values map to valid CSS classes."""

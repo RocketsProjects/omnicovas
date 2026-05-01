@@ -26,6 +26,13 @@ fn get_bridge_info() -> Option<BridgeInfo> {
   bridge_store().lock().ok()?.clone()
 }
 
+#[tauri::command]
+async fn show_overlay_test_banner(app: tauri::AppHandle) -> Result<(), String> {
+  println!("[tauri] show_overlay_test_banner requested");
+  app.emit("overlay:show_test_banner", ()).map_err(|e| e.to_string())?;
+  overlay::show_overlay(app).await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
@@ -99,6 +106,7 @@ pub fn run() {
     .invoke_handler(tauri::generate_handler![
       overlay::show_overlay,
       overlay::hide_overlay,
+      show_overlay_test_banner,
       get_bridge_info
     ])
     .run(tauri::generate_context!())

@@ -25,6 +25,17 @@ def test_tauri_bridge_stores_and_emits_ready_port() -> None:
     assert "wsBase" in text
 
 
+def test_tauri_overlay_test_banner_command_is_registered() -> None:
+    text = LIB_RS.read_text(encoding="utf-8")
+
+    assert "#[tauri::command]" in text
+    assert "async fn show_overlay_test_banner" in text
+    assert 'app.emit("overlay:show_test_banner"' in text
+    assert "overlay::show_overlay(app).await" in text
+    assert "show_overlay_test_banner" in text
+    assert "tauri::generate_handler!" in text
+
+
 def test_tauri_dev_launcher_uses_verified_python_command() -> None:
     text = LIB_RS.read_text(encoding="utf-8")
 

@@ -56,6 +56,13 @@ const CRITICAL_EVENTS = {
     duration: 8000,
     priority: 7,
   },
+  OMNICOVAS_TEST: {
+    icon: '⚙',
+    label: 'OMNICOVAS TEST BANNER',
+    severity: 'warning',
+    duration: 5000,
+    priority: 99, // lowest priority, but show_test_banner will force it
+  },
 };
 
 let currentBanner = null;
@@ -308,6 +315,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ click_through: clickThrough }),
       }).catch(e => console.warn('[Overlay] Failed to persist click-through:', e));
+    });
+
+    await listen('overlay:show_test_banner', () => {
+      console.log('[Overlay] Test banner requested');
+      showBanner('OMNICOVAS_TEST', 'READY');
     });
   }
 
