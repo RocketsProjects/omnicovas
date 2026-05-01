@@ -1,0 +1,8 @@
+{
+  "general": {
+    "approvalMode": "default"
+  },
+  "ui": {
+    "showModelInfoInChat": true
+  }
+}
