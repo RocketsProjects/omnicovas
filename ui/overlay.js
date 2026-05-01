@@ -219,19 +219,26 @@ async function connectWebSocket() {
 }
 
 /**
- * Show or update the status dot to indicate click-through state.
+ * Show or update the status indicator to indicate click-through state.
  */
 function updateStatusDot(isClickThrough) {
   // Remove existing status dot
   const existing = document.querySelector('.status-dot');
   if (existing) existing.remove();
 
-  // Create new status dot
+  // Create new status indicator badge
   const dot = document.createElement('div');
-  dot.className = 'status-dot';
-  dot.style.background = isClickThrough ? '#4ade80' : '#ff6b6b';
-  dot.title = isClickThrough ? 'Click-through enabled' : 'Overlay grabbing input';
+  dot.className = 'status-dot' + (isClickThrough ? '' : ' grab');
+  dot.textContent = isClickThrough ? 'CLICK-THROUGH' : 'INPUT GRABBED';
   document.body.appendChild(dot);
+
+  // Show the overlay window so the indicator is visible
+  if (window.__TAURI__) {
+    const { invoke } = window.__TAURI__.tauri;
+    invoke('show_overlay').catch(e =>
+      console.error('[Overlay] Failed to show overlay for feedback:', e)
+    );
+  }
 
   // Fade out after 3 seconds if no banner is active
   if (statusDotTimeout) clearTimeout(statusDotTimeout);
@@ -239,9 +246,15 @@ function updateStatusDot(isClickThrough) {
     const dot = document.querySelector('.status-dot');
     if (dot && !document.querySelector('.banner')) {
       dot.remove();
+      // If no banner, hide the window again to stay hidden-by-default
+      if (window.__TAURI__) {
+        const { invoke } = window.__TAURI__.tauri;
+        invoke('hide_overlay').catch(e => {});
+      }
     }
   }, 3000);
 }
+
 
 const ANCHOR_CLASS_MAP = {
   'center': 'anchor-center',

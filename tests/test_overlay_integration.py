@@ -257,6 +257,29 @@ class TestOverlayAnchorPositioning:
         assert "|| 'anchor-center'" in overlay_js
 
 
+class TestOverlayClickthroughObservability:
+    """Verify click-through observability requirements."""
+
+    def test_overlay_js_listens_for_toggle_event(self) -> None:
+        """overlay.js must listen for overlay:click_through_toggled."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "overlay:click_through_toggled" in overlay_js
+        assert "updateStatusDot" in overlay_js
+
+    def test_overlay_js_updates_visibility_on_toggle(self) -> None:
+        """overlay.js should show/hide window for feedback on toggle."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        # Should call show_overlay and hide_overlay for feedback
+        assert "show_overlay" in overlay_js
+        assert "hide_overlay" in overlay_js
+
+    def test_overlay_html_has_status_dot_styles(self) -> None:
+        """overlay.html must have styles for the status indicator."""
+        overlay_html = Path("ui/overlay.html").read_text(encoding="utf-8")
+        assert ".status-dot" in overlay_html
+        assert ".status-dot.grab" in overlay_html
+
+
 class TestOverlayShowHideNotStubs:
     """Contract tests proving show_overlay / hide_overlay are not no-op stubs."""
 

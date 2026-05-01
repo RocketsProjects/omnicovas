@@ -119,15 +119,24 @@
     }
 
     .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+      padding: 4px 8px;
+      border-radius: 4px;
       position: fixed;
-      bottom: 10px;
-      right: 10px;
-      background: #4ade80;
-      opacity: 0.7;
+      bottom: 15px;
+      right: 15px;
+      background: rgba(20, 20, 30, 0.9);
+      border: 1px solid #4ade80;
+      color: #fff;
+      font-size: 10px;
+      font-weight: bold;
+      opacity: 0.9;
       animation: fadeOut 3s ease-in forwards;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .status-dot.grab {
+      border-color: #ff6b6b;
     }
 
     @keyframes fadeOut {
