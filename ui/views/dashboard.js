@@ -105,8 +105,12 @@ function setCardState(cardId, state) {
 function renderShipState(s) {
   const set = (id, val) => { const e = el(id); if (e) e.textContent = val ?? '—'; };
 
+  const sanitizedShipName = (s.ship_name && s.ship_name.trim().length > 0)
+    ? s.ship_name.trim()
+    : (s.ship_type || 'UNKNOWN');
+
   set('dash-ship-type',   s.ship_type);
-  set('dash-ship-name',   s.ship_name || s.ship_type || '—');
+  set('dash-ship-name',   sanitizedShipName);
   set('dash-ship-ident',  s.ship_ident);
   set('dash-system',      s.current_system);
   set('dash-station',     s.current_station);
@@ -220,19 +224,22 @@ function renderCargo(s, inventory) {
 /* ─────────────────────────────────────────────
    CARD 5 — Heat
 ───────────────────────────────────────────── */
-function renderHeat(s, trend, samples) {
-  const heatPct = s.heat_level != null ? s.heat_level * 100 : null;
+function renderHeat(heat) {
+  const heatPct = Number.isFinite(heat?.level_pct) ? heat.level_pct : null;
+  const state = heat?.state ?? null;
+  const samples = Array.isArray(heat?.samples) ? heat.samples : [];
+  const trend = samples.length > 0 ? (heat?.trend ?? null) : null;
   const cls = heatClass(heatPct);
 
   const heatVal = el('dash-heat-value');
   if (heatVal) {
-    heatVal.textContent = fmt.pct(heatPct, 0);
+    heatVal.textContent = heatPct != null ? fmt.pct(heatPct, 0) : 'UNKNOWN';
     heatVal.className = 'field-value ' + cls;
   }
 
   const bar = el('dash-heat-bar');
   if (bar) {
-    bar.style.width = Math.min(heatPct ?? 0, 150) / 1.5 + '%';
+    bar.style.width = heatPct != null ? (Math.min(heatPct, 150) / 1.5 + '%') : '0%';
     bar.className = 'progress-bar-fill ' + cls;
   }
 
@@ -241,6 +248,12 @@ function renderHeat(s, trend, samples) {
     const arrows = { rising: '↑', falling: '↓', steady: '→' };
     trendEl.textContent = (arrows[trend] || '') + ' ' + trend;
     trendEl.className = 'trend ' + (trend || 'steady');
+  }
+
+  const stateEl = el('dash-heat-state');
+  if (stateEl) {
+    stateEl.textContent = state ? state.toUpperCase() : '';
+    stateEl.className = 'badge ' + (state === 'warning' ? 'warn' : (state === 'damage' ? 'critical' : ''));
   }
 
   drawSparkline(el('dash-heat-sparkline'), samples);
@@ -351,7 +364,7 @@ async function loadDashboard() {
   ]);
 
   if (cargo) renderCargo(ship || {}, cargo.inventory);
-  if (heat)  renderHeat(ship || {}, heat.trend, heat.samples);
+  if (heat)  renderHeat(heat);
   if (mods)  renderModules(mods);
   if (rebuy) renderRebuy(rebuy);
 }
@@ -418,7 +431,7 @@ function onEvent(msg) {
 
     case 'HEAT_WARNING':
       fetchJSON('/pillar1/heat').then(h => {
-        if (h) renderHeat(window._lastShipState || {}, h.trend, h.samples);
+        if (h) renderHeat(h);
       });
       break;
 
