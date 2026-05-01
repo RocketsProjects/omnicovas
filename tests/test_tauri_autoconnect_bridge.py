@@ -21,8 +21,9 @@ def test_tauri_bridge_stores_and_emits_ready_port() -> None:
     assert "bridge_store()" in text
     assert '.emit("bridge-ready"' in text
     assert '"port"' in text
-    assert "httpBase" in text
-    assert "wsBase" in text
+    assert '#[serde(rename_all = "camelCase")]' in text
+    assert "http_base" in text
+    assert "ws_base" in text
 
 
 def test_tauri_overlay_test_banner_command_is_registered() -> None:
