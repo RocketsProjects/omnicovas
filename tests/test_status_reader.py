@@ -525,3 +525,39 @@ async def test_partial_write_recovery(tmp_path: Path) -> None:
     await reader._poll_once()
     assert len(dispatched) == 2
     assert dispatched[-1]["Heat"] == 0.5
+
+
+@pytest.mark.asyncio
+async def test_shield_down_handler_publishes_shields_down_broadcast() -> None:
+    """ShieldDown sub-event through handlers.py must publish SHIELDS_DOWN broadcast.
+
+    Phase 3.4 confirmed root cause: Status.json ShieldDown sub-event called
+    handle_shield_down which updated state but never published SHIELDS_DOWN to
+    the broadcaster. The overlay therefore never received the event.
+    """
+    import asyncio
+
+    from omnicovas.core.broadcaster import ShipStateBroadcaster, ShipStateEvent
+    from omnicovas.core.event_types import SHIELDS_DOWN
+    from omnicovas.core.handlers import make_handlers
+    from omnicovas.core.state_manager import StateManager
+
+    state = StateManager()
+    broadcaster = ShipStateBroadcaster()
+    captured: list[ShipStateEvent] = []
+
+    async def _cap(event: ShipStateEvent) -> None:
+        captured.append(event)
+
+    broadcaster.subscribe(SHIELDS_DOWN, _cap)
+    handlers = make_handlers(state, broadcaster)
+
+    await handlers["ShieldDown"](
+        {"event": "ShieldDown", "timestamp": "2026-05-01T03:37:00Z"}
+    )
+    await asyncio.sleep(0)
+
+    assert state.snapshot.shield_up is False
+    assert len(captured) == 1
+    assert captured[0].event_type == SHIELDS_DOWN
+    assert captured[0].payload["shields_down"] is True

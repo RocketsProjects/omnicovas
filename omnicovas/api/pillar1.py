@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 from fastapi import APIRouter
@@ -61,6 +62,28 @@ def set_config_vault(vault: ConfigVault) -> None:
 def _snap() -> Any:
     """Return the current state snapshot, or None if not yet injected."""
     return _state.snapshot if _state is not None else None
+
+
+# After a HeatWarning/HeatDamage journal event, heat_state is held in
+# StateManager with no natural expiry. A TTL prevents stale warning/damage
+# state from persisting indefinitely when Status.json stops reporting Heat.
+_HEAT_EVENT_STATE_TTL_SECONDS: float = 60.0
+
+
+def _heat_event_is_fresh(last_event_at: str | None) -> bool:
+    """Return True if the last heat event timestamp is within TTL.
+
+    If last_event_at is None or unparseable, the event state is treated as
+    stale and the stored heat_state is not applied to the API response.
+    """
+    if last_event_at is None:
+        return False
+    try:
+        event_time = datetime.fromisoformat(last_event_at.replace("Z", "+00:00"))
+        age_s = (datetime.now(timezone.utc) - event_time).total_seconds()
+        return age_s <= _HEAT_EVENT_STATE_TTL_SECONDS
+    except (ValueError, TypeError):
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -276,11 +299,14 @@ async def get_heat() -> dict[str, Any]:
     # We use both grounded event state AND numeric heat levels if available.
     heat_state: str | None = None
 
-    # Check grounded events first
-    if s.heat_state == "damage":
-        heat_state = "damage"
-    elif s.heat_state == "warning":
-        heat_state = "warning"
+    # Check grounded journal events first, but only when the event is fresh.
+    # A stale warning/damage (beyond TTL) must not persist — it would show
+    # a permanent alert for an event that happened many minutes ago.
+    if _heat_event_is_fresh(s.heat_last_event_at):
+        if s.heat_state == "damage":
+            heat_state = "damage"
+        elif s.heat_state == "warning":
+            heat_state = "warning"
 
     # Numeric override if high heat
     if level is not None:

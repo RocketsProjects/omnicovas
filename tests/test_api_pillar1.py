@@ -378,24 +378,63 @@ class TestHeat:
         assert result["suggestion"] is None
 
     async def test_heat_contract_warning_state(self) -> None:
-        """/pillar1/heat with grounded warning returns warning state."""
+        """/pillar1/heat with fresh HeatWarning journal state returns warning."""
+        from datetime import datetime, timezone
+
         state = StateManager()
         pillar1_module.set_state_manager(state)
-        state.update_field("heat_state", "warning", TelemetrySource.JOURNAL)
+        fresh_ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        state.update_field("heat_state", "warning", TelemetrySource.JOURNAL, fresh_ts)
+        state.update_field(
+            "heat_last_event_at", fresh_ts, TelemetrySource.JOURNAL, fresh_ts
+        )
 
         result = await pillar1_module.get_heat()
         assert result["state"] == "warning"
         assert result["level"] is None
 
     async def test_heat_contract_damage_state(self) -> None:
-        """/pillar1/heat with grounded damage returns damage state."""
+        """/pillar1/heat with fresh HeatDamage journal state returns damage."""
+        from datetime import datetime, timezone
+
         state = StateManager()
         pillar1_module.set_state_manager(state)
-        state.update_field("heat_state", "damage", TelemetrySource.JOURNAL)
+        fresh_ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        state.update_field("heat_state", "damage", TelemetrySource.JOURNAL, fresh_ts)
+        state.update_field(
+            "heat_last_event_at", fresh_ts, TelemetrySource.JOURNAL, fresh_ts
+        )
 
         result = await pillar1_module.get_heat()
         assert result["state"] == "damage"
         assert result["level"] is None
+
+    async def test_heat_contract_stale_warning_expires(self) -> None:
+        """Stale heat_state beyond TTL must not persist — state returns None."""
+        state = StateManager()
+        pillar1_module.set_state_manager(state)
+        stale_ts = "2020-01-01T00:00:00Z"
+        state.update_field("heat_state", "warning", TelemetrySource.JOURNAL, stale_ts)
+        state.update_field(
+            "heat_last_event_at", stale_ts, TelemetrySource.JOURNAL, stale_ts
+        )
+
+        result = await pillar1_module.get_heat()
+        assert result["state"] is None
+        assert result["last_event_at"] == stale_ts  # historical record preserved
+
+    async def test_heat_contract_stale_damage_expires(self) -> None:
+        """Stale heat_state=damage beyond TTL must not persist."""
+        state = StateManager()
+        pillar1_module.set_state_manager(state)
+        stale_ts = "2020-01-01T00:00:00Z"
+        state.update_field("heat_state", "damage", TelemetrySource.JOURNAL, stale_ts)
+        state.update_field(
+            "heat_last_event_at", stale_ts, TelemetrySource.JOURNAL, stale_ts
+        )
+
+        result = await pillar1_module.get_heat()
+        assert result["state"] is None
 
 
 class TestPips:

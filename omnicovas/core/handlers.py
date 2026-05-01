@@ -22,12 +22,11 @@ See: Phase 2 Development Guide Week 7, Part B (broadcaster wiring)
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from omnicovas.core.broadcaster import ShipStateBroadcaster, ShipStateEvent
+from omnicovas.core.event_types import SHIELDS_DOWN
 from omnicovas.core.state_manager import StateManager, TelemetrySource
-
-if TYPE_CHECKING:
-    from omnicovas.core.broadcaster import ShipStateBroadcaster
 
 logger = logging.getLogger(__name__)
 
@@ -213,6 +212,15 @@ def make_handlers(
         state.update_field("shield_up", False, TelemetrySource.STATUS_JSON, ts)
         logger.warning("[STATE] ShieldDown -> shields collapsed")
         print("[EVENT] WARNING ShieldDown -> shields collapsed")
+        if broadcaster is not None:
+            await broadcaster.publish(
+                SHIELDS_DOWN,
+                ShipStateEvent.now(
+                    SHIELDS_DOWN,
+                    {"shields_down": True},
+                    source="status_json",
+                ),
+            )
 
     async def handle_pips_changed(event: dict[str, Any]) -> None:
         """Handle PipsChanged -- synthetic sub-event from Status.json."""

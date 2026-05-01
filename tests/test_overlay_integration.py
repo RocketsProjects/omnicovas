@@ -395,3 +395,20 @@ class TestOverlayBridgeDiscovery:
         overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
         assert "overlay:show_test_banner" in overlay_js
         assert "showBanner('OMNICOVAS_TEST'" in overlay_js
+
+    def test_overlay_window_url_set_to_overlay_html(self) -> None:
+        """tauri.conf.json overlay window must declare url: overlay.html.
+
+        Without an explicit url, Tauri v2 loads index.html (dashboard) for
+        every window. overlay.js would never execute and no banner listeners
+        would register.
+        """
+        import json
+
+        conf = json.loads(Path("src-tauri/tauri.conf.json").read_text(encoding="utf-8"))
+        windows = conf["app"]["windows"]
+        overlay_conf = next((w for w in windows if w["label"] == "overlay"), None)
+        assert overlay_conf is not None, "overlay window not found in tauri.conf.json"
+        assert overlay_conf.get("url") == "overlay.html", (
+            'overlay window must declare "url": "overlay.html" in tauri.conf.json'
+        )
