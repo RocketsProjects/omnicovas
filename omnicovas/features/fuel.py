@@ -219,34 +219,36 @@ async def handle_fsdjump(
     """Handle FSDJump -- FSD arrival, fuel cost applied.
 
     FSDJump fires on arrival in destination system. The journal includes
-    the fuel cost for the jump, so we can update fuel_main to reflect
-    the deduction.
+    the fuel level in the destination system, so we can update fuel_main
+    to reflect the post-jump level.
 
     Journal fields:
-        FuelMain    -- new fuel_main after jump cost
+        FuelLevel    -- new fuel_main after jump cost
+        FuelUsed     -- tons used during jump
         FuelReservoir -- new fuel_reservoir after jump cost (if applicable)
     """
     ts = event.get("timestamp")
-    fuel_main = event.get("FuelMain")
+    fuel_level = event.get("FuelLevel")
+    fuel_used = event.get("FuelUsed")
     fuel_reservoir = event.get("FuelReservoir")
 
-    if fuel_main is not None:
+    if fuel_level is not None:
         previous = state.snapshot.fuel_main
-        state.update_field("fuel_main", float(fuel_main), TelemetrySource.JOURNAL, ts)
+        state.update_field("fuel_main", float(fuel_level), TelemetrySource.JOURNAL, ts)
         # Check if we crossed a threshold downward during jump
         capacity = state.snapshot.fuel_capacity_main
-        if capacity is not None:
-            await _check_thresholds(previous, float(fuel_main), state, broadcaster, ts)
+        if capacity is not None and previous is not None:
+            await _check_thresholds(previous, float(fuel_level), state, broadcaster, ts)
 
     if fuel_reservoir is not None:
-        previous = state.snapshot.fuel_reservoir
         state.update_field(
             "fuel_reservoir", float(fuel_reservoir), TelemetrySource.JOURNAL, ts
         )
 
     logger.debug(
-        "FSDJump -> fuel_main=%.2f fuel_reservoir=%.2f",
-        fuel_main or 0.0,
+        "FSDJump -> fuel_level=%.2f fuel_used=%.2f fuel_reservoir=%.2f",
+        fuel_level or 0.0,
+        fuel_used or 0.0,
         fuel_reservoir or 0.0,
     )
 

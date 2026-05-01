@@ -27,6 +27,7 @@ from omnicovas.core.event_types import FUEL_CRITICAL, FUEL_LOW
 from omnicovas.core.handlers import make_handlers
 from omnicovas.core.state_manager import StateManager, TelemetrySource
 from omnicovas.features.fuel import (
+    handle_fsdjump,
     handle_fuel_scoop,
     handle_refuel_all,
     handle_refuel_partial,
@@ -336,6 +337,70 @@ async def test_threshold_does_not_refire_while_staying_low(
     await _drain(broadcaster)
 
     assert len(received) == 0
+
+
+# ---------------------------------------------------------------------------
+# FSDJump
+# ---------------------------------------------------------------------------
+
+
+async def test_fsdjump_updates_fuel_main_from_fuel_level(
+    state: StateManager, broadcaster: ShipStateBroadcaster
+) -> None:
+    """FSDJump must update fuel_main from FuelLevel."""
+    set_fuel(state, main=10.0, capacity_main=32.0)
+
+    event = {
+        "timestamp": "2026-04-30T12:00:00Z",
+        "event": "FSDJump",
+        "FuelLevel": 8.5,
+        "FuelUsed": 1.5,
+    }
+    await handle_fsdjump(event, state, broadcaster)
+    assert state.snapshot.fuel_main == pytest.approx(8.5)
+
+
+async def test_fsdjump_threshold_triggers(
+    state: StateManager, broadcaster: ShipStateBroadcaster
+) -> None:
+    """FSDJump must trigger threshold check if fuel crosses downward."""
+    set_fuel(state, main=9.0, capacity_main=32.0)  # 28%
+
+    received: list[ShipStateEvent] = []
+
+    async def capture(e: ShipStateEvent) -> None:
+        received.append(e)
+
+    broadcaster.subscribe(FUEL_LOW, capture)
+
+    # Cross below 25% (7.0t)
+    event = {
+        "timestamp": "2026-04-30T12:00:00Z",
+        "event": "FSDJump",
+        "FuelLevel": 7.0,
+        "FuelUsed": 2.0,
+    }
+    await handle_fsdjump(event, state, broadcaster)
+    await _drain(broadcaster)
+
+    assert len(received) == 1
+    assert received[0].event_type == FUEL_LOW
+
+
+async def test_fsdjump_without_fuel_level_does_not_reset_to_zero(
+    state: StateManager, broadcaster: ShipStateBroadcaster
+) -> None:
+    """FSDJump missing FuelLevel should not overwrite fuel_main with 0.0."""
+    set_fuel(state, main=10.0, capacity_main=32.0)
+
+    event = {
+        "timestamp": "2026-04-30T12:00:00Z",
+        "event": "FSDJump",
+        # FuelLevel missing
+    }
+    await handle_fsdjump(event, state, broadcaster)
+
+    assert state.snapshot.fuel_main == pytest.approx(10.0)
 
 
 # ---------------------------------------------------------------------------
