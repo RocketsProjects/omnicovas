@@ -17,14 +17,16 @@ pub fn init_overlay(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Er
         format!("hotkey parse error: {:?}", e)
     })?;
 
-    app.global_shortcut().on_shortcut(shortcut, move |_app, _shortcut, event| {
-        if event.state() == ShortcutState::Pressed {
-            toggle_click_through(&handle);
-        }
-    }).map_err(|e| {
-        log::error!("Failed to register overlay hotkey '{}': {:?}", HOTKEY, e);
-        format!("hotkey register error: {:?}", e)
-    })?;
+    app.global_shortcut()
+        .on_shortcut(shortcut, move |_app, _shortcut, event| {
+            if event.state() == ShortcutState::Pressed {
+                toggle_click_through(&handle);
+            }
+        })
+        .map_err(|e| {
+            log::error!("Failed to register overlay hotkey '{}': {:?}", HOTKEY, e);
+            format!("hotkey register error: {:?}", e)
+        })?;
 
     log::info!("Overlay initialized; {} registered.", HOTKEY);
     Ok(())
@@ -60,7 +62,9 @@ pub async fn show_overlay(app: tauri::AppHandle) -> Result<(), String> {
         .get_webview_window(OVERLAY_LABEL)
         .ok_or_else(|| format!("Overlay window '{}' not found", OVERLAY_LABEL))?;
 
-    window.show().map_err(|e| format!("Failed to show overlay: {:?}", e))?;
+    window
+        .show()
+        .map_err(|e| format!("Failed to show overlay: {:?}", e))?;
     log::debug!("Overlay shown.");
     Ok(())
 }
@@ -72,7 +76,9 @@ pub async fn hide_overlay(app: tauri::AppHandle) -> Result<(), String> {
         .get_webview_window(OVERLAY_LABEL)
         .ok_or_else(|| format!("Overlay window '{}' not found", OVERLAY_LABEL))?;
 
-    window.hide().map_err(|e| format!("Failed to hide overlay: {:?}", e))?;
+    window
+        .hide()
+        .map_err(|e| format!("Failed to hide overlay: {:?}", e))?;
     log::debug!("Overlay hidden.");
     Ok(())
 }
