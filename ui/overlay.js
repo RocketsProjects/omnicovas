@@ -70,6 +70,9 @@ let bannerQueue = [];
 let clickThrough = true;
 let wsConnection = null;
 let statusDotTimeout = null;
+let bridgeHttpBase = null;
+let bridgeWsBase = null;
+let wsReconnectDelay = 1000;
 
 // Overlay settings (persisted via Tauri config vault)
 let overlaySettings = {
@@ -164,17 +167,72 @@ function dismissBanner() {
   }
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Discover the dynamic bridge via Tauri get_bridge_info command and bridge-ready event.
+ * Sets bridgeHttpBase and bridgeWsBase. Safe to call before Tauri is ready.
+ */
+async function discoverBridge() {
+  const invoke = window.__TAURI__?.core?.invoke;
+  const tauriListen = window.__TAURI__?.event?.listen;
+
+  // Also watch for bridge-ready event in case it fires while we poll
+  if (typeof tauriListen === 'function') {
+    tauriListen('bridge-ready', (event) => {
+      const info = event?.payload;
+      if (info?.port && !bridgeHttpBase) {
+        bridgeHttpBase = info.httpBase || `http://127.0.0.1:${info.port}`;
+        bridgeWsBase = info.wsBase || `ws://127.0.0.1:${info.port}`;
+        console.log('[Overlay] Bridge discovered via event:', bridgeWsBase);
+        if (!wsConnection || wsConnection.readyState === WebSocket.CLOSED) {
+          connectWebSocket();
+        }
+      }
+    }).catch(() => {});
+  }
+
+  if (typeof invoke !== 'function') return;
+
+  for (let i = 0; i < 20; i++) {
+    try {
+      const info = await invoke('get_bridge_info');
+      if (info && info.port) {
+        bridgeHttpBase = info.httpBase || `http://127.0.0.1:${info.port}`;
+        bridgeWsBase = info.wsBase || `ws://127.0.0.1:${info.port}`;
+        console.log('[Overlay] Bridge discovered via command:', bridgeWsBase);
+        return;
+      }
+    } catch {
+      /* not ready yet */
+    }
+    await sleep(500);
+  }
+
+  console.warn('[Overlay] Bridge discovery timed out.');
+}
+
 /**
  * Connect to /ws/events and subscribe to critical events.
  */
 async function connectWebSocket() {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${protocol}//${window.location.host}/ws/events`;
+  if (!bridgeWsBase) {
+    console.warn('[Overlay] Bridge not yet discovered; WS connection deferred.');
+    return;
+  }
+
+  // Avoid duplicate connections
+  if (wsConnection && wsConnection.readyState === WebSocket.OPEN) return;
+
+  const wsUrl = `${bridgeWsBase}/ws/events`;
 
   try {
     wsConnection = new WebSocket(wsUrl);
 
     wsConnection.onopen = () => {
+      wsReconnectDelay = 1000;
       console.log('[Overlay] WebSocket connected');
     };
 
@@ -193,10 +251,12 @@ async function connectWebSocket() {
 
           // Show the overlay window when a critical event fires
           if (window.__TAURI__) {
-            const { invoke } = window.__TAURI__.tauri;
-            invoke('show_overlay').catch(e =>
-              console.error('[Overlay] Failed to show overlay:', e)
-            );
+            const invoke = window.__TAURI__?.core?.invoke;
+            if (typeof invoke === 'function') {
+              invoke('show_overlay').catch(e =>
+                console.error('[Overlay] Failed to show overlay:', e)
+              );
+            }
           }
         }
       } catch (e) {
@@ -209,12 +269,18 @@ async function connectWebSocket() {
     };
 
     wsConnection.onclose = () => {
-      console.log('[Overlay] WebSocket closed, reconnecting in 3s...');
-      setTimeout(connectWebSocket, 3000);
+      console.log(`[Overlay] WebSocket closed, reconnecting in ${wsReconnectDelay}ms...`);
+      setTimeout(() => {
+        wsReconnectDelay = Math.min(wsReconnectDelay * 2, 16000);
+        connectWebSocket();
+      }, wsReconnectDelay);
     };
   } catch (e) {
     console.error('[Overlay] Failed to connect WebSocket:', e);
-    setTimeout(connectWebSocket, 3000);
+    setTimeout(() => {
+      wsReconnectDelay = Math.min(wsReconnectDelay * 2, 16000);
+      connectWebSocket();
+    }, wsReconnectDelay);
   }
 }
 
@@ -234,10 +300,12 @@ function updateStatusDot(isClickThrough) {
 
   // Show the overlay window so the indicator is visible
   if (window.__TAURI__) {
-    const { invoke } = window.__TAURI__.tauri;
-    invoke('show_overlay').catch(e =>
-      console.error('[Overlay] Failed to show overlay for feedback:', e)
-    );
+    const invoke = window.__TAURI__?.core?.invoke;
+    if (typeof invoke === 'function') {
+      invoke('show_overlay').catch(e =>
+        console.error('[Overlay] Failed to show overlay for feedback:', e)
+      );
+    }
   }
 
   // Fade out after 3 seconds if no banner is active
@@ -248,8 +316,8 @@ function updateStatusDot(isClickThrough) {
       dot.remove();
       // If no banner, hide the window again to stay hidden-by-default
       if (window.__TAURI__) {
-        const { invoke } = window.__TAURI__.tauri;
-        invoke('hide_overlay').catch(e => {});
+        const invoke = window.__TAURI__?.core?.invoke;
+        if (typeof invoke === 'function') invoke('hide_overlay').catch(() => {});
       }
     }
   }, 3000);
@@ -290,8 +358,9 @@ function applyAnchor(anchor) {
  * Load overlay settings from the API and apply them.
  */
 async function loadOverlaySettings() {
+  if (!bridgeHttpBase) return;
   try {
-    const response = await fetch('/pillar1/overlay/settings');
+    const response = await fetch(`${bridgeHttpBase}/pillar1/overlay/settings`);
     if (response.ok) {
       const settings = await response.json();
       overlaySettings = { ...overlaySettings, ...settings };
@@ -310,7 +379,8 @@ async function loadOverlaySettings() {
  * Initialize overlay on page load.
  */
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load settings first
+  // Discover bridge first, then load settings, then connect
+  await discoverBridge();
   await loadOverlaySettings();
 
   connectWebSocket();
@@ -323,11 +393,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       updateStatusDot(clickThrough);
       console.log('[Overlay] Click-through toggled:', clickThrough);
       // Persist the new click-through state so it survives restart
-      fetch('/pillar1/overlay/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ click_through: clickThrough }),
-      }).catch(e => console.warn('[Overlay] Failed to persist click-through:', e));
+      if (bridgeHttpBase) {
+        fetch(`${bridgeHttpBase}/pillar1/overlay/settings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ click_through: clickThrough }),
+        }).catch(e => console.warn('[Overlay] Failed to persist click-through:', e));
+      }
     });
 
     await listen('overlay:show_test_banner', () => {

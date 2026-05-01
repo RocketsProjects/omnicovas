@@ -322,3 +322,76 @@ class TestOverlayClickthrough:
         overlay_rs = Path("src-tauri/src/overlay.rs").read_text(encoding="utf-8")
         assert "Ctrl+Shift+O" in overlay_rs
         assert "global_shortcut" in overlay_rs
+
+
+class TestOverlayBridgeDiscovery:
+    """Verify overlay.js uses dynamic bridge discovery, not hard-coded port."""
+
+    def test_no_hardcoded_window_location_host(self) -> None:
+        """overlay.js must not build the WS URL from window.location.host."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "window.location.host" not in overlay_js, (
+            "overlay.js must not use window.location.host for WS URL"
+        )
+
+    def test_no_hardcoded_ws_port(self) -> None:
+        """overlay.js must not contain a literal hard-coded WS port."""
+        import re
+
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        matches = re.findall(r"ws://127\.0\.0\.1:\d+", overlay_js)
+        assert not matches, f"Hard-coded WS port(s) found in overlay.js: {matches}"
+
+    def test_discover_bridge_function_exists(self) -> None:
+        """overlay.js must define discoverBridge for dynamic port resolution."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "discoverBridge" in overlay_js
+
+    def test_discover_bridge_uses_get_bridge_info(self) -> None:
+        """discoverBridge must invoke the get_bridge_info Tauri command."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "get_bridge_info" in overlay_js
+
+    def test_discover_bridge_listens_for_bridge_ready(self) -> None:
+        """discoverBridge must also listen for the bridge-ready Tauri event."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "bridge-ready" in overlay_js
+
+    def test_connect_websocket_uses_bridge_ws_base(self) -> None:
+        """connectWebSocket must use the bridgeWsBase variable, not a literal origin."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "bridgeWsBase" in overlay_js
+
+    def test_load_overlay_settings_uses_bridge_http_base(self) -> None:
+        """loadOverlaySettings must use bridgeHttpBase, not a relative path."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "bridgeHttpBase" in overlay_js
+        # Relative path is no longer acceptable
+        assert "fetch('/pillar1" not in overlay_js
+
+    def test_invoke_uses_tauri_v2_core_path(self) -> None:
+        """overlay.js must use Tauri v2 core.invoke, not deprecated .tauri.invoke."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "__TAURI__.tauri" not in overlay_js, (
+            "overlay.js uses deprecated Tauri v1 .tauri.invoke path"
+        )
+        assert "__TAURI__?.core?.invoke" in overlay_js
+
+    def test_ws_reconnect_uses_backoff(self) -> None:
+        """WebSocket reconnect must use exponential backoff, not a fixed interval."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "wsReconnectDelay" in overlay_js
+        assert "Math.min" in overlay_js
+
+    def test_show_overlay_test_banner_command_wired_in_lib(self) -> None:
+        """lib.rs must register show_overlay_test_banner and emit the test event."""
+        lib_rs = Path("src-tauri/src/lib.rs").read_text(encoding="utf-8")
+        assert "show_overlay_test_banner" in lib_rs
+        assert 'app.emit("overlay:show_test_banner"' in lib_rs
+        assert "overlay::show_overlay(app).await" in lib_rs
+
+    def test_overlay_js_listens_for_show_test_banner(self) -> None:
+        """overlay.js must listen for overlay:show_test_banner and call showBanner."""
+        overlay_js = Path("ui/overlay.js").read_text(encoding="utf-8")
+        assert "overlay:show_test_banner" in overlay_js
+        assert "showBanner('OMNICOVAS_TEST'" in overlay_js
