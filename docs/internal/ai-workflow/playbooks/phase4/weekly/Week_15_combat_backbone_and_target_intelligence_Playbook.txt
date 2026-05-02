@@ -1,0 +1,435 @@
+OMNICOVAS — PHASE 4 WEEK 15 PLAYBOOK
+Title: Combat Backbone and Target Intelligence
+Goal: Stand up the Pillar 2 foundation without parallel infrastructure, then make target telemetry visible and broadcastable.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+Weekly execution rule: implement one part at a time. Do not execute the whole week in one Soldier invocation unless the Commander explicitly authorizes it and context remains under budget.
+
+
+================================================================================
+WEEK 15 PART A — Phase 4 Preflight and Combat Backbone
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 15 Part A — Phase 4 Preflight and Combat Backbone
+
+Week goal:
+Stand up the Pillar 2 foundation without parallel infrastructure, then make target telemetry visible and broadcastable.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Create the minimum Pillar 2 backbone that all Phase 4 parts can reuse.
+
+Scope:
+- Phase 4 readiness check.
+- Combat event constants and dataclasses.
+- StateManager extensions for current target/combat session snapshots.
+- API router skeleton for /pillar2.
+- UI route shell for Combat, without rich features yet.
+- Resolve/verify Phase 3 overlay click-through startup restore before combat overlay manual testing if it remains open.
+
+Allowed files:
+- omnicovas/core/event_types.py
+- omnicovas/core/state_manager.py or the actual StateManager file used by repo
+- omnicovas/core/broadcaster.py only if adding event constants/wiring consistent with existing pattern
+- omnicovas/api/pillar2.py
+- omnicovas/api/api_bridge.py or bridge app builder only to mount the router
+- ui/components/shell.js
+- ui/views/combat.js or nearest current route/view pattern
+- ui/overlay.js only for startup restore verification/hardening
+- src-tauri/src/overlay.rs only for overlay_click_through startup restore if still open
+- tests/test_api_pillar2.py
+- tests/test_pillar2_backbone.py
+- docs/releases/phase4_dev_notes.md
+
+Implementation steps:
+[ ] Inspect current Phase 3 bridge/router patterns. Mirror the /pillar1 router style; do not invent a new bridge.
+[ ] Add Pillar 2 event constants for the categories needed later: TARGET_CHANGED, TARGET_LOST, INTERDICTION_WARNING, INTERDICTION_ESCAPED, INTERDICTION_SUBMITTED, PVP_CONTACT_LOGGED, HOSTILITY_WARNING, BOUNTY_UPDATED, COMBAT_BOND_UPDATED, COMBAT_RANK_CHANGED, MUNITIONS_CHANGED, COMBAT_ZONE_CHANGED, COMBAT_THREAT_CHANGED, AX_CONTACT_DETECTED, ON_FOOT_COMBAT_STATE_CHANGED.
+[ ] Add small typed dataclasses or TypedDicts only if the project already uses that pattern. Otherwise extend existing event payload style.
+[ ] Extend StateManager with nullable combat fields: current_target, target_scan_state, current_combat_session_id, current_combat_zone, hostile_contact_count, last_combat_event_at, last_combat_warning, active_interdiction, combat_bonds_session, bounty_session, munitions_snapshot, on_foot_state.
+[ ] Enforce source priority: journal/status telemetry can update; inferred threat fields must be explicitly labeled inferred and never override raw telemetry.
+[ ] Add /pillar2/status endpoint returning only known combat summary fields. Unknown stays null.
+[ ] Add placeholder Combat route in UI shell with "No combat telemetry yet" empty states.
+[ ] Verify overlay click-through startup restore is either already resolved or add the narrow Rust-side startup restore using the existing config vault/setting path. Do not redesign overlay placement.
+[ ] Add tests for router mount, unknown/null fields, no hallucinated defaults, and combat state reset behavior.
+[ ] Document unresolved fixture gaps in docs/releases/phase4_dev_notes.md.
+
+Tests:
+[ ] tests/test_pillar2_backbone.py — event constants exist and are stable.
+[ ] tests/test_api_pillar2.py — /pillar2/status returns 200 and nulls for unknowns.
+[ ] Existing Phase 1-3 tests remain green.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.
+
+
+================================================================================
+WEEK 15 PART B — Target Intelligence State and Events
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 15 Part B — Target Intelligence State and Events
+
+Week goal:
+Stand up the Pillar 2 foundation without parallel infrastructure, then make target telemetry visible and broadcastable.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Implement Target Intelligence as a telemetry-first feature from real target-related journal data.
+
+Scope:
+- Current target snapshot.
+- Target scan state if present in telemetry.
+- Broadcast target changed/lost/scan update events.
+- No tactical conclusions unless KB-grounded and labeled.
+
+Allowed files:
+- omnicovas/features/combat_targeting.py or omnicovas/features/combat/targeting.py
+- omnicovas/core/event_types.py
+- StateManager file
+- dispatcher registration file(s)
+- tests/fixtures/combat_targeting/ with real anonymized journal captures only
+- tests/test_combat_targeting.py
+
+Implementation steps:
+[ ] Inspect existing handler registration style from Pillar 1 features.
+[ ] Create a target handler module using current dispatcher conventions.
+[ ] Support only journal event fields confirmed by fixtures or existing project parser tests. Do not assume absent fields.
+[ ] Update StateManager.current_target with nullable fields: name, ship, rank, faction, bounty, legal_status, scan_stage, is_player, timestamp, source.
+[ ] Publish TARGET_CHANGED only when target identity changes; publish target update when scan/detail changes; publish TARGET_LOST when telemetry explicitly clears target.
+[ ] If target is a player/CMDR only because telemetry says so, mark is_player true; otherwise unknown.
+[ ] Add Activity Log entries through existing logging/event pipeline.
+[ ] Add tests from real anonymized ShipTargeted/target-related journal lines supplied by Commander.
+[ ] For missing real fixtures, stop at helper tests and escalate for fixture capture.
+
+Tests:
+[ ] Target acquisition updates state and publishes event once.
+[ ] Target update does not duplicate identity-change event.
+[ ] Target lost/reset clears state to None, not guessed empty strings.
+[ ] Missing optional fields remain None.
+[ ] NullProvider path unaffected.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.
+
+
+================================================================================
+WEEK 15 PART C — Target Intelligence API, Dashboard, and Overlay Surface
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 15 Part C — Target Intelligence API, Dashboard, and Overlay Surface
+
+Week goal:
+Stand up the Pillar 2 foundation without parallel infrastructure, then make target telemetry visible and broadcastable.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Expose Target Intelligence in the UI/overlay using existing Phase 3 bridge and WebSocket-first patterns.
+
+Scope:
+- /pillar2/target endpoint.
+- Combat view target card.
+- Optional overlay banner for high-priority target telemetry only when deterministic.
+- No external lookup, no LLM description, no invented threat label.
+
+Allowed files:
+- omnicovas/api/pillar2.py
+- tests/test_api_pillar2.py
+- ui/views/combat.js
+- ui/components/shell.js if route registration is needed
+- ui/overlay.js
+- ui/overlay.html if existing pattern requires a new banner slot
+- tests for UI helpers if repo has JS test pattern
+
+Implementation steps:
+[ ] Add GET /pillar2/target with current target snapshot only.
+[ ] Add WebSocket handling for TARGET_CHANGED/TARGET_LOST in the Combat view.
+[ ] Render target fields with explicit unknown/null states.
+[ ] Use existing design tokens and accessibility patterns; color is never the only signal.
+[ ] Overlay: only show a banner for deterministic critical target events the backend emits. Do not calculate threat in frontend.
+[ ] Add reconnect/fallback handling through existing shell event bus; do not create a second WebSocket.
+[ ] Add API tests for exact endpoint shape.
+[ ] Add manual smoke notes in docs/testing/phase4_target_intel_manual.md.
+
+Tests:
+[ ] /pillar2/target shape stable.
+[ ] Unknown fields render as "—" or project-standard unknown marker.
+[ ] TARGET_CHANGED updates target card via event bus.
+[ ] Existing dashboard/overlay tests still pass.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.
+
+
+================================================================================
+WEEK 15 PART D — Week 15 Integration Gate
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 15 Part D — Week 15 Integration Gate
+
+Week goal:
+Stand up the Pillar 2 foundation without parallel infrastructure, then make target telemetry visible and broadcastable.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Close Week 15 with a stable combat foundation and target intelligence path.
+
+Scope:
+- Full-target replay/manual verification.
+- Latency and Activity Log check.
+- Week 15 release note fragment.
+
+Allowed files:
+- docs/testing/phase4_week15_target_intel.md
+- docs/releases/phase4_week15.md or docs/releases/phase4_dev_notes.md
+- tests/test_phase4_week15_integration.py if fixtures exist
+
+Implementation steps:
+[ ] Run a targeted replay using real target fixtures if available.
+[ ] Verify watcher -> parser -> dispatcher -> handler -> state -> broadcaster -> API -> UI event path.
+[ ] Measure local event-to-UI latency using existing logging or a narrow test helper. Do not add a heavy profiler.
+[ ] Confirm all target intelligence output is telemetry or explicitly unknown.
+[ ] Confirm no Inara/CAPI/other outbound lookup exists in Week 15.
+[ ] Write Week 15 notes: implemented, verified, blocked fixtures, and known limitations.
+
+Milestone checklist:
+[ ] Pillar 2 router mounted.
+[ ] Combat UI route reachable.
+[ ] Target state updates from fixture/manual event.
+[ ] Target events broadcast and appear in Activity Log.
+[ ] Unknown fields remain unknown.
+[ ] No new dependency/outbound data.
+[ ] All tests green.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.
