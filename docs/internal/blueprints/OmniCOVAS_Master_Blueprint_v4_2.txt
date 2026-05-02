@@ -1894,33 +1894,95 @@ B. Phase 1 infrastructure (operational)
   14. Defensive Update infrastructure: operational (Phase 1).
 
 
-C. Phase 2 targets (active)
+C. Phase 2 — Pillar 1 Ship Telemetry (operational)
 
-   1. Ship State Broadcaster (Pillar 1 pub/sub).
-   2. Latency Budget Enforcement (CI hard-fail).
-   3. Pillar 1: 8 P1 Core Features.
-   4. Pillar 1: Power Distribution (P2).
-   5. Pillar 1: Heat Management (P2).
-   6. Pillar 1: Rebuy Calculator (P2).
+   1. Ship State Broadcaster (Pillar 1 pub/sub): delivered (Phase 2).
+   2. Latency Budget Enforcement (CI hard-fail): delivered (Phase 2).
+   3. Pillar 1: 8 P1 Core Features (live ship state, module health, hull
+      triggers, loadout, fuel/jump range, cargo, critical broadcaster,
+      extended broadcaster): delivered (Phase 2).
+   4. Pillar 1: Power Distribution (P2): delivered (Phase 2).
+   5. Pillar 1: Heat Management (P2): delivered (Phase 2).
+   6. Pillar 1: Rebuy Calculator (P2): delivered (Phase 2).
+   222 tests green at Phase 2 close.
 
 
-D. Deferred to later phases
+D. Phase 3 — UI Shell (operational)
+
+    1. Tauri desktop app shell (window management, navigation, routing):
+       delivered (Phase 3).
+    2. Game overlay (transparent always-on-top, hotkey toggle, click-through):
+       delivered (Phase 3).
+    3. FastAPI bridge extension (Pillar 1 endpoints + WebSocket events):
+       delivered (Phase 3).
+    4. First-Run Onboarding (Three-Path Model — Easy/Custom/Power User):
+       delivered (Phase 3).
+    5. Privacy page with opt-in toggles (6 toggles, all OFF by default):
+       delivered (Phase 3).
+    6. Settings panel (Three-Tier Customization — presets/categories/granular):
+       delivered (Phase 3).
+    7. Activity Log UI (1000-entry ring buffer, filter, search, paginate,
+       export): delivered (Phase 3).
+    8. Data Flow Transparency Map (/privacy/data-flows): delivered (Phase 3).
+    9. Accessibility framework (semantic HTML, ARIA, focus order, live
+       regions): delivered (Phase 3).
+   10. Color-blind palette support (deuteranopia, protanopia, tritanopia):
+       delivered (Phase 3).
+   11. Font size adjustments (small/default/large): delivered (Phase 3).
+   12. Keyboard-only navigation (full tab order, no traps): delivered (Phase 3).
+   13. Resource dashboard UI (/resources, live sparklines): delivered (Phase 3).
+   14. Credits / Contributors page (/credits, required attributions, trademark
+       disclaimer): delivered (Phase 3).
+   15. SBOM display (/credits/sbom, CycloneDX format): delivered (Phase 3).
+   292 tests green at Phase 3 close.
+
+
+E. Phase 4 — Combat Pillar (active)
+
+   Week 15 — Combat Backbone, Target Intelligence: planned.
+   Week 16 — Interdiction Warning & Escape Planner: planned.
+   Week 17 — PvP Local Log, CMDR Intelligence, Hostility Warnings: planned.
+   Week 18 — Bounty/Bond Tracking, Combat Rank, Munitions Management: planned.
+   Week 19 — Combat Zone Intelligence, Threat Scoring: planned.
+   Week 20 — Integration, AX Partial, On-Foot Awareness, Release Notes:
+              planned.
+
+   Milestone deliverables (Week 20 close):
+   1. Pillar 2 event types documented and tested: planned.
+   2. Combat API endpoints added and covered by pytest: planned.
+   3. Combat dashboard cards visible in the Phase 3 shell: planned.
+   4. Overlay banners for interdiction and critical hostility warnings: planned.
+   5. Local PvP encounter log with privacy-protective defaults: planned.
+   6. Phase 4 integration replay test green: planned.
+   7. Phase 4 release notes at docs/releases/phase4.md: planned.
+
+
+F. Deferred to later phases
 
    1. Privacy page + first-run toggles: Phase 3 UI.
    2. Explainability (Tier 3 inline): Phase 3 UI. Activity Log already
       operational from Phase 1.
    3. Accessibility framework: Phase 3 UI.
    4. EDDN default opt-in: locked; implementation Phase 5+.
+   5. Shield Intelligence: Phase 2.5.
+   6. Repair & Rearm Intelligence: Phase 2.5.
+   7. Predictive Module-Targeting Alerts: Phase 2.5.
+   8. Tactical Threat Assessment: Phase 2.5.
+   9. Multi-Ship State Tracking: Phase 2.5.
 
 
-E. Companion documents
+G. Companion documents
 
    1. Compliance Matrix — v4.1, current.
    2. Approval Applications — v4.0, unchanged. Submission deferred to end of
       Phase 3.
-   3. CLAUDE.md v2.0 — active; engineering assistant operational parameters.
+   3. CLAUDE.md v4.1 — active; architect alignment and playbook authoring.
    4. Phase 1 Development Guide — archived (Phase 1 complete).
-   5. Phase 2 Development Guide — active; week-by-week Pillar 1 execution.
+   5. Phase 2 Development Guide — archived (Phase 2 complete).
+   6. Phase 3 Development Guide — archived (Phase 3 complete).
+   7. Phase 4 Development Guide — active; week-by-week Combat Pillar execution.
+   8. CLAUDE_CODE.md v1.1 — active; executor/lightweight model operational
+      parameters.
 
 
 ================================================================================
@@ -1938,15 +2000,14 @@ B. OmniCOVAS_Approval_Applications_v4_0.txt
      Inara whitelisting. Unchanged. Submission deferred to end of Phase 3.
 
 
-C. OmniCOVAS_Phase2_Development_Guide.docx
+C. OmniCOVAS_Phase2_Development_Guide.docx (archived)
    - Week-by-week execution guide for Pillar 1 Ship Telemetry
-     (Weeks 7 through 10).
+     (Weeks 7 through 10). Phase 2 complete; archived for historical reference.
 
 
-D. CLAUDE.md v2.0
-   - Engineering assistant operational parameters aligned to Phase 2 scope,
-     patterns, and success criteria. Scheduled for redesign after this
-     Blueprint consolidation.
+D. CLAUDE.md v4.1
+   - Architect alignment and playbook authoring parameters. Covers Phase 4
+     scope, patterns, Soldier runtime contract, and success criteria.
 
 
 E. OmniCOVAS_Phase1_Development_Guide.docx (archived)
@@ -1959,10 +2020,20 @@ F. OmniCOVAS_Index.md (new in v4.2)
      and topics across all OmniCOVAS documents without manual search.
 
 
+G. OmniCOVAS_Phase3_Development_Guide.txt (archived)
+   - Week-by-week execution guide for UI Shell (Weeks 11 through 14).
+     Phase 3 complete; archived for historical reference.
+
+
+H. OmniCOVAS_Phase4_Development_Guide.txt
+   - Week-by-week execution guide for the Combat Pillar (Weeks 15 through 20).
+     Active Phase 4 development reference.
+
+
 --------------------------------------------------------------------------------
 END OF DOCUMENT
 --------------------------------------------------------------------------------
 
 OmniCOVAS Master Architecture Blueprint v4.2 — Consolidated Release
-Status: Phase 2 Active
-Last updated: 2026-04-22
+Status: Phase 4 Active (Phase 3 complete)
+Last updated: 2026-05-02
