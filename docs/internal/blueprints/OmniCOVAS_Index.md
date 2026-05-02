@@ -1,6 +1,6 @@
 # OmniCOVAS — AI Reference Index
 
-Version: 2.2 public-cleanup
+Version: 2.2
 Last updated: 2026-05-03
 Repository: https://github.com/RocketsProjects/omnicovas
 Install path: `docs/internal/blueprints/OmniCOVAS_Index.md`
@@ -74,16 +74,15 @@ Windows warning: do not keep both `CLAUDE.MD` and `CLAUDE.md` in one directory. 
 
 - `P1G` | ARCHIVE | `docs/archive/OmniCOVAS_Phase1_Development_Guide.docx` | Phase 1 foundation, weeks 1-6.
 - `P2G` | ARCHIVE | `docs/archive/phase 2 dev guide.txt` | Phase 2 Ship Telemetry, weeks 7-10.
-- `P3G` | CONFIRMED | `docs/internal/dev-guides/phase_3_dev_guide.txt` | Phase 3 UI Shell, weeks 11-14.
-- `P4G` | TARGET | `docs/internal/dev-guides/OmniCOVAS_Phase4_Development_Guide.txt` | Phase 4 Combat, weeks 15-20.
+- `P3G` | ARCHIVE | `docs/archive/phase_3_dev_guide.txt` | Phase 3 UI Shell, weeks 11-14.
+- `P4G` | CONFIRMED | `docs/internal/dev-guides/OmniCOVAS_Phase4_Development_Guide.txt` | Phase 4 Combat, weeks 15-20.
 - `P4M` | TARGET | `docs/internal/dev-guides/OmniCOVAS_Phase4_Manifest.txt` | Phase 4 document handoff manifest.
-- `P4PB_ALL` | TARGET | `docs/internal/ai-workflow/playbooks/phase4/OmniCOVAS_Phase4_Playbooks_All.txt` | combined Week 15-20 playbooks.
-- `P4PB15` | TARGET | `docs/internal/ai-workflow/playbooks/phase4/Week_15_Combat_Backbone_Target_Intelligence_Playbook.txt`
-- `P4PB16` | TARGET | `docs/internal/ai-workflow/playbooks/phase4/Week_16_Interdiction_Escape_Planner_Playbook.txt`
-- `P4PB17` | TARGET | `docs/internal/ai-workflow/playbooks/phase4/Week_17_PvP_Hostility_Playbook.txt`
-- `P4PB18` | TARGET | `docs/internal/ai-workflow/playbooks/phase4/Week_18_Rewards_Rank_Munitions_Playbook.txt`
-- `P4PB19` | TARGET | `docs/internal/ai-workflow/playbooks/phase4/Week_19_Combat_Zone_Threat_Playbook.txt`
-- `P4PB20` | TARGET | `docs/internal/ai-workflow/playbooks/phase4/Week_20_Integration_AX_OnFoot_Playbook.txt`
+- `P4PB15` | CONFIRMED | `docs/internal/ai-workflow/playbooks/phase4/weekly/Week_15_combat_backbone_and_target_intelligence_Playbook.txt`
+- `P4PB16` | CONFIRMED | `docs/internal/ai-workflow/playbooks/phase4/weekly/Week_16_interdiction_warning_and_escape_planner_Playbook.txt`
+- `P4PB17` | CONFIRMED | `docs/internal/ai-workflow/playbooks/phase4/weekly/Week_17_pvp_local_log_and_hostility_warnings_Playbook.txt`
+- `P4PB18` | CONFIRMED | `docs/internal/ai-workflow/playbooks/phase4/weekly/Week_18_rewards_combat_rank_and_munitions_Playbook.txt`
+- `P4PB19` | CONFIRMED | `docs/internal/ai-workflow/playbooks/phase4/weekly/Week_19_combat_zone_intelligence_and_threat_scoring_Playbook.txt`
+- `P4PB20` | CONFIRMED | `docs/internal/ai-workflow/playbooks/phase4/weekly/Week_20_integration_partial_ax_basic_on_foot_awareness_and_phase_4_close_Playbook.txt`
 
 Executor handoff rule: give exactly one weekly playbook plus required tagged files. Do not hand all six implementation playbooks to a small model unless the task is only archival/browsing.
 
@@ -295,8 +294,8 @@ Use the owning location first.
 - Phase 1 Core -> `BP §26`, `P1G`, `RM` summary. Owns watcher, dispatcher, state, DB, AIProvider, KB, Confirmation Gate, FastAPI, DPAPI, logging, resource budgets, Tauri skeleton, Activity Log.
 - Phase 2 Ship Telemetry -> `BP §19/§27`, `P2G`, `REL2`. Weeks 7-10: broadcaster/live ship/fuel; loadout/module/cargo; hull/critical/extended/PIPS/heat/latency; rebuy/integration.
 - Phase 2.5 Deferred Pillar 1 -> `BP §28`. Shield intelligence, repair/rearm, predictive target alerts, tactical threat, multi-ship state.
-- Phase 3 UI Shell -> `BP §29`, `P3G`, `REL3`, `REL12`, `REL13`. Weeks 11-14: shell/dashboard; overlay; onboarding/privacy/settings/activity; accessibility/submissions.
-- Phase 4 Combat -> `BP §20/§30`, `P4G`, `P4PB*`. Weeks 15-20: target intel; interdiction/escape; PvP/hostility; rewards/rank/munitions; CZ/threat; integration/AX/on-foot.
+- Phase 3 UI Shell [COMPLETE] -> `BP §29`, `P3G`, `REL3`, `REL12`, `REL13`. Delivered weeks 11-14: shell/dashboard; overlay; onboarding/privacy/settings/activity; accessibility/credits/SBOM. 292 tests green at close.
+- Phase 4 Combat [ACTIVE] -> `BP §20/§30`, `P4G`, `P4PB*`. Weeks 15-20: target intel; interdiction/escape; PvP/hostility; rewards/rank/munitions; CZ/threat; integration/AX/on-foot.
 - Phase 5 Exploration -> `BP §21/§31`, CM for Spansh/EDSM/EDAstro.
 - Phase 6 Trading/Mining/Colonization -> `BP §23/§32`.
 - Phase 7 Squadron/Social -> `BP §25/§33`, Top Secret Mode, P2P sync.
@@ -347,7 +346,7 @@ Local-only AI tooling directories (`.claude/`, `.gemini/`) and `GEMINI.md` are g
 
 Current docs layout:
 - `docs/internal/blueprints/` -> `BP`, `CM`, `IDX`.
-- `docs/internal/dev-guides/` -> current dev guides, currently `P3G`.
+- `docs/internal/dev-guides/` -> `P4G` (active). `P3G` archived to `docs/archive/`.
 - `docs/internal/ai-workflow/` -> AI alignment/workflow files.
 - `docs/releases/` -> phase/week release notes.
 - `docs/accessibility/` -> accessibility tests.
