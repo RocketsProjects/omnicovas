@@ -110,6 +110,12 @@ window.addEventListener('hashchange', function () {
   if (window.location.hash === '#/activity-log') fetchLog();
 });
 
+if (window.OmniEvents && typeof window.OmniEvents.addEventListener === 'function') {
+  window.OmniEvents.addEventListener('bridge-connected', function () {
+    hydrateLogForCurrentRoute();
+  });
+}
+
 window._addLogEntry = addLogEntry;
 
 hydrateLogForCurrentRoute();

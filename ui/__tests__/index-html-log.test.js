@@ -124,3 +124,52 @@ describe('hydrateLogForCurrentRoute — initial route hydration', () => {
     expect(global.fetch).not.toHaveBeenCalled();
   });
 });
+
+describe('bridge-connected hydration', () => {
+  afterEach(() => {
+    delete window.OMNICOVAS_PORT;
+    delete window.OmniEvents;
+    window.location.hash = '';
+    delete global.fetch;
+    vi.useRealTimers();
+  });
+
+  it('fetches and renders entries when bridge-connected fires on #/activity-log after retry exhaustion', async () => {
+    document.body.innerHTML =
+      '<input id="log-search"><button id="log-clear-btn"></button><div id="log-entries"></div>';
+    window.location.hash = '#/activity-log';
+    delete window.OMNICOVAS_PORT;
+    window.OmniEvents = new EventTarget();
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ entries: [{ event_type: 'BRIDGE_EVENT', summary: 'Reconnected', timestamp: null }] }),
+    });
+    vi.useFakeTimers();
+    vi.resetModules();
+    await import('../scripts/inline-event-log.js');
+    vi.advanceTimersByTime(2500);
+    expect(global.fetch).not.toHaveBeenCalled();
+    window.OMNICOVAS_PORT = 9000;
+    window.OmniEvents.dispatchEvent(new Event('bridge-connected'));
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:9000/activity-log');
+    expect(document.querySelector('.log-entry')).not.toBeNull();
+  });
+
+  it('does not fetch when bridge-connected fires on a non-activity-log route', async () => {
+    document.body.innerHTML =
+      '<input id="log-search"><button id="log-clear-btn"></button><div id="log-entries"></div>';
+    window.location.hash = '#/dashboard';
+    window.OMNICOVAS_PORT = 9000;
+    window.OmniEvents = new EventTarget();
+    global.fetch = vi.fn();
+    vi.resetModules();
+    await import('../scripts/inline-event-log.js');
+    window.OmniEvents.dispatchEvent(new Event('bridge-connected'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
