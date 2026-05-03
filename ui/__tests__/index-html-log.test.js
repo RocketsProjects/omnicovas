@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 let renderLog, addLogEntry;
 
@@ -68,5 +68,59 @@ describe('renderLog — safe DOM rendering', () => {
   it('applies critical class for critical event types', () => {
     addLogEntry({ event_type: 'SHIELDS_DOWN', summary: '' });
     expect(document.querySelector('.log-entry.critical')).not.toBeNull();
+  });
+});
+
+describe('hydrateLogForCurrentRoute — initial route hydration', () => {
+  afterEach(() => {
+    delete window.OMNICOVAS_PORT;
+    window.location.hash = '';
+    delete global.fetch;
+    vi.useRealTimers();
+  });
+
+  it('fetches and renders entries when already on #/activity-log with port ready', async () => {
+    document.body.innerHTML =
+      '<input id="log-search"><button id="log-clear-btn"></button><div id="log-entries"></div>';
+    window.location.hash = '#/activity-log';
+    window.OMNICOVAS_PORT = 9000;
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ entries: [{ event_type: 'HULL_DAMAGE', summary: 'Hit', timestamp: null }] }),
+    });
+    vi.resetModules();
+    await import('../scripts/inline-event-log.js');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:9000/activity-log');
+    expect(document.querySelector('.log-entry')).not.toBeNull();
+  });
+
+  it('does not fetch when loaded on a non-activity-log route', async () => {
+    document.body.innerHTML =
+      '<input id="log-search"><button id="log-clear-btn"></button><div id="log-entries"></div>';
+    window.location.hash = '#/dashboard';
+    window.OMNICOVAS_PORT = 9000;
+    global.fetch = vi.fn();
+    vi.resetModules();
+    await import('../scripts/inline-event-log.js');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does not throw and caps retries when port is absent on #/activity-log', async () => {
+    document.body.innerHTML =
+      '<input id="log-search"><button id="log-clear-btn"></button><div id="log-entries"></div>';
+    window.location.hash = '#/activity-log';
+    delete window.OMNICOVAS_PORT;
+    global.fetch = vi.fn();
+    vi.useFakeTimers();
+    vi.resetModules();
+    await import('../scripts/inline-event-log.js');
+    expect(global.fetch).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(2500);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

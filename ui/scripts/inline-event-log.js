@@ -81,6 +81,14 @@ async function fetchLog() {
   } catch (e) { /* silent */ }
 }
 
+function hydrateLogForCurrentRoute(attempt) {
+  if (attempt === undefined) attempt = 0;
+  if (window.location.hash !== '#/activity-log') return;
+  if (window.OMNICOVAS_PORT) { fetchLog(); return; }
+  if (attempt >= 20) return;
+  setTimeout(function () { hydrateLogForCurrentRoute(attempt + 1); }, 100);
+}
+
 // Module runs after DOM is parsed — wire search and clear at top-level
 var searchEl = document.getElementById('log-search');
 if (searchEl) {
@@ -104,4 +112,6 @@ window.addEventListener('hashchange', function () {
 
 window._addLogEntry = addLogEntry;
 
-export { renderLog, addLogEntry, fetchLog };
+hydrateLogForCurrentRoute();
+
+export { renderLog, addLogEntry, fetchLog, hydrateLogForCurrentRoute };
