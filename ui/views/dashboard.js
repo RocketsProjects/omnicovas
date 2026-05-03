@@ -77,20 +77,6 @@ function drawSparkline(canvasEl, samples) {
   ctx.stroke();
 }
 
-/* ── Pip dots ── */
-function renderPips(groupEl, value, max = 8) {
-  if (!groupEl) return;
-  const dotsEl = groupEl.querySelector('.pips-dots');
-  if (!dotsEl) return;
-  dotsEl.innerHTML = '';
-  for (let i = 0; i < max; i++) {
-    const pip = document.createElement('span');
-    pip.className = 'pip' + (value != null && i < value ? ' filled' : '');
-    pip.setAttribute('aria-hidden', 'true');
-    dotsEl.appendChild(pip);
-  }
-}
-
 /* ── Card border state ── */
 function setCardState(cardId, state) {
   const card = el(cardId);
@@ -212,14 +198,25 @@ function renderCargo(s, inventory) {
   if (listEl) {
     const items = (inventory || []).slice(0, 5);
     if (items.length === 0) {
-      listEl.innerHTML = '<li class="field-value unknown">Empty</li>';
+      const emptyLi = document.createElement('li');
+      emptyLi.className = 'field-value unknown';
+      emptyLi.textContent = 'Empty';
+      listEl.replaceChildren(emptyLi);
     } else {
-      listEl.innerHTML = items.map(item =>
-        `<li class="field-row">
-          <span class="field-label">${item.name}</span>
-          <span class="field-value">${item.count}</span>
-        </li>`
-      ).join('');
+      const nodes = items.map(item => {
+        const li = document.createElement('li');
+        li.className = 'field-row';
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'field-label';
+        nameSpan.textContent = item.name;
+        const countSpan = document.createElement('span');
+        countSpan.className = 'field-value';
+        countSpan.textContent = item.count;
+        li.appendChild(nameSpan);
+        li.appendChild(countSpan);
+        return li;
+      });
+      listEl.replaceChildren(...nodes);
     }
   }
 }
@@ -487,11 +484,11 @@ function onEvent(msg) {
 /* ─────────────────────────────────────────────
    Init
 ───────────────────────────────────────────── */
-window.OmniEvents.addEventListener('state', (ev) => {
+window.OmniEvents?.addEventListener('state', (ev) => {
   onStateUpdate(ev.detail);
 });
 
-window.OmniEvents.addEventListener('event', (ev) => {
+window.OmniEvents?.addEventListener('event', (ev) => {
   onEvent(ev.detail);
 });
 
@@ -501,5 +498,9 @@ window.addEventListener('hashchange', () => {
 });
 
 // Hydration listener
-window.OmniEvents.addEventListener('bridge-connected', loadDashboard);
+window.OmniEvents?.addEventListener('bridge-connected', loadDashboard);
 scheduleDashboardLoad();
+
+if (typeof globalThis.__dashboardExports === 'undefined') {
+  globalThis.__dashboardExports = { renderCargo };
+}
