@@ -11,7 +11,6 @@
 
 class ActivityLogController {
   constructor() {
-    this.apiBase = `http://127.0.0.1:${window.PORT || 8000}`;
     this.allEntries = [];
     this.filteredEntries = [];
     this.currentPage = 0;
@@ -19,15 +18,49 @@ class ActivityLogController {
     this.init();
   }
 
+  get apiBase() {
+    if (window.Shell?.httpBase) return window.Shell.httpBase;
+    if (window.OMNICOVAS_PORT) return `http://127.0.0.1:${window.OMNICOVAS_PORT}`;
+    return null;
+  }
+
+  apiUrl(path) {
+    const base = this.apiBase;
+    return base ? `${base}${path}` : null;
+  }
+
   async init() {
-    await this.loadActivityLog();
     this.bindEvents();
+    if (!this.apiBase) {
+      this._showWaiting();
+      window.OmniEvents?.addEventListener('bridge-connected', () => this._loadAndRender(), { once: true });
+      return;
+    }
+    await this._loadAndRender();
+  }
+
+  _showWaiting() {
+    const tbody = document.getElementById('log-body');
+    if (!tbody) return;
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 5;
+    td.className = 'log-waiting';
+    td.textContent = 'Waiting for OmniCOVAS bridge…';
+    tr.appendChild(td);
+    tbody.replaceChildren(tr);
+  }
+
+  async _loadAndRender() {
+    await this.loadActivityLog();
     this.renderPage();
   }
 
   async loadActivityLog() {
+    const url = this.apiUrl('/activity-log');
+    if (!url) return;
     try {
-      const res = await fetch(`${this.apiBase}/activity-log`);
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       this.allEntries = data.entries || [];

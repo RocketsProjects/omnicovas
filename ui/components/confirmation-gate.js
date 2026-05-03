@@ -7,11 +7,21 @@
  */
 
 class ConfirmationGateComponent {
-  constructor(apiBase = `http://127.0.0.1:${window.PORT || 8000}`) {
-    this.apiBase = apiBase;
+  constructor() {
     this.confirmations = new Map();
     this.containerEl = null;
     this.pollInterval = null;
+  }
+
+  get apiBase() {
+    if (window.Shell?.httpBase) return window.Shell.httpBase;
+    if (window.OMNICOVAS_PORT) return `http://127.0.0.1:${window.OMNICOVAS_PORT}`;
+    return null;
+  }
+
+  apiUrl(path) {
+    const base = this.apiBase;
+    return base ? `${base}${path}` : null;
   }
 
   /**
@@ -67,8 +77,10 @@ class ConfirmationGateComponent {
    * Fetch pending confirmations from the API.
    */
   async fetchPending() {
+    const url = this.apiUrl('/week13/confirmations/pending');
+    if (!url) return;
     try {
-      const res = await fetch(`${this.apiBase}/week13/confirmations/pending`);
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
@@ -199,8 +211,10 @@ class ConfirmationGateComponent {
    * Send a response to the server.
    */
   async respond(id, response) {
+    const url = this.apiUrl(`/week13/confirmations/${id}`);
+    if (!url) return;
     try {
-      const res = await fetch(`${this.apiBase}/week13/confirmations/${id}`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ response }),

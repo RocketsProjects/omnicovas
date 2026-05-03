@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import '../views/onboarding.js';
 
 const { OnboardingController, _initOnboarding } = globalThis.__onboardingExports ?? {};
@@ -57,16 +57,66 @@ describe('OnboardingController.show', () => {
   });
 });
 
+describe('OnboardingController — bridge readiness', () => {
+  let ctrl;
+
+  beforeEach(() => {
+    ctrl = Object.create(OnboardingController.prototype);
+    delete window.Shell;
+    delete window.OMNICOVAS_PORT;
+  });
+
+  afterEach(() => {
+    delete window.Shell;
+    delete window.OMNICOVAS_PORT;
+  });
+
+  it('apiBase returns null when no bridge globals are set', () => {
+    expect(ctrl.apiBase).toBeNull();
+  });
+
+  it('apiUrl returns null when bridge is not ready', () => {
+    expect(ctrl.apiUrl('/week13/onboarding/complete')).toBeNull();
+  });
+
+  it('apiBase returns Shell.httpBase when available', () => {
+    window.Shell = { httpBase: 'http://127.0.0.1:7654' };
+    expect(ctrl.apiBase).toBe('http://127.0.0.1:7654');
+  });
+
+  it('apiBase uses OMNICOVAS_PORT when Shell.httpBase is absent', () => {
+    window.OMNICOVAS_PORT = '9876';
+    expect(ctrl.apiBase).toBe('http://127.0.0.1:9876');
+  });
+
+  it('apiUrl never contains :8000', () => {
+    window.OMNICOVAS_PORT = '9876';
+    expect(ctrl.apiUrl('/week13/onboarding/complete')).not.toContain(':8000');
+  });
+
+  it('completeOnboarding does not call fetch when bridge is not ready', async () => {
+    document.body.innerHTML = '<div id="onboarding-container" style="display:flex"></div>';
+    global.fetch = vi.fn();
+    await ctrl.completeOnboarding();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
+
 describe('OnboardingController.completeOnboarding', () => {
   let ctrl;
 
   beforeEach(() => {
     document.body.innerHTML = '<div id="onboarding-container" style="display:flex"></div>';
     ctrl = Object.create(OnboardingController.prototype);
+    window.OMNICOVAS_PORT = '9876';
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ status: 'ok' }),
     });
+  });
+
+  afterEach(() => {
+    delete window.OMNICOVAS_PORT;
   });
 
   it('calls the complete endpoint', async () => {
@@ -75,6 +125,12 @@ describe('OnboardingController.completeOnboarding', () => {
       expect.stringContaining('/week13/onboarding/complete'),
       expect.objectContaining({ method: 'POST' })
     );
+  });
+
+  it('calls the complete endpoint without :8000', async () => {
+    await ctrl.completeOnboarding();
+    const [calledUrl] = global.fetch.mock.calls[0];
+    expect(calledUrl).not.toContain(':8000');
   });
 
   it('hides container after successful completion', async () => {

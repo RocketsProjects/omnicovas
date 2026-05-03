@@ -29,7 +29,14 @@ class OnboardingController {
   }
 
   get apiBase() {
-    return `http://127.0.0.1:${window.OMNICOVAS_PORT || 8000}`;
+    if (window.Shell?.httpBase) return window.Shell.httpBase;
+    if (window.OMNICOVAS_PORT) return `http://127.0.0.1:${window.OMNICOVAS_PORT}`;
+    return null;
+  }
+
+  apiUrl(path) {
+    const base = this.apiBase;
+    return base ? `${base}${path}` : null;
   }
 
   init() {
@@ -262,8 +269,10 @@ class OnboardingController {
   // ── API CALLS ──
 
   async savePreset(preset) {
+    const url = this.apiUrl('/week13/settings');
+    if (!url) return;
     try {
-      const res = await fetch(`${this.apiBase}/week13/settings`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ preset }),
@@ -276,8 +285,10 @@ class OnboardingController {
   }
 
   async setPrivacyToggle(key, enabled) {
+    const url = this.apiUrl(`/week13/privacy/toggles/${key}`);
+    if (!url) return;
     try {
-      const res = await fetch(`${this.apiBase}/week13/privacy/toggles/${key}`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled }),
@@ -290,8 +301,10 @@ class OnboardingController {
   }
 
   async saveSettings(settings) {
+    const url = this.apiUrl('/week13/settings');
+    if (!url) return;
     try {
-      const res = await fetch(`${this.apiBase}/week13/settings`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
@@ -304,8 +317,10 @@ class OnboardingController {
   }
 
   async completeOnboarding() {
+    const url = this.apiUrl('/week13/onboarding/complete');
+    if (!url) return;
     try {
-      const res = await fetch(`${this.apiBase}/week13/onboarding/complete`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });

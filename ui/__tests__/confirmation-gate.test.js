@@ -1,7 +1,64 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import '../components/confirmation-gate.js';
 
 const { ConfirmationGateComponent } = globalThis.__confirmationGateExports ?? {};
+
+describe('ConfirmationGateComponent — bridge readiness', () => {
+  let gate;
+
+  beforeEach(() => {
+    gate = new ConfirmationGateComponent();
+    delete window.Shell;
+    delete window.OMNICOVAS_PORT;
+  });
+
+  afterEach(() => {
+    delete window.Shell;
+    delete window.OMNICOVAS_PORT;
+  });
+
+  it('apiBase returns null when no bridge globals are set', () => {
+    expect(gate.apiBase).toBeNull();
+  });
+
+  it('apiUrl returns null when bridge is not ready', () => {
+    expect(gate.apiUrl('/week13/confirmations/pending')).toBeNull();
+  });
+
+  it('apiBase returns Shell.httpBase when available', () => {
+    window.Shell = { httpBase: 'http://127.0.0.1:7654' };
+    expect(gate.apiBase).toBe('http://127.0.0.1:7654');
+  });
+
+  it('apiBase uses OMNICOVAS_PORT when Shell.httpBase is absent', () => {
+    window.OMNICOVAS_PORT = '9876';
+    expect(gate.apiBase).toBe('http://127.0.0.1:9876');
+  });
+
+  it('apiUrl builds correct URL from OMNICOVAS_PORT', () => {
+    window.OMNICOVAS_PORT = '9876';
+    expect(gate.apiUrl('/week13/confirmations/pending')).toBe(
+      'http://127.0.0.1:9876/week13/confirmations/pending'
+    );
+  });
+
+  it('apiUrl never contains :8000', () => {
+    window.OMNICOVAS_PORT = '9876';
+    expect(gate.apiUrl('/week13/confirmations/pending')).not.toContain(':8000');
+  });
+
+  it('fetchPending does not call fetch when bridge is not ready', async () => {
+    global.fetch = vi.fn();
+    await gate.fetchPending();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('respond does not call fetch when bridge is not ready', async () => {
+    global.fetch = vi.fn();
+    await gate.respond('abc123', 'confirm');
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
 
 describe('ConfirmationGateComponent — safe why_text rendering', () => {
   let gate;
