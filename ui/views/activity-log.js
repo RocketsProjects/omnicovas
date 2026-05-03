@@ -1,5 +1,3 @@
-import { escapeHtml } from "../utils/safe-dom.js";
-
 /**
  * Phase 3 Week 13 — Activity Log Controller
  *
@@ -156,13 +154,26 @@ class ActivityLogController {
 
     const category = this.getEventCategory(eventType);
 
-    row.innerHTML = `
-      <td class="log-timestamp">${this.formatTimestamp(timestamp)}</td>
-      <td class="log-event-type ${category}">${escapeHtml(eventType)}</td>
-      <td class="log-source">${escapeHtml(source)}</td>
-      <td class="log-summary">${escapeHtml(summary)}</td>
-      <td>${escapeHtml(aiTier)}</td>
-    `;
+    const timestampCell = document.createElement("td");
+    timestampCell.className = "log-timestamp";
+    timestampCell.textContent = this.formatTimestamp(timestamp);
+
+    const typeCell = document.createElement("td");
+    typeCell.className = `log-event-type ${category}`;
+    typeCell.textContent = eventType;
+
+    const sourceCell = document.createElement("td");
+    sourceCell.className = "log-source";
+    sourceCell.textContent = source;
+
+    const summaryCell = document.createElement("td");
+    summaryCell.className = "log-summary";
+    summaryCell.textContent = summary;
+
+    const tierCell = document.createElement("td");
+    tierCell.textContent = aiTier;
+
+    row.append(timestampCell, typeCell, sourceCell, summaryCell, tierCell);
 
     return row;
   }
@@ -241,6 +252,8 @@ class ActivityLogController {
     }
   }
 }
+
+globalThis.__activityLogExports = { ActivityLogController };
 
 // Initialize on page load
 if (document.readyState === "loading") {
