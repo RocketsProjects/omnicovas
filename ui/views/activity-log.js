@@ -154,13 +154,26 @@ class ActivityLogController {
 
     const category = this.getEventCategory(eventType);
 
-    row.innerHTML = `
-      <td class="log-timestamp">${this.formatTimestamp(timestamp)}</td>
-      <td class="log-event-type ${category}">${this.escapeHtml(eventType)}</td>
-      <td class="log-source">${this.escapeHtml(source)}</td>
-      <td class="log-summary">${this.escapeHtml(summary)}</td>
-      <td>${this.escapeHtml(aiTier)}</td>
-    `;
+    const timestampCell = document.createElement("td");
+    timestampCell.className = "log-timestamp";
+    timestampCell.textContent = this.formatTimestamp(timestamp);
+
+    const typeCell = document.createElement("td");
+    typeCell.className = `log-event-type ${category}`;
+    typeCell.textContent = eventType;
+
+    const sourceCell = document.createElement("td");
+    sourceCell.className = "log-source";
+    sourceCell.textContent = source;
+
+    const summaryCell = document.createElement("td");
+    summaryCell.className = "log-summary";
+    summaryCell.textContent = summary;
+
+    const tierCell = document.createElement("td");
+    tierCell.textContent = aiTier;
+
+    row.append(timestampCell, typeCell, sourceCell, summaryCell, tierCell);
 
     return row;
   }
@@ -180,13 +193,6 @@ class ActivityLogController {
     } catch {
       return ts;
     }
-  }
-
-  escapeHtml(str) {
-    if (!str) return "";
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
   }
 
   updatePagination() {
@@ -246,6 +252,9 @@ class ActivityLogController {
     }
   }
 }
+
+// Test hook for Vitest; keeps this browser-compatible without changing production module/script loading.
+globalThis.__activityLogExports = { ActivityLogController };
 
 // Initialize on page load
 if (document.readyState === "loading") {

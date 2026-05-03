@@ -144,15 +144,25 @@ function renderBanner(banner) {
   const bannerEl = document.createElement('div');
   bannerEl.className = `banner ${banner.config.severity}`;
   bannerEl.style.opacity = overlaySettings.opacity.toString();
-  bannerEl.innerHTML = `
-    <span class="banner-icon">${banner.config.icon}</span>
-    <span class="banner-label">${banner.config.label}</span>
-    <span class="banner-value">${
-      typeof banner.value === 'number'
-        ? banner.value.toFixed(0) + '%'
-        : banner.value
-    }</span>
-  `;
+
+  const iconEl = document.createElement('span');
+  iconEl.className = 'banner-icon';
+  iconEl.textContent = banner.config.icon;
+
+  const labelEl = document.createElement('span');
+  labelEl.className = 'banner-label';
+  labelEl.textContent = banner.config.label;
+
+  const valueEl = document.createElement('span');
+  valueEl.className = 'banner-value';
+  valueEl.textContent =
+    typeof banner.value === 'number'
+      ? banner.value.toFixed(0) + '%'
+      : (banner.value == null ? '' : String(banner.value));
+
+  bannerEl.appendChild(iconEl);
+  bannerEl.appendChild(labelEl);
+  bannerEl.appendChild(valueEl);
 
   container.appendChild(bannerEl);
 }
@@ -172,6 +182,9 @@ function dismissBanner() {
   if (bannerQueue.length > 0) {
     const next = bannerQueue.shift();
     showBanner(next.eventType, next.value);
+  } else if (window.__TAURI__) {
+    const invoke = window.__TAURI__?.core?.invoke;
+    if (typeof invoke === 'function') invoke('hide_overlay').catch(() => {});
   }
 }
 
@@ -418,3 +431,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   console.log('[Overlay] Ready. Click-through enabled by default.');
 });
+
+export { renderBanner, showBanner, dismissBanner };

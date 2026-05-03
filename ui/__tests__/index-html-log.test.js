@@ -1,0 +1,175 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+let renderLog, addLogEntry;
+
+beforeEach(async () => {
+  document.body.innerHTML =
+    '<input id="log-search">' +
+    '<button id="log-clear-btn"></button>' +
+    '<div id="log-entries"></div>';
+  vi.resetModules();
+  ({ renderLog, addLogEntry } = await import('../scripts/inline-event-log.js'));
+});
+
+describe('renderLog — safe DOM rendering', () => {
+  it('renders empty state as literal text with no HTML injection', () => {
+    renderLog('');
+    const container = document.getElementById('log-entries');
+    const p = container.querySelector('p');
+    expect(p).not.toBeNull();
+    expect(p.textContent).toBe('No events yet.');
+    expect(p.className).toBe('field-value unknown');
+    expect(container.querySelector('script')).toBeNull();
+    expect(container.querySelector('img')).toBeNull();
+  });
+
+  it('renders malicious event_type as literal text, no img element injected', () => {
+    addLogEntry({ event_type: '<img src=x onerror=alert(1)>', summary: 'safe summary' });
+    const container = document.getElementById('log-entries');
+    expect(container.querySelector('img')).toBeNull();
+    const typeSpan = container.querySelector('.log-type');
+    expect(typeSpan).not.toBeNull();
+    expect(typeSpan.textContent).toBe('<img src=x onerror=alert(1)>');
+  });
+
+  it('renders malicious summary as literal text, no script element injected', () => {
+    addLogEntry({ event_type: 'TEST_EVENT', summary: '<script>alert(1)<\/script>' });
+    const container = document.getElementById('log-entries');
+    expect(container.querySelector('script')).toBeNull();
+    const msgSpan = container.querySelector('.log-msg');
+    expect(msgSpan).not.toBeNull();
+    expect(msgSpan.textContent).toBe('<script>alert(1)</script>');
+  });
+
+  it('renders both malicious fields together, no injected elements', () => {
+    addLogEntry({
+      event_type: '<img src=x onerror=alert(1)>',
+      summary: '<script>alert(1)<\/script>',
+    });
+    const container = document.getElementById('log-entries');
+    expect(container.querySelector('img')).toBeNull();
+    expect(container.querySelector('script')).toBeNull();
+    expect(container.querySelector('.log-type').textContent).toBe('<img src=x onerror=alert(1)>');
+    expect(container.querySelector('.log-msg').textContent).toBe('<script>alert(1)</script>');
+  });
+
+  it('creates a log-entry div with role listitem', () => {
+    addLogEntry({ event_type: 'HULL_DAMAGE', summary: 'Hull at 75%' });
+    const entry = document.querySelector('.log-entry');
+    expect(entry).not.toBeNull();
+    expect(entry.getAttribute('role')).toBe('listitem');
+  });
+
+  it('applies warn class for warn event types', () => {
+    addLogEntry({ event_type: 'HULL_DAMAGE', summary: '' });
+    expect(document.querySelector('.log-entry.warn')).not.toBeNull();
+  });
+
+  it('applies critical class for critical event types', () => {
+    addLogEntry({ event_type: 'SHIELDS_DOWN', summary: '' });
+    expect(document.querySelector('.log-entry.critical')).not.toBeNull();
+  });
+});
+
+describe('hydrateLogForCurrentRoute — initial route hydration', () => {
+  afterEach(() => {
+    delete window.OMNICOVAS_PORT;
+    window.location.hash = '';
+    delete global.fetch;
+    vi.useRealTimers();
+  });
+
+  it('fetches and renders entries when already on #/activity-log with port ready', async () => {
+    document.body.innerHTML =
+      '<input id="log-search"><button id="log-clear-btn"></button><div id="log-entries"></div>';
+    window.location.hash = '#/activity-log';
+    window.OMNICOVAS_PORT = 9000;
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ entries: [{ event_type: 'HULL_DAMAGE', summary: 'Hit', timestamp: null }] }),
+    });
+    vi.resetModules();
+    await import('../scripts/inline-event-log.js');
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:9000/activity-log');
+    expect(document.querySelector('.log-entry')).not.toBeNull();
+  });
+
+  it('does not fetch when loaded on a non-activity-log route', async () => {
+    document.body.innerHTML =
+      '<input id="log-search"><button id="log-clear-btn"></button><div id="log-entries"></div>';
+    window.location.hash = '#/dashboard';
+    window.OMNICOVAS_PORT = 9000;
+    global.fetch = vi.fn();
+    vi.resetModules();
+    await import('../scripts/inline-event-log.js');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does not throw and caps retries when port is absent on #/activity-log', async () => {
+    document.body.innerHTML =
+      '<input id="log-search"><button id="log-clear-btn"></button><div id="log-entries"></div>';
+    window.location.hash = '#/activity-log';
+    delete window.OMNICOVAS_PORT;
+    global.fetch = vi.fn();
+    vi.useFakeTimers();
+    vi.resetModules();
+    await import('../scripts/inline-event-log.js');
+    expect(global.fetch).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(2500);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe('bridge-connected hydration', () => {
+  afterEach(() => {
+    delete window.OMNICOVAS_PORT;
+    delete window.OmniEvents;
+    window.location.hash = '';
+    delete global.fetch;
+    vi.useRealTimers();
+  });
+
+  it('fetches and renders entries when bridge-connected fires on #/activity-log after retry exhaustion', async () => {
+    document.body.innerHTML =
+      '<input id="log-search"><button id="log-clear-btn"></button><div id="log-entries"></div>';
+    window.location.hash = '#/activity-log';
+    delete window.OMNICOVAS_PORT;
+    window.OmniEvents = new EventTarget();
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ entries: [{ event_type: 'BRIDGE_EVENT', summary: 'Reconnected', timestamp: null }] }),
+    });
+    vi.useFakeTimers();
+    vi.resetModules();
+    await import('../scripts/inline-event-log.js');
+    vi.advanceTimersByTime(2500);
+    expect(global.fetch).not.toHaveBeenCalled();
+    window.OMNICOVAS_PORT = 9000;
+    window.OmniEvents.dispatchEvent(new Event('bridge-connected'));
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:9000/activity-log');
+    expect(document.querySelector('.log-entry')).not.toBeNull();
+  });
+
+  it('does not fetch when bridge-connected fires on a non-activity-log route', async () => {
+    document.body.innerHTML =
+      '<input id="log-search"><button id="log-clear-btn"></button><div id="log-entries"></div>';
+    window.location.hash = '#/dashboard';
+    window.OMNICOVAS_PORT = 9000;
+    window.OmniEvents = new EventTarget();
+    global.fetch = vi.fn();
+    vi.resetModules();
+    await import('../scripts/inline-event-log.js');
+    window.OmniEvents.dispatchEvent(new Event('bridge-connected'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+});

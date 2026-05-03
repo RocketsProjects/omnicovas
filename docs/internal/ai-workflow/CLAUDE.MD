@@ -369,6 +369,8 @@ When reviewing code or plans, check in this order:
 
 Flag project-risk issues before style issues.
 
+For UI JavaScript reviews, run `git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui` and verify all results are classified per `docs/internal/ai-workflow/ui_safe_rendering_checklist.md`.
+
 ---
 
 ## 13. Debugging Protocol

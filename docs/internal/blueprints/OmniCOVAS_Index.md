@@ -66,6 +66,7 @@ Conflict rule: report conflict, obey highest owner, and stop if legal/compliance
 - `CLAUDE_LEGACY` | CONFIRMED/ARCHIVE | `docs/internal/ai-workflow/CLAUDE.MD` | legacy Phase 2 alignment; superseded.
 - `SOLDIER` | CONFIRMED | `docs/internal/ai-workflow/Soldier.md` | older executor contract.
 - `AITPL` | CONFIRMED | `docs/internal/ai-workflow/templates/` | prompt/playbook templates.
+- `CHKXSS` | CONFIRMED | `docs/internal/ai-workflow/ui_safe_rendering_checklist.md` | UI safe-rendering audit checklist for Soldiers.
 
 Windows warning: do not keep both `CLAUDE.MD` and `CLAUDE.md` in one directory. Replace the legacy file or rename carefully.
 
@@ -95,6 +96,8 @@ Executor handoff rule: give exactly one weekly playbook plus required tagged fil
 - `A11Y_NVDA` | CONFIRMED | `docs/accessibility/nvda_smoke_test.md` | accessibility/NVDA smoke test.
 - `TEST_OVERLAY` | CONFIRMED | `docs/testing/week12_overlay_manual_test.md` | overlay manual test.
 - `ADR2` | CONFIRMED | `docs/decisions/0002-tauri-plugins.md` | Tauri plugin decision.
+- `ADR3` | CONFIRMED | `docs/decisions/0003-ui-safe-rendering.md` | UI safe-rendering pattern and Phase 3 hotfix close-out.
+- `REL3XSS` | CONFIRMED | `docs/releases/phase3_safe_rendering_hotfix.md` | Phase 3 safe-rendering hotfix close-out.
 
 ### 2.6 Archived source docs
 
@@ -267,6 +270,7 @@ Use the owning location first.
 - Resource Budget -> `BP §11`, `P1G Week6B`, `P3G Week14E`.
 - Roadmap -> `BP §17-18` and `BP Part VI`; `ROAD41` archive only.
 - Security -> `SEC`, `CM §5/§8`, `BP §16`.
+- XSS / safe rendering / innerHTML -> `ADR3`, `REL3XSS`, `CHKXSS`, `CLAUDE_CODE §5`.
 - Ship state -> `BP §19`, `P2G Week7C`, `P3G Week11C`.
 - Squadron -> `BP §25/§33`.
 - StateManager -> `BP Law7`, `BP §5`, `P1G Week3A`, `P2G Week7B`, `P4G Pattern2`.

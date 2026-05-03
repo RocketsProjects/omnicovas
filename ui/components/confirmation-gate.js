@@ -133,10 +133,16 @@ class ConfirmationGateComponent {
     whyPlaceholderEl.className = "confirmation-why-placeholder";
     whyPlaceholderEl.id = `confirmation-why-${id}`;
     whyPlaceholderEl.style.display = "none";
-    whyPlaceholderEl.innerHTML = `
-      <em>Tier 3 explainability coming in Phase 4+.</em><br>
-      <small>${conf.why_text || "See docs/ai/phase4_advisories.md"}</small>
-    `;
+
+    const emEl = document.createElement("em");
+    emEl.textContent = "Tier 3 explainability coming in Phase 4+.";
+
+    const smallEl = document.createElement("small");
+    smallEl.textContent = conf.why_text || "See docs/ai/phase4_advisories.md";
+
+    whyPlaceholderEl.appendChild(emEl);
+    whyPlaceholderEl.appendChild(document.createElement("br"));
+    whyPlaceholderEl.appendChild(smallEl);
 
     const timeoutEl = document.createElement("p");
     timeoutEl.className = "confirmation-timeout";
@@ -215,4 +221,9 @@ class ConfirmationGateComponent {
 // Export for use in other modules
 if (typeof module !== "undefined" && module.exports) {
   module.exports = ConfirmationGateComponent;
+}
+
+// Test hook for Vitest; keeps this classic script browser-compatible.
+if (typeof globalThis.__confirmationGateExports === "undefined") {
+  globalThis.__confirmationGateExports = { ConfirmationGateComponent };
 }
