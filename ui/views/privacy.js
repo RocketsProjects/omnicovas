@@ -7,9 +7,12 @@
 
 class PrivacyController {
   constructor() {
-    this.apiBase = `http://127.0.0.1:${window.PORT || 8000}`;
     this.deleteConfirmStage = 0;
     this.init();
+  }
+
+  get apiBase() {
+    return `http://127.0.0.1:${window.OMNICOVAS_PORT || 8000}`;
   }
 
   async init() {
@@ -314,3 +317,6 @@ if (document.readyState === "loading") {
 } else {
   new PrivacyController();
 }
+
+// Test hook for Vitest; keeps this browser-compatible without changing production module/script loading.
+globalThis.__privacyExports = { PrivacyController };

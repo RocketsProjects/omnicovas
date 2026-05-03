@@ -297,22 +297,839 @@
   </section>
 
   <!-- ══════════════════════════════════════
-       VIEW: Settings (stub — Week 13)
+       VIEW: Settings
   ══════════════════════════════════════ -->
   <section id="view-settings" class="view" aria-labelledby="settings-title">
-    <h1 class="view-title" id="settings-title">Settings</h1>
-    <p class="field-value unknown">Settings panel &mdash; coming in Week 13.</p>
+    <div id="settings-container">
+      <div class="page-header">
+        <h1 id="settings-title">&#9881;&#65039; Settings</h1>
+        <p>Customize OmniCOVAS to your playstyle.</p>
+      </div>
+
+      <!-- Tier 1: Preset Profiles -->
+      <section id="tier1-section" aria-labelledby="tier1-heading">
+        <h2 id="tier1-heading">Tier 1: Preset Profiles</h2>
+        <p>Choose a quick preset. This sets recommended Tier 2 &amp; 3 defaults.</p>
+
+        <div class="preset-grid" id="preset-grid">
+          <!-- Populated by JavaScript -->
+        </div>
+      </section>
+
+      <!-- Tier 2: Pillar Categories -->
+      <section id="tier2-section" aria-labelledby="tier2-heading">
+        <h2 id="tier2-heading">Tier 2: Pillar Categories</h2>
+        <p>Enable or disable entire feature categories.</p>
+
+        <div id="tier2-toggles" class="toggles-grid">
+          <!-- Populated by JavaScript -->
+        </div>
+      </section>
+
+      <!-- Tier 3: Granular Settings -->
+      <section id="tier3-section" aria-labelledby="tier3-heading">
+        <h2 id="tier3-heading">Tier 3: Granular Settings</h2>
+        <p>Fine-tune individual features.</p>
+
+        <!-- Overlay Settings -->
+        <div class="setting-group">
+          <h3>Overlay Settings</h3>
+
+          <label>
+            Opacity
+            <input
+              type="range"
+              id="overlay-opacity"
+              min="0.5"
+              max="1.0"
+              step="0.05"
+              value="0.95"
+              aria-label="Overlay opacity"
+            />
+            <span id="opacity-display">95%</span>
+          </label>
+
+          <label>
+            Anchor Position
+            <select id="overlay-anchor" aria-label="Overlay anchor position">
+              <option value="tl">Top-Left</option>
+              <option value="tr">Top-Right</option>
+              <option value="bl">Bottom-Left</option>
+              <option value="br">Bottom-Right</option>
+              <option value="center" selected>Center</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- AI Provider -->
+        <div class="setting-group">
+          <h3>AI Provider (Tier 2 Features)</h3>
+
+          <label>
+            Provider
+            <select id="ai-provider" aria-label="AI provider selection">
+              <option value="null" selected>NullProvider (Rule-Based)</option>
+              <option value="gemini">Gemini (Google)</option>
+              <option value="local_llm">Local LLM (Ollama)</option>
+            </select>
+          </label>
+
+          <label>
+            API Key (if applicable)
+            <input
+              type="password"
+              id="ai-api-key"
+              placeholder="Saved securely in encrypted vault"
+              aria-label="AI provider API key"
+            />
+          </label>
+        </div>
+
+        <!-- Output Modes -->
+        <div class="setting-group">
+          <h3>Output Mode (per feature)</h3>
+
+          <label>
+            <input
+              type="radio"
+              name="output-mode"
+              value="overlay"
+              checked
+              aria-label="Output to overlay only"
+            />
+            Overlay Only
+          </label>
+
+          <label>
+            <input
+              type="radio"
+              name="output-mode"
+              value="voice"
+              disabled
+              aria-label="Output via voice (coming in Phase 3.1)"
+            />
+            Voice (coming in Phase 3.1)
+          </label>
+
+          <label>
+            <input
+              type="radio"
+              name="output-mode"
+              value="both"
+              disabled
+              aria-label="Output to both overlay and voice (coming in Phase 3.1)"
+            />
+            Both (coming in Phase 3.1)
+          </label>
+        </div>
+      </section>
+
+      <!-- Action Buttons -->
+      <section id="actions-section">
+        <h2>Save &amp; Manage</h2>
+
+        <div class="action-buttons">
+          <button class="primary-button" id="save-settings-btn" aria-label="Save all settings">
+            &#128190; Save Settings
+          </button>
+
+          <button
+            class="secondary-button"
+            id="reset-settings-btn"
+            aria-label="Reset all settings to defaults"
+          >
+            &#8635; Reset to Defaults
+          </button>
+
+          <button
+            class="secondary-button"
+            id="export-settings-btn"
+            aria-label="Export settings as JSON"
+          >
+            &#11015;&#65039; Export Settings
+          </button>
+
+          <button
+            class="secondary-button"
+            id="import-settings-btn"
+            aria-label="Import settings from JSON"
+          >
+            &#11014;&#65039; Import Settings
+          </button>
+        </div>
+      </section>
+    </div>
+    <style>
+      #settings-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      #view-settings .page-header {
+        margin-bottom: 3rem;
+        text-align: center;
+      }
+
+      #view-settings .page-header h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 2rem;
+        color: var(--color-fg);
+      }
+
+      #view-settings .page-header p {
+        margin: 0;
+        color: var(--color-fg-muted);
+      }
+
+      #view-settings section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background: var(--color-surface);
+      }
+
+      #view-settings section h2 {
+        margin: 0 0 0.75rem 0;
+        font-size: 1.3rem;
+        color: var(--color-fg);
+      }
+
+      #view-settings section p {
+        margin: 0 0 1rem 0;
+        color: var(--color-fg-muted);
+      }
+
+      #view-settings section h3 {
+        margin: 0 0 0.75rem 0;
+        font-size: 1.1rem;
+        color: var(--color-fg);
+      }
+
+      .preset-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+      }
+
+      .preset-button {
+        padding: 1rem;
+        border: 2px solid var(--color-border);
+        border-radius: 6px;
+        background: var(--color-bg);
+        cursor: pointer;
+        transition: all 0.2s;
+        text-align: center;
+      }
+
+      .preset-button:hover {
+        border-color: var(--color-accent);
+      }
+
+      .preset-button.active {
+        border-color: var(--color-accent);
+      }
+
+      .preset-button:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+
+      .preset-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .preset-name {
+        display: block;
+        font-weight: 600;
+        color: var(--color-fg);
+        font-size: 0.9rem;
+      }
+
+      #view-settings .toggles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+      }
+
+      .toggle-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .toggle-item input[type="checkbox"] {
+        cursor: pointer;
+      }
+
+      .toggle-label {
+        flex: 1;
+        font-weight: 500;
+        color: var(--color-fg);
+      }
+
+      .toggle-phase {
+        font-size: 0.8rem;
+        color: var(--color-fg-muted);
+      }
+
+      .setting-group {
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+      }
+
+      .setting-group h3 {
+        margin-top: 0;
+      }
+
+      .setting-group label {
+        display: block;
+        margin-bottom: 0.75rem;
+        font-weight: 500;
+        color: var(--color-fg);
+      }
+
+      .setting-group input,
+      .setting-group select {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        background: var(--color-surface);
+        color: var(--color-fg);
+        font-size: 1rem;
+        margin-top: 0.25rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .setting-group input[type="range"] {
+        width: calc(100% - 60px);
+        display: inline-block;
+        margin-right: 1rem;
+        vertical-align: middle;
+      }
+
+      .setting-group input[type="radio"] {
+        width: auto;
+        display: inline;
+        margin-right: 0.5rem;
+      }
+
+      #opacity-display {
+        display: inline-block;
+        min-width: 40px;
+        text-align: center;
+      }
+
+      .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      #view-settings .primary-button,
+      #view-settings .secondary-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        flex: 1;
+        min-width: 150px;
+      }
+
+      #view-settings .primary-button {
+        background: var(--color-accent);
+        color: white;
+      }
+
+      #view-settings .primary-button:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+
+      #view-settings .secondary-button {
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        color: var(--color-fg);
+      }
+
+      #view-settings .secondary-button:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 600px) {
+        #settings-container {
+          padding: 1rem;
+        }
+
+        .preset-grid {
+          grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        }
+
+        #view-settings .toggles-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+        }
+
+        .action-buttons button {
+          min-width: unset;
+        }
+      }
+    </style>
   </section>
 
   <!-- ══════════════════════════════════════
-       VIEW: Privacy (stub — Week 13)
+       VIEW: Privacy
   ══════════════════════════════════════ -->
   <section id="view-privacy" class="view" aria-labelledby="privacy-title">
-    <h1 class="view-title" id="privacy-title">Privacy</h1>
-    <p class="field-value unknown">Privacy controls &mdash; coming in Week 13.</p>
-    <p style="margin-top:var(--space-4);color:var(--color-fg-muted);font-size:var(--font-size-sm)">
-      Phase 3 is fully local. No outbound data flows are currently active.
-    </p>
+    <div id="privacy-container">
+      <div class="page-header">
+        <h1 id="privacy-title">&#128274; Your Data, Your Choice</h1>
+        <p>
+          All data sharing is disabled by default. Enable only what you're comfortable with.
+          You control every toggle.
+        </p>
+      </div>
+
+      <!-- Privacy Toggles Section -->
+      <section id="privacy-toggles-section" aria-labelledby="privacy-toggles-heading">
+        <h2 id="privacy-toggles-heading">Data Sharing Preferences</h2>
+
+        <div id="privacy-toggles-list" class="privacy-toggles-grid">
+          <!-- Toggles populated by JavaScript -->
+        </div>
+      </section>
+
+      <!-- Data Flow Transparency Section -->
+      <section id="data-flows-section" aria-labelledby="flows-heading">
+        <h2 id="flows-heading">&#128202; Data Flow Transparency Map</h2>
+        <p>
+          See exactly where your data goes, how often, and whether it's currently active.
+        </p>
+        <button
+          class="privacy-secondary-button"
+          id="view-data-flows-btn"
+          aria-label="View detailed data flow transparency map"
+        >
+          View Data Flows
+        </button>
+      </section>
+
+      <!-- Data Export Section -->
+      <section id="data-export-section" aria-labelledby="export-heading">
+        <h2 id="export-heading">&#128190; Export Your Data</h2>
+        <p>
+          Download a JSON file containing all your OmniCOVAS configuration, KB state, and recent
+          activity. Useful for backups or switching machines.
+        </p>
+        <button
+          class="privacy-secondary-button"
+          id="export-data-btn"
+          aria-label="Export all OmniCOVAS data as JSON"
+        >
+          Export My Data
+        </button>
+      </section>
+
+      <!-- Data Delete Section -->
+      <section id="data-delete-section" aria-labelledby="delete-heading">
+        <h2 id="delete-heading">&#128465;&#65039; Delete All Data</h2>
+        <p>
+          Permanently wipe all OmniCOVAS data from your computer: config, settings, activity log,
+          and cached KB. This action cannot be undone.
+        </p>
+        <button
+          class="privacy-danger-button"
+          id="delete-data-btn"
+          aria-label="Permanently delete all OmniCOVAS data"
+        >
+          Delete All Data
+        </button>
+      </section>
+
+      <!-- Data Flows Modal (hidden by default) -->
+      <div id="data-flows-modal" class="privacy-modal" style="display: none;" role="dialog" aria-labelledby="flows-modal-title">
+        <div class="privacy-modal-content">
+          <h2 id="flows-modal-title">Data Flow Transparency Map</h2>
+
+          <div id="data-flows-list" class="flows-grid">
+            <!-- Flows populated by JavaScript -->
+          </div>
+
+          <div class="modal-no-flows-banner" id="no-flows-banner" style="display: none;">
+            &#8505;&#65039; <strong>No outbound data flows are currently active.</strong> Phase 3 is local-only.
+            Once Phase 5+ features ship, this map will show live counters.
+          </div>
+
+          <button
+            class="privacy-primary-button"
+            id="close-flows-modal-btn"
+            aria-label="Close data flows modal"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+
+      <!-- Delete Confirmation Modal (hidden by default) -->
+      <div id="delete-confirm-modal" class="privacy-modal" style="display: none;" role="dialog" aria-labelledby="delete-modal-title">
+        <div class="privacy-modal-content privacy-modal-danger">
+          <h2 id="delete-modal-title">Delete All Data?</h2>
+          <p>
+            This will permanently delete:
+          </p>
+          <ul>
+            <li>All OmniCOVAS settings and configuration</li>
+            <li>All activity log entries</li>
+            <li>All cached Knowledge Base data</li>
+          </ul>
+          <p><strong>This action cannot be undone.</strong></p>
+
+          <p>
+            To confirm, please click the Delete button below twice.
+          </p>
+
+          <div id="delete-confirm-buttons" class="privacy-modal-buttons">
+            <button
+              class="privacy-danger-button"
+              id="delete-confirm-1st-btn"
+              aria-label="First confirmation: delete all data"
+            >
+              I understand, delete my data
+            </button>
+            <button
+              class="privacy-secondary-button"
+              id="delete-confirm-cancel-btn"
+              aria-label="Cancel deletion"
+            >
+              Cancel
+            </button>
+          </div>
+
+          <div id="delete-confirm-2nd-buttons" style="display: none;" class="privacy-modal-buttons">
+            <p style="font-weight: bold; color: var(--color-critical);">
+              Click again to permanently delete everything.
+            </p>
+            <button
+              class="privacy-danger-button"
+              id="delete-confirm-2nd-btn"
+              aria-label="Final confirmation: permanently delete all data"
+            >
+              Permanently Delete Everything
+            </button>
+            <button
+              class="privacy-secondary-button"
+              id="delete-confirm-cancel-2nd-btn"
+              aria-label="Cancel deletion"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <style>
+      #privacy-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      #view-privacy .page-header {
+        margin-bottom: 3rem;
+        text-align: center;
+      }
+
+      #view-privacy .page-header h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 2rem;
+        color: var(--color-fg);
+      }
+
+      #view-privacy .page-header p {
+        margin: 0;
+        color: var(--color-fg-muted);
+        font-size: 1.05rem;
+      }
+
+      #view-privacy section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background: var(--color-surface);
+      }
+
+      #view-privacy section h2 {
+        margin: 0 0 0.75rem 0;
+        font-size: 1.3rem;
+        color: var(--color-fg);
+      }
+
+      #view-privacy section p {
+        margin: 0 0 1rem 0;
+        color: var(--color-fg-muted);
+        line-height: 1.5;
+      }
+
+      .privacy-toggles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+      }
+
+      .toggle-card {
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .toggle-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .toggle-card .toggle-label {
+        font-weight: 600;
+        color: var(--color-fg);
+        flex: 1;
+      }
+
+      .toggle-switch {
+        width: 50px;
+        height: 28px;
+        background: var(--color-border);
+        border-radius: 14px;
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .toggle-switch input {
+        display: none;
+      }
+
+      .toggle-switch input:checked + .toggle-slider {
+        background: var(--color-accent);
+        left: 26px;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 24px;
+        height: 24px;
+        background: white;
+        border-radius: 50%;
+        transition: all 0.2s;
+      }
+
+      .toggle-description {
+        font-size: 0.85rem;
+        color: var(--color-fg-muted);
+        line-height: 1.4;
+      }
+
+      .flows-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .flow-card {
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        padding: 1rem;
+      }
+
+      .flow-destination {
+        font-weight: 600;
+        color: var(--color-fg);
+        margin-bottom: 0.5rem;
+      }
+
+      .flow-status {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .flow-status.active {
+        background: var(--color-surface);
+        color: var(--color-accent);
+      }
+
+      .flow-status.disabled {
+        background: var(--color-border);
+        color: var(--color-fg-muted);
+      }
+
+      .flow-status.not_shipped {
+        background: var(--color-surface);
+        color: var(--color-fg-muted);
+      }
+
+      .flow-frequency,
+      .flow-purpose {
+        font-size: 0.85rem;
+        color: var(--color-fg-muted);
+      }
+
+      .flow-purpose {
+        margin-top: 0.5rem;
+      }
+
+      .modal-no-flows-banner {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        color: var(--color-fg);
+      }
+
+      .privacy-secondary-button,
+      .privacy-primary-button,
+      .privacy-danger-button {
+        padding: 0.75rem 1.5rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+      }
+
+      .privacy-secondary-button {
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        color: var(--color-fg);
+      }
+
+      .privacy-secondary-button:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+
+      .privacy-primary-button {
+        background: var(--color-accent);
+        color: white;
+      }
+
+      .privacy-primary-button:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+
+      .privacy-danger-button {
+        background: var(--color-critical);
+        color: white;
+      }
+
+      .privacy-danger-button:focus-visible {
+        outline: 2px solid var(--color-critical);
+        outline-offset: 2px;
+      }
+
+      .privacy-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        z-index: 1000;
+      }
+
+      .privacy-modal-content {
+        background: var(--color-surface);
+        border-radius: 8px;
+        padding: 2rem;
+        max-width: 600px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+
+      .privacy-modal-content h2 {
+        margin: 0 0 1rem 0;
+        color: var(--color-fg);
+      }
+
+      .privacy-modal-content p {
+        margin: 0 0 1rem 0;
+        color: var(--color-fg-muted);
+      }
+
+      .privacy-modal-content ul {
+        margin: 0 0 1rem 1.5rem;
+        color: var(--color-fg-muted);
+      }
+
+      .privacy-modal-content ul li {
+        margin-bottom: 0.5rem;
+      }
+
+      .privacy-modal-danger {
+        border: 2px solid var(--color-critical);
+      }
+
+      .privacy-modal-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .privacy-modal-buttons button {
+        flex: 1;
+      }
+
+      @media (max-width: 600px) {
+        #privacy-container {
+          padding: 1rem;
+        }
+
+        .privacy-toggles-grid,
+        .flows-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .privacy-modal-content {
+          padding: 1.5rem;
+        }
+      }
+    </style>
   </section>
 
   <!-- ══════════════════════════════════════
@@ -361,6 +1178,8 @@
 <!-- Shell must load first so OmniEvents bus exists before dashboard.js runs -->
 <script src="components/shell.js"></script>
 <script src="views/dashboard.js"></script>
+<script src="views/settings.js"></script>
+<script src="views/privacy.js"></script>
 
 <!-- Wire log entries from the WS bus after all scripts are loaded -->
 <script>
