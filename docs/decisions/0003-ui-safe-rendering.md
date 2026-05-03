@@ -96,3 +96,52 @@ The `escapeHtml` helper, previously local to `ui/views/activity-log.js`, is extr
 - Phase 3 dev-guide Week 13 (introducing commit; `phase_3_dev_guide.txt` lines 599–813).
 - Phase 4 dev-guide Pattern 6 (Overlay-First Combat UX).
 - ADR 0002 (Tauri plugins) — format reference.
+
+---
+
+## Phase 3 Hotfix Close-out (2026-05-03)
+
+### Rules Confirmed
+
+1. **No dynamic `innerHTML` / `outerHTML` / `insertAdjacentHTML`** for telemetry, API, user-derived, or log-derived values. Use `createElement`, `textContent`, `append` / `replaceChildren`.
+2. Literal clears such as `element.innerHTML = ""` are allowed but must be classified as `SAFE_LITERAL_CLEAR` during audits.
+3. Static local literals may appear in `innerHTML` but must not include any telemetry, API, user-derived, or log-derived value.
+
+### Audit Command
+
+```
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+```
+
+### Classification Framework
+
+| Tag | Meaning |
+|---|---|
+| `SAFE_LITERAL_CLEAR` | `element.innerHTML = ""` — no value interpolation |
+| `SAFE_TEST_ONLY` | Appears only in test-hook path; not reachable in production |
+| `SAFE_ESCAPER_INTERNAL` | Inside the `escapeHtml` helper itself |
+| `SAFE_STATIC_LITERAL` | Literal HTML string, no `${...}` with non-literal values |
+| `UNSAFE_DYNAMIC` | Template literal or string concat with non-literal data — **forbidden** |
+| `NEEDS_REVIEW` | Unclear; must be resolved before merge |
+
+### Module / Script Loading Warning
+
+- Do not add ES module `export` or `import` syntax to files loaded as classic scripts (`<script src="...">` without `type="module"`).
+- If `export` syntax is needed, the HTML `<script>` tag must use `type="module"`.
+- Changing script loading (`classic` ↔ `module`) changes event timing and DOM wiring requirements; test runtime behavior manually after any such change.
+
+### Test Hook Rule
+
+If a global test hook is needed to bridge the classic/module gap, keep it narrow and annotate it:
+
+```js
+// Test hook for Vitest; keeps this browser-compatible without changing production module/script loading.
+```
+
+### Final Audit Status (P5, 2026-05-03)
+
+- No `UNSAFE_DYNAMIC` sinks remained across all `ui/` files after the hotfix chain.
+- `npm run tauri build` passed.
+- `npm test` passed: 6 test files, 40 tests.
+- Manual smoke verified: dashboard, Activity Log, overlay banner, refresh hydration, no console errors.
+- Soldier checklist for future UI work: `docs/internal/ai-workflow/ui_safe_rendering_checklist.md`.

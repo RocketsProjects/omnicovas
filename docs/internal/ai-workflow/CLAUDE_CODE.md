@@ -106,6 +106,7 @@ Do not:
 - Bypass `ConfirmationGate` for advisory/recommendation behavior.
 - Change phase scope, public API contracts, DB schema, or architectural patterns unless the playbook explicitly says so.
 - Rewrite working Phase 1/earlier infrastructure casually.
+- Use dynamic `innerHTML` / `outerHTML` / `insertAdjacentHTML` for non-literal values in UI JavaScript; follow `docs/internal/ai-workflow/ui_safe_rendering_checklist.md`.
 
 Do:
 
