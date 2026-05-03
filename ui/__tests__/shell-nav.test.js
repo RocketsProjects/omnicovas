@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import fs from 'fs';
 
 // Sets up the exact nav markup produced by index.html for PB05-02.
 // These tests are structure contracts: if the HTML drifts, the tests catch it.
@@ -152,5 +153,31 @@ describe('Shell nav — no fixed-port fallback in active route links', () => {
     links.forEach((link) => {
       expect(link.getAttribute('href')).toMatch(/^#\//);
     });
+  });
+});
+
+describe('Shell nav — CSS token contracts', () => {
+  const css = fs.readFileSync('ui/styles/shell.css', 'utf8');
+
+  it('shell.css references new nav-specific text tokens', () => {
+    expect(css).toContain('--color-nav-text');
+    expect(css).toContain('--color-nav-text-muted');
+    expect(css).toContain('--color-nav-text-disabled');
+    expect(css).toContain('--color-nav-active-text');
+  });
+
+  it('sidebar link colors do not use the purple-tinted --color-fg-muted anymore', () => {
+    // We expect the link color rule to be overridden by --color-nav-text
+    // Inspecting the specific selector block for sidebar links
+    const sidebarLinkBlock = css.match(/#sidebar nav ul li a[\s\S]*?\{[\s\S]*?\}/);
+    expect(sidebarLinkBlock).not.toBeNull();
+    expect(sidebarLinkBlock[0]).not.toContain('var(--color-fg-muted)');
+    expect(sidebarLinkBlock[0]).toContain('var(--color-nav-text)');
+  });
+
+  it('contains the PB05 CSS failsafe block', () => {
+    expect(css).toContain('PB05 failsafe: prevent browser default link styling in sidebar');
+    expect(css).toContain('#sidebar a:any-link');
+    expect(css).toContain('text-decoration: none !important');
   });
 });

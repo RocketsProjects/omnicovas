@@ -7,6 +7,7 @@
 
   <!-- Design tokens must load before any component stylesheet -->
   <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/icons.css" />
   <link rel="stylesheet" href="styles/shell.css" />
   <link rel="stylesheet" href="styles/components.css" />
 </head>
@@ -14,7 +15,7 @@
 
 <!-- ── Top connection bar ── -->
 <header id="topbar" role="banner">
-  <span class="app-name">&#9881; OmniCOVAS</span>
+  <span class="app-name"><span class="ocv-icon ocv-icon-md" data-icon="settings" aria-hidden="true" style="margin-right:var(--space-2)"></span>OmniCOVAS</span>
   <span class="topbar-sep" aria-hidden="true">|</span>
   <div id="connection-status" role="status" aria-live="polite" aria-atomic="true">
     <span class="status-dot" id="status-dot" aria-label="Disconnected"></span>
@@ -29,37 +30,37 @@
   <ul role="list">
     <li>
       <a href="#/dashboard" class="active" aria-current="page">
-        <span class="nav-icon" aria-hidden="true">&#9672;</span>
+        <span class="ocv-icon nav-icon" data-icon="dashboard" aria-hidden="true"></span>
         Dashboard
       </a>
     </li>
     <li>
       <a href="#/activity-log" aria-current="false">
-        <span class="nav-icon" aria-hidden="true">&#9719;</span>
+        <span class="ocv-icon nav-icon" data-icon="activity-log" aria-hidden="true"></span>
         Activity Log
       </a>
     </li>
     <li>
       <a href="#/settings" aria-current="false">
-        <span class="nav-icon" aria-hidden="true">&#9881;</span>
+        <span class="ocv-icon nav-icon" data-icon="settings" aria-hidden="true"></span>
         Settings
       </a>
     </li>
     <li>
       <a href="#/privacy" aria-current="false">
-        <span class="nav-icon" aria-hidden="true">&#128274;</span>
+        <span class="ocv-icon nav-icon" data-icon="privacy" aria-hidden="true"></span>
         Privacy
       </a>
     </li>
     <li>
       <a href="#/resources" aria-current="false">
-        <span class="nav-icon" aria-hidden="true">&#9673;</span>
+        <span class="ocv-icon nav-icon" data-icon="resources" aria-hidden="true"></span>
         Resources
       </a>
     </li>
     <li>
       <a href="#/credits" aria-current="false">
-        <span class="nav-icon" aria-hidden="true">&#10022;</span>
+        <span class="ocv-icon nav-icon" data-icon="credits" aria-hidden="true"></span>
         Credits
       </a>
     </li>
@@ -68,51 +69,51 @@
   <!-- Future Systems — collapsed, muted, non-navigating -->
   <details class="future-systems-group">
     <summary class="future-systems-summary">
-      <span class="nav-icon" aria-hidden="true">&#9702;</span>
+      <span class="ocv-icon nav-icon" data-icon="future-systems" aria-hidden="true"></span>
       Future Systems
-      <span class="future-systems-expand" aria-hidden="true">&#8250;</span>
+      <span class="ocv-icon-sm" data-icon="chevron" aria-hidden="true" style="margin-left:auto;color:var(--color-fg-unknown)"></span>
     </summary>
     <ul role="list" class="future-systems-list"
         aria-label="Upcoming feature pillars — not yet available">
       <li>
         <span class="nav-item-future"
               aria-label="Combat — not yet available">
-          <span class="nav-icon" aria-hidden="true">&#9702;</span>
+          <span class="ocv-icon nav-icon" data-icon="combat" aria-hidden="true"></span>
           Combat
         </span>
       </li>
       <li>
         <span class="nav-item-future"
               aria-label="Exploration — not yet available">
-          <span class="nav-icon" aria-hidden="true">&#9702;</span>
+          <span class="ocv-icon nav-icon" data-icon="exploration" aria-hidden="true"></span>
           Exploration
         </span>
       </li>
       <li>
         <span class="nav-item-future"
               aria-label="Trading / Mining — not yet available">
-          <span class="nav-icon" aria-hidden="true">&#9702;</span>
+          <span class="ocv-icon nav-icon" data-icon="trade-mining" aria-hidden="true"></span>
           Trading / Mining
         </span>
       </li>
       <li>
         <span class="nav-item-future"
               aria-label="Squadron — not yet available">
-          <span class="nav-icon" aria-hidden="true">&#9702;</span>
+          <span class="ocv-icon nav-icon" data-icon="squadron" aria-hidden="true"></span>
           Squadron
         </span>
       </li>
       <li>
         <span class="nav-item-future"
               aria-label="Engineering — not yet available">
-          <span class="nav-icon" aria-hidden="true">&#9702;</span>
+          <span class="ocv-icon nav-icon" data-icon="engineering" aria-hidden="true"></span>
           Engineering
         </span>
       </li>
       <li>
         <span class="nav-item-future"
               aria-label="Powerplay / BGS — not yet available">
-          <span class="nav-icon" aria-hidden="true">&#9702;</span>
+          <span class="ocv-icon nav-icon" data-icon="powerplay-bgs" aria-hidden="true"></span>
           Powerplay / BGS
         </span>
       </li>
@@ -138,7 +139,7 @@
       <!-- Card 1: Live Ship State -->
       <article class="card" id="card-ship" aria-label="Ship identity and location">
         <h2 class="card-title">
-          <span aria-hidden="true">&#9672;</span> Ship State
+          <span class="ocv-icon ocv-icon-sm" data-icon="ship" aria-hidden="true"></span> Ship State
         </h2>
         <div class="field-row">
           <span class="field-label">Ship</span>
@@ -173,7 +174,7 @@
       <!-- Card 2: Hull & Shields -->
       <article class="card" id="card-hull" aria-label="Hull integrity and shield status">
         <h2 class="card-title">
-          <span aria-hidden="true">&#9647;</span> Hull &amp; Shields
+          <span class="ocv-icon ocv-icon-sm" data-icon="shield" aria-hidden="true"></span> Hull &amp; Shields
         </h2>
         <div class="field-row">
           <span class="field-label">Hull</span>
@@ -197,7 +198,7 @@
       <!-- Card 3: Fuel & Jump Range -->
       <article class="card" id="card-fuel" aria-label="Fuel level and jump range">
         <h2 class="card-title">
-          <span aria-hidden="true">&#9672;</span> Fuel &amp; Jump
+          <span class="ocv-icon ocv-icon-sm" data-icon="fuel" aria-hidden="true"></span> Fuel &amp; Jump
         </h2>
         <div class="field-row">
           <span class="field-label">Fuel</span>
@@ -219,7 +220,7 @@
       <!-- Card 4: Cargo -->
       <article class="card" id="card-cargo" aria-label="Cargo hold">
         <h2 class="card-title">
-          <span aria-hidden="true">&#9635;</span> Cargo
+          <span class="ocv-icon ocv-icon-sm" data-icon="cargo" aria-hidden="true"></span> Cargo
         </h2>
         <div class="field-row">
           <span class="field-label">Units</span>
@@ -234,7 +235,7 @@
       <!-- Card 5: Heat -->
       <article class="card" id="card-heat" aria-label="Ship heat management">
         <h2 class="card-title">
-          <span aria-hidden="true">&#9673;</span> Heat
+          <span class="ocv-icon ocv-icon-sm" data-icon="heat" aria-hidden="true"></span> Heat
         </h2>
         <div class="field-row">
           <span class="field-label">Level</span>
@@ -256,7 +257,7 @@
       <!-- Card 6: Power Distribution (PIPS) -->
       <article class="card" id="card-pips" aria-label="Power distribution">
         <h2 class="card-title">
-          <span aria-hidden="true">&#9889;</span> Power Distribution
+          <span class="ocv-icon ocv-icon-sm" data-icon="pips" aria-hidden="true"></span> Power Distribution
         </h2>
         <div class="pips-row" role="group" aria-label="Power pips">
           <div class="pips-group" id="pips-sys" aria-label="Systems pips">
@@ -280,7 +281,7 @@
       <!-- Card 7: Module Health Summary -->
       <article class="card" id="card-modules" aria-label="Module health summary">
         <h2 class="card-title">
-          <span aria-hidden="true">&#9639;</span> Module Health
+          <span class="ocv-icon ocv-icon-sm" data-icon="modules" aria-hidden="true"></span> Module Health
         </h2>
         <div class="field-row">
           <span class="field-label">Total</span>
@@ -303,7 +304,7 @@
       <!-- Card 8: Rebuy Estimate -->
       <article class="card" id="card-rebuy" aria-label="Ship rebuy cost estimate">
         <h2 class="card-title">
-          <span aria-hidden="true">&#128179;</span> Rebuy Estimate
+          <span class="ocv-icon ocv-icon-sm" data-icon="rebuy" aria-hidden="true"></span> Rebuy Estimate
         </h2>
         <div class="field-row">
           <span class="field-label">Cost (5%)</span>
@@ -1962,6 +1963,7 @@
 
 <!-- Shell must load first so OmniEvents bus exists before dashboard.js runs -->
 <script src="components/shell.js"></script>
+<script src="components/icons.js"></script>
 <script src="views/dashboard.js"></script>
 <script src="views/settings.js"></script>
 <script src="views/privacy.js"></script>

@@ -48,6 +48,11 @@
   --color-nav-border:        rgba(255, 136, 0, 0.18);
   --color-nav-active:        rgba(255, 136, 0, 0.12);
   --color-nav-active-border: #ff8800;
+  --color-nav-text:          #aab4c2;
+  --color-nav-text-hover:    var(--color-fg);
+  --color-nav-text-muted:    #6f7a8a;
+  --color-nav-text-disabled: #505a68;
+  --color-nav-active-text:   var(--color-accent);
 
   /* --- Hull / Shield Bar Colors --- */
   --color-hull-full:     #00ffaa;
