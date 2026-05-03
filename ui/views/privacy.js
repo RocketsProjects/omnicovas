@@ -12,15 +12,41 @@ class PrivacyController {
   }
 
   get apiBase() {
-    return `http://127.0.0.1:${window.OMNICOVAS_PORT || 8000}`;
+    if (window.Shell?.httpBase) return window.Shell.httpBase;
+    if (window.OMNICOVAS_PORT) return `http://127.0.0.1:${window.OMNICOVAS_PORT}`;
+    return null;
+  }
+
+  apiUrl(path) {
+    const base = this.apiBase;
+    return base ? `${base}${path}` : null;
   }
 
   async init() {
-    await this.loadToggles();
     this.bindButtons();
+    if (!this.apiBase) {
+      this._showWaiting();
+      window.OmniEvents?.addEventListener('bridge-connected', () => this._loadAndRender(), { once: true });
+      return;
+    }
+    await this._loadAndRender();
+  }
+
+  async _loadAndRender() {
+    await this.loadToggles();
+  }
+
+  _showWaiting() {
+    const list = document.getElementById('privacy-toggles-list');
+    if (!list) return;
+    const p = document.createElement('p');
+    p.className = 'field-value unknown';
+    p.textContent = 'Waiting for OmniCOVAS bridge…';
+    list.replaceChildren(p);
   }
 
   async loadToggles() {
+    if (!this.apiBase) return;
     try {
       const res = await fetch(`${this.apiBase}/week13/privacy/toggles`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -96,8 +122,10 @@ class PrivacyController {
   }
 
   async setToggle(key, enabled) {
+    const url = this.apiUrl(`/week13/privacy/toggles/${key}`);
+    if (!url) return;
     try {
-      const res = await fetch(`${this.apiBase}/week13/privacy/toggles/${key}`, {
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabled }),
@@ -263,8 +291,11 @@ class PrivacyController {
   }
 
   async exportData() {
+    const url = this.apiUrl('/week13/privacy/export');
+    if (!url) return;
+
     try {
-      const res = await fetch(`${this.apiBase}/week13/privacy/export`, {
+      const res = await fetch(url, {
         method: "POST",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -273,14 +304,14 @@ class PrivacyController {
       // Create JSON blob and download
       const json = JSON.stringify(data, null, 2);
       const blob = new Blob([json], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
+      const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
+      a.href = blobUrl;
       a.download = `omnicovas-export-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(blobUrl);
 
       console.log("Data exported successfully");
     } catch (err) {
@@ -290,8 +321,11 @@ class PrivacyController {
   }
 
   async permanentlyDeleteData() {
+    const url = this.apiUrl('/week13/privacy/delete');
+    if (!url) return;
+
     try {
-      const res = await fetch(`${this.apiBase}/week13/privacy/delete`, {
+      const res = await fetch(url, {
         method: "POST",
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

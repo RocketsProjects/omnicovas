@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import '../views/privacy.js';
 
 const { PrivacyController } = globalThis.__privacyExports ?? {};
@@ -58,5 +58,70 @@ describe('PrivacyController.createToggleCard', () => {
     expect(card.querySelector('script')).toBeNull();
     const desc = card.querySelector('.toggle-description');
     expect(desc.textContent).toBe('<img src=x onerror=alert(1)>');
+  });
+});
+
+describe('PrivacyController - bridge readiness', () => {
+  let ctrl;
+  let originalFetch;
+
+  beforeEach(() => {
+    document.body.innerHTML = '<div id="privacy-toggles-list"></div>';
+    delete window.OMNICOVAS_PORT;
+    delete window.Shell;
+    window.OmniEvents = new EventTarget();
+    originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    delete window.Shell;
+    delete window.OMNICOVAS_PORT;
+  });
+
+  it('apiBase returns null when bridge is not ready', () => {
+    ctrl = Object.create(PrivacyController.prototype);
+    expect(ctrl.apiBase).toBeNull();
+  });
+
+  it('apiBase uses Shell.httpBase when available', () => {
+    window.Shell = { httpBase: 'http://127.0.0.1:7777' };
+    ctrl = Object.create(PrivacyController.prototype);
+    expect(ctrl.apiBase).toBe('http://127.0.0.1:7777');
+  });
+
+  it('apiBase uses OMNICOVAS_PORT when Shell is absent', () => {
+    window.OMNICOVAS_PORT = 9001;
+    ctrl = Object.create(PrivacyController.prototype);
+    expect(ctrl.apiBase).toBe('http://127.0.0.1:9001');
+  });
+
+  it('apiUrl returns null when bridge is not ready', () => {
+    ctrl = Object.create(PrivacyController.prototype);
+    expect(ctrl.apiUrl('/week13/privacy/toggles')).toBeNull();
+  });
+
+  it('fetch is NOT called before bridge is ready', async () => {
+    ctrl = Object.create(PrivacyController.prototype);
+    ctrl.deleteConfirmStage = 0;
+    await ctrl.init();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('init shows waiting state in privacy-toggles-list when bridge is not ready', async () => {
+    ctrl = Object.create(PrivacyController.prototype);
+    ctrl.deleteConfirmStage = 0;
+    await ctrl.init();
+    const list = document.getElementById('privacy-toggles-list');
+    expect(list.textContent).toContain('Waiting for OmniCOVAS bridge');
+  });
+
+  it('post-bridge apiUrl never uses port 8000', () => {
+    window.OMNICOVAS_PORT = 9001;
+    ctrl = Object.create(PrivacyController.prototype);
+    const url = ctrl.apiUrl('/week13/privacy/toggles');
+    expect(url).not.toContain(':8000');
+    expect(url).toContain('9001');
   });
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import '../views/settings.js';
 
 const { SettingsController } = globalThis.__settingsExports ?? {};
@@ -77,5 +77,70 @@ describe('SettingsController.renderPillarToggles', () => {
     // Verify no script or img nodes exist.
     expect(container.querySelector('script')).toBeNull();
     expect(container.querySelector('img')).toBeNull();
+  });
+});
+
+describe('SettingsController - bridge readiness', () => {
+  let ctrl;
+  let originalFetch;
+
+  beforeEach(() => {
+    document.body.innerHTML = '<div id="preset-grid"></div><div id="tier2-toggles"></div>';
+    delete window.OMNICOVAS_PORT;
+    delete window.Shell;
+    window.OmniEvents = new EventTarget();
+    originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    delete window.Shell;
+    delete window.OMNICOVAS_PORT;
+  });
+
+  it('apiBase returns null when bridge is not ready', () => {
+    ctrl = Object.create(SettingsController.prototype);
+    expect(ctrl.apiBase).toBeNull();
+  });
+
+  it('apiBase uses Shell.httpBase when available', () => {
+    window.Shell = { httpBase: 'http://127.0.0.1:7777' };
+    ctrl = Object.create(SettingsController.prototype);
+    expect(ctrl.apiBase).toBe('http://127.0.0.1:7777');
+  });
+
+  it('apiBase uses OMNICOVAS_PORT when Shell is absent', () => {
+    window.OMNICOVAS_PORT = 9001;
+    ctrl = Object.create(SettingsController.prototype);
+    expect(ctrl.apiBase).toBe('http://127.0.0.1:9001');
+  });
+
+  it('apiUrl returns null when bridge is not ready', () => {
+    ctrl = Object.create(SettingsController.prototype);
+    expect(ctrl.apiUrl('/week13/settings')).toBeNull();
+  });
+
+  it('fetch is NOT called before bridge is ready', async () => {
+    ctrl = Object.create(SettingsController.prototype);
+    ctrl.currentSettings = {};
+    await ctrl.init();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('init shows waiting state in preset-grid when bridge is not ready', async () => {
+    ctrl = Object.create(SettingsController.prototype);
+    ctrl.currentSettings = {};
+    await ctrl.init();
+    const grid = document.getElementById('preset-grid');
+    expect(grid.textContent).toContain('Waiting for OmniCOVAS bridge');
+  });
+
+  it('post-bridge apiUrl never uses port 8000', () => {
+    window.OMNICOVAS_PORT = 9001;
+    ctrl = Object.create(SettingsController.prototype);
+    const url = ctrl.apiUrl('/week13/settings');
+    expect(url).not.toContain(':8000');
+    expect(url).toContain('9001');
   });
 });

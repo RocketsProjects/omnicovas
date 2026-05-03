@@ -374,7 +374,7 @@ let heatTtlTimer = null;
 
 function requestShipStateRefresh(reason) {
   if (shipRefreshTimer) return;
-  console.log(`Dashboard: scheduling refresh, reason: ${reason}`);
+  if (window.OMNICOVAS_DEBUG === true) console.log(`Dashboard: scheduling refresh, reason: ${reason}`);
   shipRefreshTimer = setTimeout(() => {
     refreshShipState();
     shipRefreshTimer = null;
