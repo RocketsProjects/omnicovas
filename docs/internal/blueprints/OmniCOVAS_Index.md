@@ -1,7 +1,7 @@
 # OmniCOVAS — AI Reference Index
 
-Version: 2.1 concise replacement
-Last updated: 2026-04-29
+Version: 2.2 public-cleanup
+Last updated: 2026-05-03
 Repository: https://github.com/RocketsProjects/omnicovas
 Install path: `docs/internal/blueprints/OmniCOVAS_Index.md`
 
@@ -341,7 +341,9 @@ Phase planning:
 
 ## 8. Repo Layout Notes
 
-Current repo root includes `.claude/`, `.github/workflows/`, `alembic/`, `docs/`, `omnicovas/`, `src-tauri/`, `tests/`, `ui/`, and root files (`CLA.md`, `CONTRIBUTING.md`, `LICENSE`, `README.md`, `SECURITY.md`, `pyproject.toml`, `resource_budget.yaml`, package files).
+Current repo root includes `.github/workflows/`, `alembic/`, `docs/`, `omnicovas/`, `src-tauri/`, `tests/`, `ui/`, and root files (`CLA.md`, `CONTRIBUTING.md`, `LICENSE`, `README.md`, `SECURITY.md`, `pyproject.toml`, `resource_budget.yaml`, package files).
+
+Local-only AI tooling directories (`.claude/`, `.gemini/`) and `GEMINI.md` are gitignored — they exist on the developer's machine but are not tracked in the repository. Durable AI workflow files live under `docs/internal/ai-workflow/`.
 
 Current docs layout:
 - `docs/internal/blueprints/` -> `BP`, `CM`, `IDX`.
