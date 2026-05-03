@@ -98,6 +98,8 @@ Executor handoff rule: give exactly one weekly playbook plus required tagged fil
 - `ADR2` | CONFIRMED | `docs/decisions/0002-tauri-plugins.md` | Tauri plugin decision.
 - `ADR3` | CONFIRMED | `docs/decisions/0003-ui-safe-rendering.md` | UI safe-rendering pattern and Phase 3 hotfix close-out.
 - `REL3XSS` | CONFIRMED | `docs/releases/phase3_safe_rendering_hotfix.md` | Phase 3 safe-rendering hotfix close-out.
+- `SEC_RUST_TRIAGE` | CONFIRMED | `docs/security/rust_dependency_alerts_triage.md` | glib GHSA-wrw7-89jp-8q8g and rand GHSA-cq8v-f236-94qc Dependabot alert triage; upstream-blocked, no Cargo changes.
+- `REL_RUST_SEC` | CONFIRMED | `docs/releases/rust_dependency_security_updates.md` | release note summarising glib/rand alert investigation outcome and next review triggers.
 
 ### 2.6 Archived source docs
 
