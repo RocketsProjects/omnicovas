@@ -8,4 +8,5 @@
   --color-hull-critical: #cc0033;
   --color-shield-up:     #ff6699;
   --color-info:          #ff6699;
+  --color-info-bg:       rgba(255, 102, 153, 0.10);
 }

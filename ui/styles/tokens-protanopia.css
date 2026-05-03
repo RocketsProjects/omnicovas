@@ -7,6 +7,7 @@
   --color-hull-warn:     #ffcc00;
   --color-hull-critical: #ffaa00;
   --color-accent:        #ffcc00;
+  --color-accent-hover:  #ffe044;
   --color-border:        rgba(255, 204, 0, 0.25);
   --color-border-active: rgba(255, 204, 0, 0.6);
 }
