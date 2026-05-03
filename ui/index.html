@@ -1133,11 +1133,117 @@
   </section>
 
   <!-- ══════════════════════════════════════
-       VIEW: Resources (stub — Week 14)
+       VIEW: Resources
   ══════════════════════════════════════ -->
   <section id="view-resources" class="view" aria-labelledby="resources-title">
     <h1 class="view-title" id="resources-title">Resources</h1>
-    <p class="field-value unknown">Resource dashboard &mdash; coming in Week 14.</p>
+    <p class="field-value unknown" style="margin-bottom:var(--space-3)">
+      Local resource usage &mdash; all data stays on your machine.
+    </p>
+
+    <!-- Status banner: enabled / initializing / unavailable -->
+    <p id="res-status-msg" class="field-value unknown"
+       aria-live="polite" aria-atomic="true" style="display:none"></p>
+
+    <div class="dashboard-grid">
+
+      <!-- Card: Memory -->
+      <article class="card" id="card-res-mem" aria-label="Memory usage">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#9632;</span> Memory
+        </h2>
+        <div class="field-row">
+          <span class="field-label">Used</span>
+          <span class="field-value" id="res-mem-used">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Total</span>
+          <span class="field-value" id="res-mem-total">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Usage</span>
+          <span class="field-value" id="res-mem-pct">&mdash;</span>
+        </div>
+        <div class="progress-bar-wrap" aria-hidden="true">
+          <div class="progress-bar-fill" id="res-mem-bar" style="width:0%"></div>
+        </div>
+      </article>
+
+      <!-- Card: CPU -->
+      <article class="card" id="card-res-cpu" aria-label="CPU usage">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#9673;</span> CPU
+        </h2>
+        <div class="field-row">
+          <span class="field-label">Usage</span>
+          <span class="field-value" id="res-cpu-pct">&mdash;</span>
+          <span class="badge muted" id="res-cpu-badge">&mdash;</span>
+        </div>
+        <div class="progress-bar-wrap" aria-hidden="true">
+          <div class="progress-bar-fill" id="res-cpu-bar" style="width:0%"></div>
+        </div>
+      </article>
+
+      <!-- Card: Disk -->
+      <article class="card" id="card-res-disk" aria-label="Disk usage">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#9635;</span> Disk
+        </h2>
+        <div class="field-row">
+          <span class="field-label">Used</span>
+          <span class="field-value" id="res-disk-used">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Total</span>
+          <span class="field-value" id="res-disk-total">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Usage</span>
+          <span class="field-value" id="res-disk-pct">&mdash;</span>
+        </div>
+        <div class="progress-bar-wrap" aria-hidden="true">
+          <div class="progress-bar-fill" id="res-disk-bar" style="width:0%"></div>
+        </div>
+      </article>
+
+      <!-- Card: Budget Limits -->
+      <article class="card" id="card-res-budget" aria-label="Resource budget limits">
+        <h2 class="card-title">
+          <span aria-hidden="true">&#128203;</span> Budget Limits
+        </h2>
+        <div class="field-row">
+          <span class="field-label">Max Cache</span>
+          <span class="field-value" id="res-budget-cache">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Max Galaxy Dump</span>
+          <span class="field-value" id="res-budget-disk">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Max BG CPU</span>
+          <span class="field-value" id="res-budget-cpu">&mdash;</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Max API/min</span>
+          <span class="field-value" id="res-budget-api">&mdash;</span>
+        </div>
+      </article>
+
+    </div><!-- /.dashboard-grid -->
+
+    <!-- Footer: last updated + manual refresh -->
+    <div style="margin-top:var(--space-4);display:flex;align-items:center;gap:var(--space-4)">
+      <span class="field-value unknown" id="res-last-updated"></span>
+      <button id="res-refresh-btn"
+              aria-label="Refresh resource data"
+              style="background:transparent;border:1px solid var(--color-border);
+                     color:var(--color-fg-muted);padding:var(--space-2) var(--space-3);
+                     border-radius:var(--radius-md);font-family:var(--font-family);
+                     font-size:var(--font-size-sm);cursor:pointer;">
+        &#8635; Refresh
+      </button>
+    </div>
+
   </section>
 
   <!-- ══════════════════════════════════════
@@ -1806,6 +1912,7 @@
 <script src="views/settings.js"></script>
 <script src="views/privacy.js"></script>
 <script src="views/onboarding.js"></script>
+<script src="views/resources.js"></script>
 
 <!-- Wire log entries from the WS bus after all scripts are loaded -->
 <script>
