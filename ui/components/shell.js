@@ -235,6 +235,25 @@ async function discover() {
   return probeForBridge();
 }
 
+/* ── Onboarding status check ── */
+async function checkOnboardingStatus() {
+  try {
+    const response = await fetch(`${Shell.httpBase}/week13/onboarding/status`);
+    if (!response.ok) return;
+    const status = await response.json();
+    if (status.should_show_wizard === true) {
+      if (typeof window.OmniOnboarding?.show === 'function') {
+        window.OmniOnboarding.show();
+      } else {
+        /* onboarding.js not yet initialized; drain when it loads */
+        window.__pendingOnboardingShow = true;
+      }
+    }
+  } catch (err) {
+    console.warn('onboarding_status_unavailable', err);
+  }
+}
+
 /* ── HTTP state fetch ── */
 async function fetchState() {
   if (!Shell.httpBase) return;
@@ -349,6 +368,7 @@ async function boot() {
 
   await fetchState();
   openWebSocket();
+  checkOnboardingStatus(); /* fire-and-forget; non-fatal */
 
   Shell.booting = false;
 }

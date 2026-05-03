@@ -23,6 +23,7 @@
 
   /* --- Semantic Status --- */
   --color-ok:            #00ffaa;
+  --color-accent-hover: var(--color-warn);
   --color-warn:          #ffcc00;
   --color-critical:      #ff3333;
   --color-info:          #4499ff;

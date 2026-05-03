@@ -5,11 +5,13 @@
  *  A. Easy Mode (60-second preset)
  *  B. Custom Setup (5-15 minute wizard)
  *  C. Power User (full Settings + Privacy)
+ *
+ * Startup sequence: shell.js checks /week13/onboarding/status after bridge
+ * discovery, then calls window.OmniOnboarding.show() if wizard is needed.
  */
 
 class OnboardingController {
   constructor() {
-    this.apiBase = `http://127.0.0.1:${window.PORT || 8000}`;
     this.currentPath = null;
     this.customStepIndex = 0;
     this.customSteps = [
@@ -26,31 +28,23 @@ class OnboardingController {
     this.init();
   }
 
-  async init() {
-    // Check if onboarding should display
-    const status = await this.checkOnboardingStatus();
-    if (!status.should_show_wizard) {
-      // First-run already complete; hide onboarding entirely
-      document.getElementById("onboarding-container").style.display = "none";
-      return;
-    }
+  get apiBase() {
+    return `http://127.0.0.1:${window.OMNICOVAS_PORT || 8000}`;
+  }
 
-    // Show path selection
-    this.showPathSelection();
+  init() {
     this.bindPathButtons();
     this.bindStepButtons();
   }
 
-  async checkOnboardingStatus() {
-    try {
-      const res = await fetch(`${this.apiBase}/week13/onboarding/status`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    } catch (err) {
-      console.error("Failed to check onboarding status:", err);
-      // Assume not complete; show wizard
-      return { should_show_wizard: true };
-    }
+  show() {
+    const container = document.getElementById("onboarding-container");
+    if (container) container.style.display = "flex";
+    this.showPathSelection();
+    const firstControl = document.querySelector(
+      "#onboarding-path-selection .path-button, #onboarding-path-selection button"
+    );
+    if (firstControl) firstControl.focus();
   }
 
   showPathSelection() {
@@ -326,11 +320,21 @@ class OnboardingController {
   }
 }
 
-// Initialize on page load
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => {
-    new OnboardingController();
-  });
-} else {
-  new OnboardingController();
+function _initOnboarding() {
+  const controller = new OnboardingController();
+  window.OmniOnboarding = { show: () => controller.show() };
+  // Drain pending flag in case shell.js resolved status before this script initialized.
+  if (window.__pendingOnboardingShow) {
+    window.__pendingOnboardingShow = false;
+    controller.show();
+  }
 }
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", _initOnboarding);
+} else {
+  _initOnboarding();
+}
+
+// Test hook for Vitest; keeps this browser-compatible without changing production module/script loading.
+globalThis.__onboardingExports = { OnboardingController, _initOnboarding };
