@@ -1,0 +1,400 @@
+OMNICOVAS — PHASE 4 WEEK 17 PLAYBOOK
+Title: PvP Local Log and Hostility Warnings
+Goal: Create local PvP/contact awareness and hostility warnings while keeping Inara/external lookup gated and privacy-safe.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+Weekly execution rule: implement one part at a time. Do not execute the whole week in one Soldier invocation unless the Commander explicitly authorizes it and context remains under budget.
+
+
+================================================================================
+WEEK 17 PART A — PvP Contact Local Log
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 17 Part A — PvP Contact Local Log
+
+Week goal:
+Create local PvP/contact awareness and hostility warnings while keeping Inara/external lookup gated and privacy-safe.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Implement the local-log half of the PvP Gank Database feature without any external lookup.
+
+Scope:
+- Local SQLite or existing persistence path for PvP contact observations.
+- Journal-driven contact records only.
+- Privacy-preserving local-only defaults.
+
+Allowed files:
+- omnicovas/db/models.py or current DB model files
+- alembic migrations only if project pattern requires DB schema migration
+- omnicovas/features/combat_pvp.py or combat/pvp.py
+- tests/test_combat_pvp_log.py
+- docs/testing/phase4_pvp_local_log.md
+
+Implementation steps:
+[ ] Inspect existing SQLite/Alembic patterns and Activity Log persistence. Reuse; do not create a separate database.
+[ ] Define a minimal PvPContact record: commander_name_hash_or_name per existing privacy convention, first_seen, last_seen, systems_seen, event_count, source, notes_json, created_by_telemetry.
+[ ] If storing raw CMDR name has privacy implications, use existing privacy/redaction conventions and escalate if no convention exists.
+[ ] Populate only from real journal telemetry that identifies a player/CMDR contact. Do not guess from NPC-looking names.
+[ ] Add local query helpers: upsert_contact(), get_recent_contacts(), get_contact_summary().
+[ ] Add tests with real anonymized fixtures or pure helper tests using non-ED dummy names where privacy behavior is being tested.
+[ ] Do not implement Inara/network lookup in this part.
+
+Tests:
+[ ] Contact is created/updated locally.
+[ ] Duplicate sightings update last_seen/event_count.
+[ ] Unknown/non-player target does not create PvP contact.
+[ ] No outbound calls are made.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.
+
+
+================================================================================
+WEEK 17 PART B — Inara Lookup Gate and Compliance Placeholder
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 17 Part B — Inara Lookup Gate and Compliance Placeholder
+
+Week goal:
+Create local PvP/contact awareness and hostility warnings while keeping Inara/external lookup gated and privacy-safe.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Prepare the code boundary for optional Inara lookup without activating outbound data.
+
+Scope:
+- Config/feature flag check.
+- Stub interface or disabled provider that returns unavailable.
+- Compliance note for future approved lookup.
+- No network calls unless existing approved Inara client/config already exists and is explicitly enabled.
+
+Allowed files:
+- omnicovas/features/combat_pvp.py or combat/pvp.py
+- omnicovas/config/settings-related files only if existing patterns allow feature flag read
+- omnicovas/api/pillar2.py
+- tests/test_combat_pvp_inara_gate.py
+- docs/compliance/phase4_inara_lookup_gate.md or docs/releases/phase4_dev_notes.md
+
+Implementation steps:
+[ ] Inspect Compliance Matrix and current config/privacy toggle patterns before editing.
+[ ] Add a small interface boundary named according to project style, e.g. PvPReputationLookup.
+[ ] Default implementation must return unavailable/disabled and perform no network I/O.
+[ ] Respect privacy/outbound toggle state if present. If no privacy toggle exists for this specific flow, keep disabled and document as blocked.
+[ ] Add tests proving no network call is attempted by default.
+[ ] Document future requirements: Inara approval/whitelisting, rate limit, attribution, opt-in, and cache policy. Do not implement those requirements unless already approved elsewhere.
+
+Tests:
+[ ] Default lookup returns disabled.
+[ ] No HTTP/client import or network call in default path.
+[ ] API exposes lookup_status as disabled/unavailable, not fake data.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.
+
+
+================================================================================
+WEEK 17 PART C — Hostility and Threat Warnings
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 17 Part C — Hostility and Threat Warnings
+
+Week goal:
+Create local PvP/contact awareness and hostility warnings while keeping Inara/external lookup gated and privacy-safe.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Create deterministic hostility warnings from local telemetry and local PvP contact log only.
+
+Scope:
+- Hostility warning event.
+- Threat labels must be telemetry/local-log derived or explicitly inferred with confidence.
+- No global/community gank claims without approved data source.
+
+Allowed files:
+- omnicovas/features/combat_hostility.py or combat/hostility.py
+- StateManager file
+- omnicovas/core/event_types.py
+- tests/test_combat_hostility.py
+- ui/views/combat.js
+- ui/overlay.js
+
+Implementation steps:
+[ ] Define hostility input sources: active target, current wanted/hostile flags if present, PvP local sightings, combat session damage events if available.
+[ ] Create a deterministic function returning threat_warning with fields: level, reasons, source, confidence, inferred.
+[ ] If a reason is inferred, label it inferred. Do not present as fact.
+[ ] Publish HOSTILITY_WARNING only on meaningful level change or new deterministic reason.
+[ ] Add UI hostility card and overlay banner for high severity only.
+[ ] Ensure warning copy is explainable: include "why" reasons from telemetry/local log.
+
+Tests:
+[ ] Known hostile telemetry produces warning.
+[ ] Unknown state does not produce warning.
+[ ] Inferred output is labeled inferred with confidence.
+[ ] Overlay only triggers on high-severity emitted event.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.
+
+
+================================================================================
+WEEK 17 PART D — Week 17 Integration Gate
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 17 Part D — Week 17 Integration Gate
+
+Week goal:
+Create local PvP/contact awareness and hostility warnings while keeping Inara/external lookup gated and privacy-safe.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Close Week 17 with local PvP awareness and safe hostility warnings.
+
+Implementation steps:
+[ ] Verify all PvP/contact data remains local by default.
+[ ] Verify optional lookup path is disabled unless approval/config exists.
+[ ] Verify UI clearly distinguishes local observation vs external lookup unavailable.
+[ ] Verify no raw secrets or CMDR-sensitive data appear in logs beyond approved redaction policy.
+[ ] Update phase4_dev_notes with Week 17 compliance posture and evidence.
+
+Milestone checklist:
+[ ] Local PvP contact log works.
+[ ] Inara lookup is gated/disabled by default.
+[ ] Hostility warnings are deterministic and explainable.
+[ ] Privacy posture documented.
+[ ] All tests green.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.

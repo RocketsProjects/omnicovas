@@ -1,0 +1,404 @@
+OMNICOVAS — PHASE 4 WEEK 18 PLAYBOOK
+Title: Rewards, Combat Rank, and Munitions
+Goal: Implement combat reward/rank tracking and known munitions state from telemetry without simulating unsupported data.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+Weekly execution rule: implement one part at a time. Do not execute the whole week in one Soldier invocation unless the Commander explicitly authorizes it and context remains under budget.
+
+
+================================================================================
+WEEK 18 PART A — Bounty and Combat Bond Tracking
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 18 Part A — Bounty and Combat Bond Tracking
+
+Week goal:
+Implement combat reward/rank tracking and known munitions state from telemetry without simulating unsupported data.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Track bounty and combat bond session totals from verified journal reward events.
+
+Scope:
+- Session and lifetime/local totals if existing persistence supports it.
+- Activity Log entries.
+- API/UI reward summary.
+
+Allowed files:
+- omnicovas/features/combat_rewards.py or combat/rewards.py
+- StateManager file
+- omnicovas/api/pillar2.py
+- tests/fixtures/combat_rewards/ real anonymized reward journals only
+- tests/test_combat_rewards.py
+
+Implementation steps:
+[ ] Inspect journal reward fixtures supplied by Commander. Do not invent voucher/bond fields.
+[ ] Add reward tracking fields to StateManager or combat session state: bounty_session_credits, combat_bond_session_credits, last_reward_event, unredeemed_estimate if telemetry supports it.
+[ ] Handle reward redemption separately only if fixture telemetry proves it. Unknown redemption state remains unknown.
+[ ] Publish BOUNTY_UPDATED and COMBAT_BOND_UPDATED events on confirmed reward deltas.
+[ ] Add /pillar2/rewards endpoint.
+[ ] Add tests for reward accumulation and unknown/reset behavior.
+
+Tests:
+[ ] Bounty event increments session total.
+[ ] Combat bond event increments session total.
+[ ] Missing amount is ignored or marked unknown without crash.
+[ ] Session reset clears session totals only where appropriate.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.
+
+
+================================================================================
+WEEK 18 PART B — Combat Rank Tracking
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 18 Part B — Combat Rank Tracking
+
+Week goal:
+Implement combat reward/rank tracking and known munitions state from telemetry without simulating unsupported data.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Track combat rank/progress when telemetry provides it; do not estimate rank progression.
+
+Scope:
+- Rank/progress updates from journal/load/status data if present.
+- API/UI display.
+- No fake progress curves.
+
+Allowed files:
+- omnicovas/features/combat_rank.py or combat/rank.py
+- StateManager file
+- omnicovas/api/pillar2.py
+- tests/test_combat_rank.py
+- ui/views/combat.js
+
+Implementation steps:
+[ ] Inspect existing commander/profile/rank state if present.
+[ ] Identify only confirmed local telemetry sources for combat rank/progress from existing parser patterns or real fixtures.
+[ ] Store combat_rank and combat_rank_progress as nullable fields.
+[ ] Publish COMBAT_RANK_CHANGED only when telemetry changes.
+[ ] Add /pillar2/rank endpoint or include rank in /pillar2/status if project style prefers compact endpoints.
+[ ] Render rank with unknown state. Do not estimate from bounty totals.
+
+Tests:
+[ ] Rank update from real/approved fixture changes state.
+[ ] Missing progress remains None.
+[ ] Rewards do not imply rank progress unless telemetry explicitly says so.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.
+
+
+================================================================================
+WEEK 18 PART C — Munitions Management
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 18 Part C — Munitions Management
+
+Week goal:
+Implement combat reward/rank tracking and known munitions state from telemetry without simulating unsupported data.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Display and broadcast only known munitions/ammo state from verified telemetry/loadout data.
+
+Scope:
+- Known ammo fields if present in real telemetry.
+- Unknown ammo state shown as unknown.
+- No weapon DPS, damage, synthesis, or engineering calculations.
+
+Allowed files:
+- omnicovas/features/combat_munitions.py or combat/munitions.py
+- StateManager file
+- omnicovas/api/pillar2.py
+- ui/views/combat.js
+- ui/overlay.js only for deterministic low/empty events if telemetry supports them
+- tests/test_combat_munitions.py
+
+Implementation steps:
+[ ] Inspect current module/loadout data shape from Pillar 1. Reuse module state rather than creating a parallel weapon inventory.
+[ ] If journal/loadout/status provides ammo/clip fields in real fixtures, store those fields on module/munitions snapshot.
+[ ] If ammo state is not present, expose "unknown" and document limitation.
+[ ] Publish MUNITIONS_CHANGED only when verified munitions fields change.
+[ ] Add /pillar2/munitions endpoint.
+[ ] UI renders known munitions by module/slot with unknown markers.
+
+Tests:
+[ ] Known munitions fixture updates state.
+[ ] No fixture/no field -> endpoint returns unknown, not zero.
+[ ] Existing loadout/module tests still pass.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.
+
+
+================================================================================
+WEEK 18 PART D — Rewards/Rank/Munitions UI and Week 18 Gate
+================================================================================
+
+OMNICOVAS — PHASE 4 SOLDIER PLAYBOOK
+Week 18 Part D — Rewards/Rank/Munitions UI and Week 18 Gate
+
+Week goal:
+Implement combat reward/rank tracking and known munitions state from telemetry without simulating unsupported data.
+
+Authority references:
+- BP §2 — Ten Laws
+- BP §3 — Ten Principles
+- BP §4/§5 — local journal + Status.json data path, Python core, Tauri UI
+- BP §7 — AIProvider / NullProvider / AI tiering
+- BP §12/§14 — observability, explainability, latency/performance
+- BP §20 — Pillar 2 Tactical & Combat scope
+- BP §30 — Phase 4 duration/scope
+- CM §2/§5/§8 — Frontier boundaries, privacy, compliance red flags
+- IDX §4/§5/§6 — topic routing, Phase 4 quick-find, decision ownership
+- CLAUDE.md §0-§3/§10 — architect alignment and playbook authoring
+- CLAUDE_CODE.md §0-§8 — narrow executor behavior
+
+
+Standing executor rules:
+1. Load only CLAUDE_CODE.md, Soldier.md if using local Soldier, this playbook, target files, related tests, and the small authority excerpts above.
+2. Do not load the full Blueprint/Compliance Matrix unless this playbook explicitly asks for a compliance decision.
+3. Do not add external APIs, outbound data, SDKs, plugins, dependencies, or bundled tools unless the playbook explicitly says the architect approved them.
+4. Do not automate in-game action, send keypresses, drive controls, inject into Elite Dangerous, scrape protected surfaces, or touch the game process.
+5. Treat journal and Status.json as truth. Unknown or missing telemetry remains None/unknown.
+6. Do not invent Elite Dangerous mechanics, thresholds, fixture payloads, combat constants, ship stats, weapon behavior, AX tactics, or on-foot mechanics.
+7. Extend existing StateManager, dispatcher, broadcaster, API bridge, config vault, Activity Log, and UI shell. Do not create parallel core infrastructure.
+8. Keep NullProvider/core no-AI behavior working. Tier 2 rules must be deterministic and KB-grounded. Tier 3/LLM behavior is not part of these playbooks unless explicitly listed.
+9. Add or update tests for every behavior introduced.
+10. Stop and escalate on law/compliance/scope ambiguity, missing real fixture data, new dependency pressure, architecture choice, or broad refactor pressure.
+
+
+Preflight:
+[ ] Confirm git status and note any pre-existing dirty files.
+[ ] Confirm Phase 3 baseline still launches, bridge auto-connects, and overlay can receive events.
+[ ] Run the narrow baseline relevant to this part before editing when practical.
+[ ] Inspect existing nearby patterns before creating new code.
+[ ] Use real anonymized journal/Status fixtures for parser behavior. Do not fabricate raw Elite Dangerous event payloads.
+
+
+Objective:
+Make Week 18 outputs visible and stable.
+
+Allowed files:
+- ui/views/combat.js
+- omnicovas/api/pillar2.py
+- tests/test_api_pillar2.py
+- docs/testing/phase4_week18_rewards_rank_munitions.md
+- docs/releases/phase4_dev_notes.md
+
+Implementation steps:
+[ ] Add Combat view cards: Rewards, Rank, Munitions.
+[ ] Use WebSocket-first event updates, with API hydration fallback.
+[ ] Add tests for endpoint shapes.
+[ ] Run full backend tests plus UI build.
+[ ] Document known telemetry limitations, especially munitions unknown cases.
+
+Milestone checklist:
+[ ] Bounty/combat bond session totals update from fixtures.
+[ ] Combat rank displays only verified telemetry.
+[ ] Munitions state does not hallucinate zeros.
+[ ] UI cards handle nulls.
+[ ] All tests green.
+
+Default verification commands:
+  .venv\Scripts\activate
+  ruff check omnicovas/ tests/
+  ruff format omnicovas/ tests/
+  mypy omnicovas/
+  pytest -v
+  cargo check --manifest-path src-tauri\Cargo.toml
+  npm run tauri build
+
+Run targeted tests first, then broader gates as the part stabilizes.
+
+
+Required Soldier final report:
+- Files changed.
+- What changed.
+- Tests/checks run and exact result.
+- Commands still recommended.
+- Blocked items or escalation reason.
+- Confirmation that no new dependency, outbound data flow, game automation, or parallel state/broadcaster was introduced.

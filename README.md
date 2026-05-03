@@ -66,7 +66,7 @@ data flow.
 3. STATUS
 --------------------------------------------------------------------------------
 
-**Status: Pre-alpha (Phase 3 implementation complete, validation ongoing).** Tauri desktop app with live ship telemetry, first-run onboarding, privacy controls, settings panel, activity log, and accessibility framework. 292 tests passing, zero mypy errors, zero ruff violations.
+**Status: Pre-alpha (Phase 3 UI Shell complete, Phase 4 Combat Pillar in progress).** Tauri desktop app with live ship telemetry, first-run onboarding, privacy controls, settings panel, activity log, and accessibility framework. 378 tests passing, zero mypy errors, zero ruff violations.
 
 See [docs/releases/](docs/releases/) for detailed feature summaries by phase.
 
@@ -212,8 +212,8 @@ ecosystem. Deep gratitude to the maintainers of EDDN, EDSM, Inara, Spansh,
 EDAstro, EDDI, Elite BGS, BGS-Tally, EDMC, VoiceAttack, and the many others
 who make the ED community what it is.
 
-When Phase 3 UI ships, these attributions will be visible throughout the
-application UI, not just in documentation.
+These attributions are now visible throughout the application UI — on the
+Credits page (/credits) and in the SBOM panel (/credits/sbom).
 
 
 --------------------------------------------------------------------------------
@@ -232,6 +232,6 @@ Frontier Developments plc.
    - Project: OmniCOVAS
    - Maintainer: @RocketsProjects (https://github.com/RocketsProjects)
    - License: AGPL-3.0
-   - Status: Pre-alpha, Phase 3 complete
+   - Status: Pre-alpha, Phase 4 active (Combat Pillar)
    - Repository: https://github.com/RocketsProjects/omnicovas
-   - Last updated: 2026-04-28
+   - Last updated: 2026-05-02
