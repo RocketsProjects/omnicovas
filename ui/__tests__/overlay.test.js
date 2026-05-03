@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { renderBanner } from '../overlay.js';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { renderBanner, showBanner, dismissBanner } from '../overlay.js';
 
 beforeEach(() => {
   document.body.innerHTML = '<div id="overlay-container"></div>';
@@ -44,5 +44,30 @@ describe('renderBanner', () => {
       value: null,
     });
     expect(document.querySelector('.banner-value').textContent).toBe('');
+  });
+});
+
+describe('dismissBanner', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    document.body.innerHTML = '<div id="overlay-container"></div>';
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('removes the banner element from the DOM on dismiss', () => {
+    showBanner('OMNICOVAS_TEST', 'READY');
+    expect(document.querySelector('.banner')).not.toBeNull();
+
+    dismissBanner();
+    expect(document.querySelector('.banner')).toBeNull();
+  });
+
+  it('leaves overlay-container empty after dismiss with no queued banners', () => {
+    showBanner('OMNICOVAS_TEST', 'READY');
+    dismissBanner();
+    expect(document.getElementById('overlay-container').children.length).toBe(0);
   });
 });

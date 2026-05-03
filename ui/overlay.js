@@ -182,6 +182,9 @@ function dismissBanner() {
   if (bannerQueue.length > 0) {
     const next = bannerQueue.shift();
     showBanner(next.eventType, next.value);
+  } else if (window.__TAURI__) {
+    const invoke = window.__TAURI__?.core?.invoke;
+    if (typeof invoke === 'function') invoke('hide_overlay').catch(() => {});
   }
 }
 
@@ -429,4 +432,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log('[Overlay] Ready. Click-through enabled by default.');
 });
 
-export { renderBanner, showBanner };
+export { renderBanner, showBanner, dismissBanner };
