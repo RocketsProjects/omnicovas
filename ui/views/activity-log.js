@@ -1,3 +1,5 @@
+import { escapeHtml } from "../utils/safe-dom.js";
+
 /**
  * Phase 3 Week 13 — Activity Log Controller
  *
@@ -156,10 +158,10 @@ class ActivityLogController {
 
     row.innerHTML = `
       <td class="log-timestamp">${this.formatTimestamp(timestamp)}</td>
-      <td class="log-event-type ${category}">${this.escapeHtml(eventType)}</td>
-      <td class="log-source">${this.escapeHtml(source)}</td>
-      <td class="log-summary">${this.escapeHtml(summary)}</td>
-      <td>${this.escapeHtml(aiTier)}</td>
+      <td class="log-event-type ${category}">${escapeHtml(eventType)}</td>
+      <td class="log-source">${escapeHtml(source)}</td>
+      <td class="log-summary">${escapeHtml(summary)}</td>
+      <td>${escapeHtml(aiTier)}</td>
     `;
 
     return row;
@@ -180,13 +182,6 @@ class ActivityLogController {
     } catch {
       return ts;
     }
-  }
-
-  escapeHtml(str) {
-    if (!str) return "";
-    const div = document.createElement("div");
-    div.textContent = str;
-    return div.innerHTML;
   }
 
   updatePagination() {
