@@ -253,6 +253,7 @@ class ActivityLogController {
   }
 }
 
+// Test hook for Vitest; keeps this browser-compatible without changing production module/script loading.
 globalThis.__activityLogExports = { ActivityLogController };
 
 // Initialize on page load

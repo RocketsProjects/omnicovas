@@ -501,6 +501,7 @@ window.addEventListener('hashchange', () => {
 window.OmniEvents?.addEventListener('bridge-connected', loadDashboard);
 scheduleDashboardLoad();
 
+// Test hook for Vitest; keeps this browser-compatible without changing production module/script loading.
 if (typeof globalThis.__dashboardExports === 'undefined') {
   globalThis.__dashboardExports = { renderCargo };
 }
