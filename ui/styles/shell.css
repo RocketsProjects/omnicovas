@@ -38,7 +38,7 @@ html, body {
 }
 
 #topbar .topbar-sep {
-  color: var(--color-border-active);
+  color: var(--color-nav-border);
   flex-shrink: 0;
 }
 
@@ -72,7 +72,7 @@ html, body {
 #topbar .topbar-spacer { flex: 1; }
 
 #topbar .port-label {
-  color: var(--color-fg-unknown);
+  color: var(--color-telemetry-label);
   font-size: var(--font-size-xs);
 }
 
@@ -180,4 +180,78 @@ html, body {
   margin-bottom: var(--space-5);
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--color-border);
+}
+
+/* ── Future Systems navigation group ── */
+.future-systems-group {
+  margin: var(--space-3) var(--space-3) 0;
+  border-top: 1px solid var(--color-nav-border);
+  padding-top: var(--space-3);
+}
+
+.future-systems-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-fg-unknown);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  outline-offset: 2px;
+}
+
+.future-systems-summary::-webkit-details-marker { display: none; }
+
+.future-systems-summary:hover {
+  color: var(--color-fg-muted);
+  background: var(--color-surface-hover);
+}
+
+.future-systems-summary:focus-visible {
+  outline: 2px solid var(--color-accent);
+}
+
+.future-systems-expand {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  color: var(--color-fg-unknown);
+  transition: transform var(--transition-fast);
+}
+
+.future-systems-group[open] .future-systems-expand {
+  transform: rotate(90deg);
+}
+
+.future-systems-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3) 0;
+}
+
+.nav-item-future {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-fg-unknown);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.04em;
+  cursor: default;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.nav-item-future .nav-icon {
+  font-size: var(--font-size-md);
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+  opacity: 0.5;
 }

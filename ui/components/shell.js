@@ -396,7 +396,7 @@ function navigate(hash) {
     target.classList.add('active');
   }
 
-  document.querySelectorAll('#sidebar nav a').forEach((anchor) => {
+  document.querySelectorAll('#sidebar a[href^="#"]').forEach((anchor) => {
     const isActive = anchor.getAttribute('href') === `#${route}`;
 
     anchor.classList.toggle('active', isActive);
