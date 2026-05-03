@@ -1,0 +1,141 @@
+OmniCOVAS PB05 v2 — Command Deck + Route-Specific Console UI
+Executor Target: Google Gemini CLI / lightweight executor
+Architect Authority: CLAUDE.MD + OmniCOVAS_Index.md + Master Blueprint v4.2
+Standing Executor Alignment: GEMINI.md + CLAUDE_CODE.md
+Safety Authority: ui_safe_rendering_checklist.md
+
+GLOBAL PB05 v2 CONSTRAINTS
+- Do not add dependencies unless the playbook explicitly opens a dependency gate. Default: no dependencies.
+- Do not redesign backend FastAPI contracts unless explicitly allowed. Default: no backend contract changes.
+- Do not build Phase 4 combat logic.
+- Do not invent telemetry. Unknown, missing, unsupported, or unreliable telemetry stays truthful.
+- Preserve Tauri/FastAPI dynamic bridge behavior.
+- Preserve static vanilla Tauri UI architecture. No framework migration.
+- Preserve classic script loading unless the playbook explicitly proves an existing pattern is safe.
+- Use safe DOM rendering. Dynamic/API/user data uses textContent, createElement, replaceChildren, setAttribute.
+- No unsafe dynamic innerHTML/outerHTML/insertAdjacentHTML.
+- No Frontier assets, screenshots, traced silhouettes, extracted game models, or copied ship art.
+- Ship schematics must be original internal SVG vector technical line art.
+- Cool visuals are allowed only when they make the app easier to understand.
+
+LOCKED PB05 v2 UX MODEL
+- Left sidebar remains primary navigation.
+- Sidebar labels remain simple: Dashboard, Activity Log, Resources, Settings, Privacy, Credits, Future Systems.
+- Each route opens its own dedicated page.
+- Dashboard is the only page with the ship wireframe / ship systems schematic hero.
+- Other pages get route-specific identities but remain straightforward:
+  Dashboard     -> Ship Systems Schematic
+  Activity Log  -> Flight Recorder / Black Box
+  Resources     -> Diagnostics Console
+  Settings      -> Configuration Bay
+  Privacy       -> Firewall / Data Control
+  Onboarding    -> Commissioning Flow
+  Overlay       -> HUD Projection
+  Credits       -> Registry Plaque
+- Dashboard schematic: top-down blueprint.
+- First ship schematic: Sidewinder, recognizable but simplified original approximation.
+- Generic fallback schematic is required.
+- Dashboard panels: visible by default, hide/show from accessible hotspots.
+- Panel hidden/shown state resets every launch for PB05.
+- Future compact dashboard mode is architected for later, not implemented in PB05.
+- Free-drag floating windows are forbidden in PB05. Snap zones are future optional work, not initial schematic MVP.
+
+STANDARD VERIFICATION SET
+Run playbook-specific commands first. Common commands:
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+git diff -- package.json package-lock.json
+git status
+
+MANUAL SMOKE RULE
+Do not claim manual smoke passed unless you personally ran it or Commander reported it passed.
+
+# PB05-06 — Dashboard Ship Systems Schematic and Callout Panels
+
+OBJECTIVE
+Transform the Dashboard into the PB05 hero page:
+- command summary band
+- central top-down ship schematic
+- visible-by-default subsystem callout panels
+- existing telemetry contracts only
+- no hotspot toggling yet beyond static accessible controls if already provided
+
+ALLOWED FILES
+Modify:
+- ui/index.html
+- ui/views/dashboard.js
+- ui/styles/dashboard.css, create if missing
+- ui/styles/ship-schematic.css
+- ui/styles/command-deck.css
+- ui/__tests__/dashboard.test.js
+
+Create:
+- ui/__tests__/dashboard-schematic.test.js
+
+FORBIDDEN
+No backend API changes. No Tauri/Rust/Python/package changes. No Phase 4 combat logic. No fake hardpoint/combat panel. No continuous heat assumptions beyond existing endpoint behavior. No panel persistence. No draggable or snap-zone windows.
+
+CURRENT CONTRACTS
+Use only current dashboard state/API:
+- /pillar1/ship-state
+- /pillar1/cargo
+- /pillar1/heat
+- /pillar1/pips
+- /pillar1/modules/summary
+- existing rebuy path if current code uses it
+- /ws/events
+
+LAYOUT REQUIREMENTS
+1. Sidebar label remains Dashboard.
+2. Page identity subtitle: Ship Systems Schematic.
+3. Add command summary band with ship identity, location/system if available, hull, shields, fuel, heat, alerts/status.
+4. Add central schematic frame:
+   - Sidewinder if current ship resolves to sidewinder.
+   - Generic fallback if unsupported/unknown.
+   - Truthful fallback text: "Generic schematic active" / "Ship-specific schematic not yet available".
+5. Add visible-by-default callout panels:
+   - Hull / Shields
+   - Fuel & Jump
+   - Heat / Core
+   - Cargo
+   - Power Distribution
+   - Modules
+   - Rebuy / Insurance as non-spatial reference panel
+6. Preserve existing telemetry data paths.
+7. Unknown states are contextual:
+   - Waiting for ship telemetry
+   - No cargo detected
+   - Heat telemetry unavailable; critical heat events will appear here
+   - Waiting for Loadout
+8. Telemetry values use monospace token/class.
+9. Cyan/blue = telemetry; orange = command/action/active; red = critical.
+
+SAFE RENDERING
+All API/telemetry values use textContent or safe DOM methods.
+
+ACCESSIBILITY
+Schematic has role/label. Panels have headings and stable IDs. Hotspots use aria-controls if rendered. Panels are not only discoverable through graphics.
+
+TESTS
+- summary band renders from mock state
+- unsupported ship uses generic fallback
+- Sidewinder schematic mount path works
+- panels exist for all subsystems
+- malicious cargo/module names render as text
+- bridge-connected refresh behavior preserved
+
+VERIFICATION
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+pytest tests/test_api_pillar1.py -v
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+git diff -- omnicovas/api/pillar1.py package.json package-lock.json
+git status
+
+MANUAL SMOKE
+npm run tauri dev
+Confirm Dashboard schematic/summary/panels, fallback, and other routes still load.
+
+COPY/PASTE GEMINI PROMPT
+You are Gemini CLI acting as OmniCOVAS executor. Execute PB05-06 exactly from this file. Transform only the Dashboard using existing telemetry contracts. Do not change backend. Do not add combat logic. Do not add draggable panels. Preserve safe DOM rendering and bridge behavior.

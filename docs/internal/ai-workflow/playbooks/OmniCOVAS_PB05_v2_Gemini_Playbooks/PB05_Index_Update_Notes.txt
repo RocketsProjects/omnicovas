@@ -1,0 +1,96 @@
+OmniCOVAS PB05 v2 — Command Deck + Route-Specific Console UI
+Executor Target: Google Gemini CLI / lightweight executor
+Architect Authority: CLAUDE.MD + OmniCOVAS_Index.md + Master Blueprint v4.2
+Standing Executor Alignment: GEMINI.md + CLAUDE_CODE.md
+Safety Authority: ui_safe_rendering_checklist.md
+
+GLOBAL PB05 v2 CONSTRAINTS
+- Do not add dependencies unless the playbook explicitly opens a dependency gate. Default: no dependencies.
+- Do not redesign backend FastAPI contracts unless explicitly allowed. Default: no backend contract changes.
+- Do not build Phase 4 combat logic.
+- Do not invent telemetry. Unknown, missing, unsupported, or unreliable telemetry stays truthful.
+- Preserve Tauri/FastAPI dynamic bridge behavior.
+- Preserve static vanilla Tauri UI architecture. No framework migration.
+- Preserve classic script loading unless the playbook explicitly proves an existing pattern is safe.
+- Use safe DOM rendering. Dynamic/API/user data uses textContent, createElement, replaceChildren, setAttribute.
+- No unsafe dynamic innerHTML/outerHTML/insertAdjacentHTML.
+- No Frontier assets, screenshots, traced silhouettes, extracted game models, or copied ship art.
+- Ship schematics must be original internal SVG vector technical line art.
+- Cool visuals are allowed only when they make the app easier to understand.
+
+LOCKED PB05 v2 UX MODEL
+- Left sidebar remains primary navigation.
+- Sidebar labels remain simple: Dashboard, Activity Log, Resources, Settings, Privacy, Credits, Future Systems.
+- Each route opens its own dedicated page.
+- Dashboard is the only page with the ship wireframe / ship systems schematic hero.
+- Other pages get route-specific identities but remain straightforward:
+  Dashboard     -> Ship Systems Schematic
+  Activity Log  -> Flight Recorder / Black Box
+  Resources     -> Diagnostics Console
+  Settings      -> Configuration Bay
+  Privacy       -> Firewall / Data Control
+  Onboarding    -> Commissioning Flow
+  Overlay       -> HUD Projection
+  Credits       -> Registry Plaque
+- Dashboard schematic: top-down blueprint.
+- First ship schematic: Sidewinder, recognizable but simplified original approximation.
+- Generic fallback schematic is required.
+- Dashboard panels: visible by default, hide/show from accessible hotspots.
+- Panel hidden/shown state resets every launch for PB05.
+- Future compact dashboard mode is architected for later, not implemented in PB05.
+- Free-drag floating windows are forbidden in PB05. Snap zones are future optional work, not initial schematic MVP.
+
+STANDARD VERIFICATION SET
+Run playbook-specific commands first. Common commands:
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+git diff -- package.json package-lock.json
+git status
+
+MANUAL SMOKE RULE
+Do not claim manual smoke passed unless you personally ran it or Commander reported it passed.
+
+# PB05 v2 Index / Repo Update Notes
+
+PURPOSE
+Guide Commander after generating PB05 v2 files. This is not an executor playbook.
+
+RECOMMENDED NEW DOC LOCATION IN REPO
+docs/internal/ai-workflow/playbooks/phase4/pb05_ui_overhaul_v2/
+
+RECOMMENDED FILES TO COPY INTO REPO
+- PB05_v2_Master_Plan_and_Execution_Order_GEMINI.txt
+- PB05_03A_Icon_Mapping_and_Shell_Color_Correction_GEMINI.txt
+- PB05_04_Command_Deck_Primitives_and_CSS_Extraction_GEMINI.txt
+- PB05_05_Ship_Schematic_Registry_and_Sidewinder_MVP_GEMINI.txt
+- PB05_06_Dashboard_Ship_Systems_Schematic_and_Callout_Panels_GEMINI.txt
+- PB05_07_Dashboard_Hotspot_Toggles_and_Panel_State_GEMINI.txt
+- PB05_08_Settings_Configuration_Bay_Overlay_Bridge_and_Banner_Test_Center_GEMINI.txt
+- PB05_09_Activity_Recorder_Resources_Diagnostics_Privacy_Firewall_GEMINI.txt
+- PB05_10_Onboarding_Commissioning_and_Overlay_HUD_Harmonization_GEMINI.txt
+- PB05_11_A11y_Safe_Rendering_Performance_Docs_Final_Verification_GEMINI.txt
+- PB05_Future_Ship_Schematic_Asset_Program.txt
+- PB05_Index_Update_Notes.txt
+
+OPTIONAL INDEX UPDATE
+If updating docs/internal/blueprints/OmniCOVAS_Index.md, add:
+- PB05 v2 playbook path
+- note that PB05-00/01/02/03 completed foundations are preserved
+- note that remaining PB05 uses Dashboard-only ship schematic model
+- note that no Frontier assets may be used
+- note that Sidewinder + generic fallback are PB05 scope, every-ship support is future asset program
+
+DO NOT DELETE OLD PB05 FILES IMMEDIATELY
+1. Keep old PB05 package archived.
+2. Add PB05 v2 package.
+3. In commit message, say v2 supersedes old remaining PB05-04 through PB05-10 direction.
+4. Do not rewrite already committed PB05 history.
+
+SUGGESTED DOC COMMIT
+docs: add PB05 v2 schematic command-deck playbooks
+
+SUGGESTED COMMIT BODY
+Add Gemini-ready PB05 v2 playbooks that preserve completed PB05 preflight/token/shell/icon progress while revising the remaining UI overhaul around a Dashboard-only ship systems schematic and route-specific console pages.
+
+PB05 v2 keeps the original guardrails: no dependencies, no backend contract redesign, no Phase 4 combat logic, safe rendering, telemetry truthfulness, local-first behavior, and dynamic bridge preservation.

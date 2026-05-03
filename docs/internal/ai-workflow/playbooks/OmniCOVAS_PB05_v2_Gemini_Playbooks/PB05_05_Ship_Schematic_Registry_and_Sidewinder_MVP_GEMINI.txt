@@ -1,0 +1,150 @@
+OmniCOVAS PB05 v2 — Command Deck + Route-Specific Console UI
+Executor Target: Google Gemini CLI / lightweight executor
+Architect Authority: CLAUDE.MD + OmniCOVAS_Index.md + Master Blueprint v4.2
+Standing Executor Alignment: GEMINI.md + CLAUDE_CODE.md
+Safety Authority: ui_safe_rendering_checklist.md
+
+GLOBAL PB05 v2 CONSTRAINTS
+- Do not add dependencies unless the playbook explicitly opens a dependency gate. Default: no dependencies.
+- Do not redesign backend FastAPI contracts unless explicitly allowed. Default: no backend contract changes.
+- Do not build Phase 4 combat logic.
+- Do not invent telemetry. Unknown, missing, unsupported, or unreliable telemetry stays truthful.
+- Preserve Tauri/FastAPI dynamic bridge behavior.
+- Preserve static vanilla Tauri UI architecture. No framework migration.
+- Preserve classic script loading unless the playbook explicitly proves an existing pattern is safe.
+- Use safe DOM rendering. Dynamic/API/user data uses textContent, createElement, replaceChildren, setAttribute.
+- No unsafe dynamic innerHTML/outerHTML/insertAdjacentHTML.
+- No Frontier assets, screenshots, traced silhouettes, extracted game models, or copied ship art.
+- Ship schematics must be original internal SVG vector technical line art.
+- Cool visuals are allowed only when they make the app easier to understand.
+
+LOCKED PB05 v2 UX MODEL
+- Left sidebar remains primary navigation.
+- Sidebar labels remain simple: Dashboard, Activity Log, Resources, Settings, Privacy, Credits, Future Systems.
+- Each route opens its own dedicated page.
+- Dashboard is the only page with the ship wireframe / ship systems schematic hero.
+- Other pages get route-specific identities but remain straightforward:
+  Dashboard     -> Ship Systems Schematic
+  Activity Log  -> Flight Recorder / Black Box
+  Resources     -> Diagnostics Console
+  Settings      -> Configuration Bay
+  Privacy       -> Firewall / Data Control
+  Onboarding    -> Commissioning Flow
+  Overlay       -> HUD Projection
+  Credits       -> Registry Plaque
+- Dashboard schematic: top-down blueprint.
+- First ship schematic: Sidewinder, recognizable but simplified original approximation.
+- Generic fallback schematic is required.
+- Dashboard panels: visible by default, hide/show from accessible hotspots.
+- Panel hidden/shown state resets every launch for PB05.
+- Future compact dashboard mode is architected for later, not implemented in PB05.
+- Free-drag floating windows are forbidden in PB05. Snap zones are future optional work, not initial schematic MVP.
+
+STANDARD VERIFICATION SET
+Run playbook-specific commands first. Common commands:
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+git diff -- package.json package-lock.json
+git status
+
+MANUAL SMOKE RULE
+Do not claim manual smoke passed unless you personally ran it or Commander reported it passed.
+
+# PB05-05 — Ship Schematic Registry and Sidewinder SVG MVP
+
+OBJECTIVE
+Create the internal ship schematic system for Dashboard use:
+- original top-down Sidewinder technical wireframe
+- generic fallback schematic
+- ship key mapping/registry
+- accessible hotspot metadata
+- safe SVG rendering through DOM APIs
+
+This playbook does NOT replace the Dashboard layout yet. It builds the schematic component and tests it.
+
+ALLOWED FILES
+Create:
+- ui/data/ship-schematics.js
+- ui/components/ship-schematic.js
+- ui/styles/ship-schematic.css
+- ui/__tests__/ship-schematic.test.js
+
+Modify:
+- ui/index.html, only to load new CSS/JS files
+- ui/styles/command-deck.css or components.css, only if needed for host classes
+
+FORBIDDEN
+No backend/Tauri/Python/package changes. No copied Frontier assets, screenshots, traced silhouettes, extracted models. No external SVG imports or remote assets. No new dependency. No visible dashboard replacement yet. No fake telemetry.
+
+SCHEMATIC ART REQUIREMENTS
+- Top-down blueprint.
+- Sidewinder: recognizable but simplified original approximation.
+- Generic fallback: abstract technical hull diagram.
+- SVG line art authored as original vector geometry in code/data.
+- Simple path/polyline/polygon/circle/line primitives.
+- No heavy filters or animation loops.
+- currentColor/token-driven classes.
+- No exact Frontier silhouette tracing.
+
+REGISTRY REQUIREMENTS
+window.OmniShipSchematics or equivalent classic-script global:
+- resolveShipKey(rawShipType)
+- getSchematic(shipType)
+- hasSchematic(shipType)
+- listSupported()
+- sidewinder entry
+- generic entry
+
+Each schematic entry:
+- id
+- displayName
+- aliases
+- viewBox
+- paths/shapes
+- hotspots
+- defaultPanelAnchors
+- supportedSubsystems
+
+Required hotspot IDs:
+hull, shield, fuel, heat, cargo, modules, pips.
+Optional: ship, rebuy.
+
+HOTSPOT REQUIREMENTS
+Hotspots are metadata now, but renderer must be able to render them as accessible controls:
+aria-label, panelId, defaultExpanded true, x/y position, visual class/severity-compatible class.
+
+COMPONENT REQUIREMENTS
+window.OmniShipSchematic:
+- create(shipType, options)
+- mount(container, shipType, options)
+- resolve(shipType)
+- createHotspotButton(hotspot, options)
+
+Use document.createElementNS for SVG and document.createElement for buttons/wrappers.
+No innerHTML, outerHTML, insertAdjacentHTML, DOMParser, template.innerHTML.
+
+TESTS
+Minimum:
+- registry exists
+- sidewinder resolves
+- unsupported ship resolves to generic fallback
+- aliases map to sidewinder where configured
+- create returns SVG/wrapper structure
+- hotspot buttons are real button elements or accessible controls
+- hotspot controls have aria-label, aria-controls/panel linkage, aria-expanded
+- no unsafe HTML sinks in ship-schematic.js and ship-schematics.js
+- package files unchanged
+
+VERIFICATION
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+git diff -- package.json package-lock.json
+git status
+
+MANUAL SMOKE
+If visible changes are script/style includes only, confirm app boots and routes load. Do not claim dashboard schematic visible unless intentionally mounted.
+
+COPY/PASTE GEMINI PROMPT
+You are Gemini CLI acting as OmniCOVAS executor. Execute PB05-05 exactly from this file. Build the ship schematic registry and Sidewinder/generic SVG component only. Do not copy Frontier assets. Do not redesign Dashboard yet. Use safe DOM APIs only. Stop if any dependency or backend change appears necessary.

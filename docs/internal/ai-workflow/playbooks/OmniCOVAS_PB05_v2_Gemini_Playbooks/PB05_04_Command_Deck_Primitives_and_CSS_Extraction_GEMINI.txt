@@ -1,0 +1,125 @@
+OmniCOVAS PB05 v2 — Command Deck + Route-Specific Console UI
+Executor Target: Google Gemini CLI / lightweight executor
+Architect Authority: CLAUDE.MD + OmniCOVAS_Index.md + Master Blueprint v4.2
+Standing Executor Alignment: GEMINI.md + CLAUDE_CODE.md
+Safety Authority: ui_safe_rendering_checklist.md
+
+GLOBAL PB05 v2 CONSTRAINTS
+- Do not add dependencies unless the playbook explicitly opens a dependency gate. Default: no dependencies.
+- Do not redesign backend FastAPI contracts unless explicitly allowed. Default: no backend contract changes.
+- Do not build Phase 4 combat logic.
+- Do not invent telemetry. Unknown, missing, unsupported, or unreliable telemetry stays truthful.
+- Preserve Tauri/FastAPI dynamic bridge behavior.
+- Preserve static vanilla Tauri UI architecture. No framework migration.
+- Preserve classic script loading unless the playbook explicitly proves an existing pattern is safe.
+- Use safe DOM rendering. Dynamic/API/user data uses textContent, createElement, replaceChildren, setAttribute.
+- No unsafe dynamic innerHTML/outerHTML/insertAdjacentHTML.
+- No Frontier assets, screenshots, traced silhouettes, extracted game models, or copied ship art.
+- Ship schematics must be original internal SVG vector technical line art.
+- Cool visuals are allowed only when they make the app easier to understand.
+
+LOCKED PB05 v2 UX MODEL
+- Left sidebar remains primary navigation.
+- Sidebar labels remain simple: Dashboard, Activity Log, Resources, Settings, Privacy, Credits, Future Systems.
+- Each route opens its own dedicated page.
+- Dashboard is the only page with the ship wireframe / ship systems schematic hero.
+- Other pages get route-specific identities but remain straightforward:
+  Dashboard     -> Ship Systems Schematic
+  Activity Log  -> Flight Recorder / Black Box
+  Resources     -> Diagnostics Console
+  Settings      -> Configuration Bay
+  Privacy       -> Firewall / Data Control
+  Onboarding    -> Commissioning Flow
+  Overlay       -> HUD Projection
+  Credits       -> Registry Plaque
+- Dashboard schematic: top-down blueprint.
+- First ship schematic: Sidewinder, recognizable but simplified original approximation.
+- Generic fallback schematic is required.
+- Dashboard panels: visible by default, hide/show from accessible hotspots.
+- Panel hidden/shown state resets every launch for PB05.
+- Future compact dashboard mode is architected for later, not implemented in PB05.
+- Free-drag floating windows are forbidden in PB05. Snap zones are future optional work, not initial schematic MVP.
+
+STANDARD VERIFICATION SET
+Run playbook-specific commands first. Common commands:
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+git diff -- package.json package-lock.json
+git status
+
+MANUAL SMOKE RULE
+Do not claim manual smoke passed unless you personally ran it or Commander reported it passed.
+
+# PB05-04 — Command Deck Component Primitives and CSS Extraction
+
+OBJECTIVE
+Refactor style debt and create reusable command-deck primitives that support route-specific UI and the upcoming Dashboard schematic. Behavior must remain unchanged.
+
+ALLOWED FILES
+Modify:
+- ui/index.html
+- ui/styles/components.css
+- ui/styles/shell.css
+- ui/styles/confirmation-gate.css
+- ui/styles/icons.css, only if class integration is needed
+
+Create:
+- ui/styles/forms.css
+- ui/styles/pages.css
+- ui/styles/modals.css
+- ui/styles/command-deck.css
+- ui/__tests__/index-style-structure.test.js, if useful
+
+FORBIDDEN
+No backend/Tauri/Python/package changes. No dashboard schematic yet. No settings tabs yet. No overlay bridge yet. No route behavior changes. No dependency additions. Stop if controller rewrites seem required.
+
+PRE-FLIGHT
+git status --short
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+
+REQUIRED PRIMITIVES
+Add token-driven classes:
+.ocv-page, .ocv-page-header, .ocv-page-title, .ocv-page-kicker, .ocv-page-subtitle,
+.ocv-panel, .ocv-panel-header, .ocv-panel-title, .ocv-panel-body,
+.ocv-chip, .ocv-chip-muted, .ocv-chip-accent, .ocv-chip-telemetry, .ocv-chip-warning, .ocv-chip-critical,
+.ocv-command-summary, .ocv-command-summary-grid,
+.ocv-callout-panel, .ocv-callout-line, .ocv-schematic-frame, .ocv-schematic-hotspot,
+.ocv-hotspot-button, .ocv-panel-zone,
+.ocv-recorder-timeline, .ocv-diagnostics-grid, .ocv-firewall-map, .ocv-config-tabs, .ocv-registry-plaque.
+
+CSS EXTRACTION
+1. Create forms.css, pages.css, modals.css, command-deck.css.
+2. Move repeated form/button/page/modal styles from large inline blocks where safe.
+3. Load new CSS files in index.html in clear order.
+4. Preserve all existing IDs and controller selectors.
+5. Leave risky inline styles alone if moving them risks behavior.
+6. Fix confirmation-gate.css token usage if still needed.
+7. Do not alter major route layout semantics yet.
+
+ROUTE IDENTITY PREP
+Add CSS primitives only:
+Dashboard -> ship systems schematic
+Activity Log -> flight recorder
+Resources -> diagnostics console
+Settings -> configuration bay
+Privacy -> firewall/data control
+Credits -> registry plaque
+
+TESTS
+Update/add tests only to confirm CSS files are loaded and key IDs still exist. Avoid brittle visual snapshots.
+
+VERIFICATION
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+git diff -- package.json package-lock.json
+git status
+
+MANUAL SMOKE
+npm run tauri dev
+Confirm all current routes render and behavior is unchanged.
+
+COPY/PASTE GEMINI PROMPT
+You are Gemini CLI acting as OmniCOVAS executor. Execute PB05-04 exactly from this file. This is CSS extraction and primitive setup only. Do not build the schematic, dashboard redesign, settings tabs, or overlay bridge. Preserve behavior and IDs. Stop if extraction requires controller rewrites.

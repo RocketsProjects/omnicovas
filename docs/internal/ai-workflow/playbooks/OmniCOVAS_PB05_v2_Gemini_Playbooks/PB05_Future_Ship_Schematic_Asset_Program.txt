@@ -1,0 +1,100 @@
+OmniCOVAS PB05 v2 — Command Deck + Route-Specific Console UI
+Executor Target: Google Gemini CLI / lightweight executor
+Architect Authority: CLAUDE.MD + OmniCOVAS_Index.md + Master Blueprint v4.2
+Standing Executor Alignment: GEMINI.md + CLAUDE_CODE.md
+Safety Authority: ui_safe_rendering_checklist.md
+
+GLOBAL PB05 v2 CONSTRAINTS
+- Do not add dependencies unless the playbook explicitly opens a dependency gate. Default: no dependencies.
+- Do not redesign backend FastAPI contracts unless explicitly allowed. Default: no backend contract changes.
+- Do not build Phase 4 combat logic.
+- Do not invent telemetry. Unknown, missing, unsupported, or unreliable telemetry stays truthful.
+- Preserve Tauri/FastAPI dynamic bridge behavior.
+- Preserve static vanilla Tauri UI architecture. No framework migration.
+- Preserve classic script loading unless the playbook explicitly proves an existing pattern is safe.
+- Use safe DOM rendering. Dynamic/API/user data uses textContent, createElement, replaceChildren, setAttribute.
+- No unsafe dynamic innerHTML/outerHTML/insertAdjacentHTML.
+- No Frontier assets, screenshots, traced silhouettes, extracted game models, or copied ship art.
+- Ship schematics must be original internal SVG vector technical line art.
+- Cool visuals are allowed only when they make the app easier to understand.
+
+LOCKED PB05 v2 UX MODEL
+- Left sidebar remains primary navigation.
+- Sidebar labels remain simple: Dashboard, Activity Log, Resources, Settings, Privacy, Credits, Future Systems.
+- Each route opens its own dedicated page.
+- Dashboard is the only page with the ship wireframe / ship systems schematic hero.
+- Other pages get route-specific identities but remain straightforward:
+  Dashboard     -> Ship Systems Schematic
+  Activity Log  -> Flight Recorder / Black Box
+  Resources     -> Diagnostics Console
+  Settings      -> Configuration Bay
+  Privacy       -> Firewall / Data Control
+  Onboarding    -> Commissioning Flow
+  Overlay       -> HUD Projection
+  Credits       -> Registry Plaque
+- Dashboard schematic: top-down blueprint.
+- First ship schematic: Sidewinder, recognizable but simplified original approximation.
+- Generic fallback schematic is required.
+- Dashboard panels: visible by default, hide/show from accessible hotspots.
+- Panel hidden/shown state resets every launch for PB05.
+- Future compact dashboard mode is architected for later, not implemented in PB05.
+- Free-drag floating windows are forbidden in PB05. Snap zones are future optional work, not initial schematic MVP.
+
+STANDARD VERIFICATION SET
+Run playbook-specific commands first. Common commands:
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+git diff -- package.json package-lock.json
+git status
+
+MANUAL SMOKE RULE
+Do not claim manual smoke passed unless you personally ran it or Commander reported it passed.
+
+# PB05 Future Ship Schematic Asset Program
+Status: Future documentation only. Not part of PB05 implementation gate.
+
+PURPOSE
+Define how OmniCOVAS can eventually support original vector schematics for every Elite Dangerous ship without blocking PB05.
+
+LEGAL / ART POLICY
+- No Frontier assets.
+- No screenshots.
+- No traced silhouettes.
+- No extracted models.
+- No copied ship art.
+- All schematics are original technical approximations.
+- The goal is recognizable command-deck abstraction, not exact reproduction.
+
+ASSET STANDARD
+Each ship schematic entry should include:
+- id
+- displayName
+- aliases / Elite journal keys
+- class/category
+- viewBox
+- original vector geometry
+- supported subsystems
+- hotspot coordinates
+- default panel anchors
+- asset version
+- author/reviewer
+- legal note: original, non-copied line art
+- smoke status
+
+FUTURE PROGRAM
+PB05-SHIP-00 — Ship Schematic Asset Standard
+PB05-SHIP-01 — Starter Ships Pack
+PB05-SHIP-02 — Medium Ships Pack
+PB05-SHIP-03 — Large Ships Pack
+PB05-SHIP-04 — Specialty / Imperial / Federal / Alliance Pack
+
+PERFORMANCE BUDGET
+Simple path count, no filters by default, no continuous animation loops, event-driven pulse only, must not slow route switching.
+
+FALLBACK POLICY
+Unsupported ship must use generic fallback and truthful copy:
+"Generic schematic active — ship-specific schematic not yet available."
+
+NO FAKE SUPPORT
+Never display a ship-specific schematic for a ship without a reviewed asset entry.

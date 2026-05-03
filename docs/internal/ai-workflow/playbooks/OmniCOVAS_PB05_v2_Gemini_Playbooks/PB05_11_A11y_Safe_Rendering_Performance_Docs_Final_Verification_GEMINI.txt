@@ -1,0 +1,122 @@
+OmniCOVAS PB05 v2 — Command Deck + Route-Specific Console UI
+Executor Target: Google Gemini CLI / lightweight executor
+Architect Authority: CLAUDE.MD + OmniCOVAS_Index.md + Master Blueprint v4.2
+Standing Executor Alignment: GEMINI.md + CLAUDE_CODE.md
+Safety Authority: ui_safe_rendering_checklist.md
+
+GLOBAL PB05 v2 CONSTRAINTS
+- Do not add dependencies unless the playbook explicitly opens a dependency gate. Default: no dependencies.
+- Do not redesign backend FastAPI contracts unless explicitly allowed. Default: no backend contract changes.
+- Do not build Phase 4 combat logic.
+- Do not invent telemetry. Unknown, missing, unsupported, or unreliable telemetry stays truthful.
+- Preserve Tauri/FastAPI dynamic bridge behavior.
+- Preserve static vanilla Tauri UI architecture. No framework migration.
+- Preserve classic script loading unless the playbook explicitly proves an existing pattern is safe.
+- Use safe DOM rendering. Dynamic/API/user data uses textContent, createElement, replaceChildren, setAttribute.
+- No unsafe dynamic innerHTML/outerHTML/insertAdjacentHTML.
+- No Frontier assets, screenshots, traced silhouettes, extracted game models, or copied ship art.
+- Ship schematics must be original internal SVG vector technical line art.
+- Cool visuals are allowed only when they make the app easier to understand.
+
+LOCKED PB05 v2 UX MODEL
+- Left sidebar remains primary navigation.
+- Sidebar labels remain simple: Dashboard, Activity Log, Resources, Settings, Privacy, Credits, Future Systems.
+- Each route opens its own dedicated page.
+- Dashboard is the only page with the ship wireframe / ship systems schematic hero.
+- Other pages get route-specific identities but remain straightforward:
+  Dashboard     -> Ship Systems Schematic
+  Activity Log  -> Flight Recorder / Black Box
+  Resources     -> Diagnostics Console
+  Settings      -> Configuration Bay
+  Privacy       -> Firewall / Data Control
+  Onboarding    -> Commissioning Flow
+  Overlay       -> HUD Projection
+  Credits       -> Registry Plaque
+- Dashboard schematic: top-down blueprint.
+- First ship schematic: Sidewinder, recognizable but simplified original approximation.
+- Generic fallback schematic is required.
+- Dashboard panels: visible by default, hide/show from accessible hotspots.
+- Panel hidden/shown state resets every launch for PB05.
+- Future compact dashboard mode is architected for later, not implemented in PB05.
+- Free-drag floating windows are forbidden in PB05. Snap zones are future optional work, not initial schematic MVP.
+
+STANDARD VERIFICATION SET
+Run playbook-specific commands first. Common commands:
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+git diff -- package.json package-lock.json
+git status
+
+MANUAL SMOKE RULE
+Do not claim manual smoke passed unless you personally ran it or Commander reported it passed.
+
+# PB05-11 — Accessibility, Safe Rendering, Performance, Docs, and Final Verification
+
+OBJECTIVE
+Close PB05 v2 with a formal gate:
+- accessibility hardening
+- safe-rendering audit
+- performance review
+- automated test gates
+- manual smoke documentation
+- release/testing docs
+- index/update notes if approved
+
+No new feature work unless fixing narrow PB05 regressions.
+
+ALLOWED FILES
+Modify:
+- ui/index.html
+- ui/components/*.js
+- ui/views/*.js
+- ui/styles/*.css
+- ui/__tests__/*.test.js
+
+Create/modify docs:
+- docs/releases/pb05_ui_overhaul.md
+- docs/testing/pb05_ui_overhaul_manual_test.md
+- docs/testing/pb05_accessibility_smoke.md
+- docs/internal/blueprints/OmniCOVAS_Index.md, only if Commander approves indexing now
+- README.md, only if verified status/test counts changed and Commander approves
+
+FORBIDDEN
+No broad redesign. No new routes. No backend/Tauri/package changes unless fixing narrow PB05 regression and architect approves. No dependencies. No Phase 4 combat logic.
+
+ACCESSIBILITY CHECKLIST
+- Keyboard: sidebar, future systems, tabs, dashboard hotspots, modals.
+- ARIA: aria-current, tablist/tab/tabpanel, hotspot controls, dialogs, live regions.
+- Focus: visible focus, no hidden traps, restoration where feasible.
+- Motion: prefers-reduced-motion.
+- Color: severity not color-only, color-blind modes meaningful.
+- Safe rendering: all grep sinks SAFE_*; no UNSAFE_DYNAMIC/NEEDS_REVIEW.
+- Performance: no new polling loops, unbounded DOM growth, path-heavy SVG, heavy animations, dependency growth.
+
+REQUIRED VERIFICATION
+git status --short
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+pytest tests/test_api_pillar1.py tests/test_tauri_autoconnect_bridge.py -v
+ruff check omnicovas/ tests/
+mypy omnicovas/
+pytest -v
+cargo check --manifest-path src-tauri/Cargo.toml
+npm run tauri build, if environment supports it
+
+MANUAL SMOKE
+npm run tauri dev
+Checklist: app launches, bridge connects, Dashboard schematic/hotspots work, Activity Log, Resources, Settings tabs, Overlay settings and banners, Privacy, Onboarding, Credits, Future Systems, keyboard navigation, reduced motion, overlay transparent/non-focus-stealing.
+
+SCREENSHOT EVIDENCE
+Request or capture Dashboard schematic, Flight Recorder, Diagnostics, Settings Basic/Overlay, Data Firewall, Commissioning if available, Registry, Future Systems, Overlay banner.
+
+DOC OUTPUT
+Create:
+- docs/releases/pb05_ui_overhaul.md
+- docs/testing/pb05_ui_overhaul_manual_test.md
+- docs/testing/pb05_accessibility_smoke.md
+Update README/Index only if Commander approves and verified values are known.
+
+COPY/PASTE GEMINI PROMPT
+You are Gemini CLI acting as OmniCOVAS executor. Execute PB05-11 exactly from this file. This is the final gate. Do not add features. Run and document verification honestly. Fix only narrow PB05 regressions. Stop on architecture/contract/dependency problems.

@@ -1,0 +1,137 @@
+OmniCOVAS PB05 v2 — Command Deck + Route-Specific Console UI
+Executor Target: Google Gemini CLI / lightweight executor
+Architect Authority: CLAUDE.MD + OmniCOVAS_Index.md + Master Blueprint v4.2
+Standing Executor Alignment: GEMINI.md + CLAUDE_CODE.md
+Safety Authority: ui_safe_rendering_checklist.md
+
+GLOBAL PB05 v2 CONSTRAINTS
+- Do not add dependencies unless the playbook explicitly opens a dependency gate. Default: no dependencies.
+- Do not redesign backend FastAPI contracts unless explicitly allowed. Default: no backend contract changes.
+- Do not build Phase 4 combat logic.
+- Do not invent telemetry. Unknown, missing, unsupported, or unreliable telemetry stays truthful.
+- Preserve Tauri/FastAPI dynamic bridge behavior.
+- Preserve static vanilla Tauri UI architecture. No framework migration.
+- Preserve classic script loading unless the playbook explicitly proves an existing pattern is safe.
+- Use safe DOM rendering. Dynamic/API/user data uses textContent, createElement, replaceChildren, setAttribute.
+- No unsafe dynamic innerHTML/outerHTML/insertAdjacentHTML.
+- No Frontier assets, screenshots, traced silhouettes, extracted game models, or copied ship art.
+- Ship schematics must be original internal SVG vector technical line art.
+- Cool visuals are allowed only when they make the app easier to understand.
+
+LOCKED PB05 v2 UX MODEL
+- Left sidebar remains primary navigation.
+- Sidebar labels remain simple: Dashboard, Activity Log, Resources, Settings, Privacy, Credits, Future Systems.
+- Each route opens its own dedicated page.
+- Dashboard is the only page with the ship wireframe / ship systems schematic hero.
+- Other pages get route-specific identities but remain straightforward:
+  Dashboard     -> Ship Systems Schematic
+  Activity Log  -> Flight Recorder / Black Box
+  Resources     -> Diagnostics Console
+  Settings      -> Configuration Bay
+  Privacy       -> Firewall / Data Control
+  Onboarding    -> Commissioning Flow
+  Overlay       -> HUD Projection
+  Credits       -> Registry Plaque
+- Dashboard schematic: top-down blueprint.
+- First ship schematic: Sidewinder, recognizable but simplified original approximation.
+- Generic fallback schematic is required.
+- Dashboard panels: visible by default, hide/show from accessible hotspots.
+- Panel hidden/shown state resets every launch for PB05.
+- Future compact dashboard mode is architected for later, not implemented in PB05.
+- Free-drag floating windows are forbidden in PB05. Snap zones are future optional work, not initial schematic MVP.
+
+STANDARD VERIFICATION SET
+Run playbook-specific commands first. Common commands:
+npm test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+git diff -- package.json package-lock.json
+git status
+
+MANUAL SMOKE RULE
+Do not claim manual smoke passed unless you personally ran it or Commander reported it passed.
+
+# PB05 v2 — Master Plan and Execution Order
+
+STATUS / PROGRESS PRESERVATION
+Already completed or mostly retained:
+- PB05-PRE    Bridge-ready Settings/Privacy fix.
+- PB05-PRE-B  Remaining fixed-port UI cleanup.
+- PB05-00     Audit baseline.
+- PB05-01     Tokens/Typography foundation.
+- PB05-02     Shell/Nav/Future Systems.
+- PB05-03     Internal SVG Icon System, pending PB05-03A correction if not committed.
+
+Why v2 exists:
+The original PB05 plan correctly established tokens, shell, icons, CSS extraction, dashboard summary, settings tabs, overlay settings, onboarding, accessibility, and readiness gates. PB05 v2 preserves those requirements but upgrades the remaining product direction from a generic card-grid dashboard to a route-based command deck with a Dashboard-only ship systems schematic.
+
+PRIMARY DESIGN LAWS FOR PB05 v2
+1. Left sidebar remains the primary navigation model.
+2. Each route opens a dedicated page.
+3. Dashboard alone uses the ship wireframe as the hero layout concept.
+4. Other routes use themed page identities, but stay simple and readable.
+5. No page may sacrifice usability for immersion.
+6. Interactive ship/system controls live on Dashboard only.
+7. Dashboard interactions open clear panels/callouts, not chaotic floating windows.
+8. Settings stays tab-based and conventional in structure.
+9. Privacy, Resources, and Activity Log are specialized consoles, not gimmicks.
+10. Cool visuals are allowed only when they make the app easier to understand.
+11. Orange means command/action/selection. Cyan/blue means telemetry/system data.
+12. Purple is not part of the default PB05 palette.
+13. All ship schematic art is original internal SVG vector line art only.
+14. Missing telemetry gets truthful absence states.
+15. Every interactive visual element must be keyboard accessible.
+
+REVISED EXECUTION ORDER
+0. PB05-03A — Icon Mapping and Shell Color Correction
+1. PB05-04  — Command Deck Component Primitives and CSS Extraction
+2. PB05-05  — Ship Schematic Registry and Sidewinder SVG MVP
+3. PB05-06  — Dashboard Ship Systems Schematic and Callout Panels
+4. PB05-07  — Dashboard Hotspot Toggles and Panel State
+5. PB05-08  — Settings Configuration Bay, Overlay Bridge, Banner Test Center
+6. PB05-09  — Activity Recorder, Resources Diagnostics, Privacy Firewall
+7. PB05-10  — Onboarding Commissioning and Overlay HUD Harmonization
+8. PB05-11  — Accessibility, Safe Rendering, Performance, Docs, Final Verification
+
+MAPPING FROM ORIGINAL PB05
+- Original PB05-04 CSS extraction becomes PB05-04 v2, expanded with schematic-ready primitives.
+- Original PB05-05 dashboard summary becomes PB05-06 v2, after the schematic registry exists.
+- Original PB05-06 settings tabs and original PB05-07 overlay bridge/test center combine into PB05-08 v2.
+- Original PB05-08 page harmonization splits into PB05-09 and PB05-10 v2.
+- Original PB05-09 a11y/performance and PB05-10 readiness combine into PB05-11 v2.
+- Original accessibility and safe-rendering gates remain mandatory.
+
+BACKEND CONTRACT POLICY
+No PB05 v2 playbook may change backend contracts. Allowed existing UI consumption includes:
+- /pillar1/ship-state
+- /pillar1/cargo
+- /pillar1/heat
+- /pillar1/pips
+- /pillar1/modules/summary
+- /pillar1/overlay/settings
+- /week13/settings
+- /week13/privacy/*
+- /week13/onboarding/*
+- /activity-log
+- /resources
+
+The only allowed non-FastAPI extension remains a narrow Tauri event/command path for user-facing overlay banner tests, if needed.
+
+SHIP SCHEMATIC POLICY
+PB05 implementation scope:
+- Sidewinder schematic.
+- Generic fallback schematic.
+- Ship schematic registry architecture.
+- Accessible hotspot buttons.
+- Panel anchors/callouts.
+- No every-ship asset pack in PB05.
+
+Future docs only:
+- Ship schematic asset standard.
+- Starter ship pack plan.
+- Medium ship pack plan.
+- Large ship pack plan.
+- Specialty ship pack plan.
+
+COMMANDER HANDOFF RULE
+Give Gemini CLI one playbook at a time. Do not hand the whole package to the executor.
