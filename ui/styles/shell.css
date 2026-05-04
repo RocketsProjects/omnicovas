@@ -268,10 +268,20 @@ html, body {
   color: var(--color-nav-text-hover, var(--color-fg, #f4f7fb)) !important;
 }
 
-#sidebar a.active,
 #sidebar a[aria-current="page"] {
   color: var(--color-nav-active-text, var(--color-accent, #ff8800)) !important;
   text-decoration: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view, .status-dot.connected {
+    animation: none;
+    transition: none;
+  }
+  #sidebar nav ul li a,
+  .future-systems-expand {
+    transition: none;
+  }
 }
 
 #sidebar .future-systems-summary,

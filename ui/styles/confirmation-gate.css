@@ -136,6 +136,12 @@
   outline-offset: 2px;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .confirmation-card {
+    animation: none;
+  }
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .confirmation-card {
