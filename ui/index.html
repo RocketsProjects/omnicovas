@@ -17,6 +17,7 @@
   <link rel="stylesheet" href="styles/confirmation-gate.css" />
   <link rel="stylesheet" href="styles/ship-schematic.css" />
   <link rel="stylesheet" href="styles/dashboard.css" />
+  <link rel="stylesheet" href="styles/settings.css" />
 </head>
 <body>
 
@@ -438,60 +439,61 @@
   </section>
 
   <!-- ══════════════════════════════════════
-       VIEW: Settings
+       VIEW: Settings — Configuration Bay (PB05-08)
   ══════════════════════════════════════ -->
   <section id="view-settings" class="view" aria-labelledby="settings-title">
     <div id="settings-container">
       <div class="page-header">
+        <p class="settings-page-kicker">Configuration Bay</p>
         <h1 id="settings-title">&#9881;&#65039; Settings</h1>
         <p>Customize OmniCOVAS to your playstyle.</p>
       </div>
 
-      <!-- Tier 1: Preset Profiles -->
-      <section id="tier1-section" aria-labelledby="tier1-heading">
-        <h2 id="tier1-heading">Tier 1: Preset Profiles</h2>
-        <p>Choose a quick preset. This sets recommended Tier 2 &amp; 3 defaults.</p>
+      <!-- Tab strip -->
+      <div role="tablist" id="settings-tablist" aria-label="Settings tabs" class="ocv-config-tabs">
+        <button type="button" role="tab" id="tab-basic"
+                aria-selected="true" aria-controls="panel-basic" class="ocv-tab">Basic</button>
+        <button type="button" role="tab" id="tab-overlay"
+                aria-selected="false" aria-controls="panel-overlay" class="ocv-tab">Overlay</button>
+        <button type="button" role="tab" id="tab-ai"
+                aria-selected="false" aria-controls="panel-ai" class="ocv-tab">AI / Advisory</button>
+        <button type="button" role="tab" id="tab-future"
+                aria-selected="false" aria-controls="panel-future" class="ocv-tab">Future Systems</button>
+        <button type="button" role="tab" id="tab-advanced"
+                aria-selected="false" aria-controls="panel-advanced" class="ocv-tab">Advanced</button>
+      </div>
 
-        <div class="preset-grid" id="preset-grid">
-          <!-- Populated by JavaScript -->
-        </div>
-      </section>
+      <!-- Panel: Basic -->
+      <div role="tabpanel" id="panel-basic" aria-labelledby="tab-basic" class="ocv-tab-panel">
+        <section id="tier1-section" aria-labelledby="tier1-heading">
+          <h2 id="tier1-heading">Preset Profiles</h2>
+          <p>Choose a quick preset. This sets recommended defaults.</p>
+          <div class="preset-grid" id="preset-grid">
+            <!-- Populated by JavaScript -->
+          </div>
+        </section>
+        <section id="tier2-section" aria-labelledby="tier2-heading">
+          <h2 id="tier2-heading">Pillar Categories</h2>
+          <p>Enable or disable entire feature categories.</p>
+          <div id="tier2-toggles" class="toggles-grid">
+            <!-- Populated by JavaScript -->
+          </div>
+        </section>
+      </div>
 
-      <!-- Tier 2: Pillar Categories -->
-      <section id="tier2-section" aria-labelledby="tier2-heading">
-        <h2 id="tier2-heading">Tier 2: Pillar Categories</h2>
-        <p>Enable or disable entire feature categories.</p>
-
-        <div id="tier2-toggles" class="toggles-grid">
-          <!-- Populated by JavaScript -->
-        </div>
-      </section>
-
-      <!-- Tier 3: Granular Settings -->
-      <section id="tier3-section" aria-labelledby="tier3-heading">
-        <h2 id="tier3-heading">Tier 3: Granular Settings</h2>
-        <p>Fine-tune individual features.</p>
-
-        <!-- Overlay Settings -->
-        <div class="setting-group">
-          <h3>Overlay Settings</h3>
-
-          <label>
-            Opacity
-            <input
-              type="range"
-              id="overlay-opacity"
-              min="0.5"
-              max="1.0"
-              step="0.05"
-              value="0.95"
-              aria-label="Overlay opacity"
-            />
-            <span id="opacity-display">95%</span>
-          </label>
-
-          <label>
-            Anchor Position
+      <!-- Panel: Overlay -->
+      <div role="tabpanel" id="panel-overlay" aria-labelledby="tab-overlay" class="ocv-tab-panel" hidden>
+        <section id="overlay-settings-section" aria-labelledby="overlay-settings-heading">
+          <h2 id="overlay-settings-heading">Overlay Settings</h2>
+          <p id="overlay-settings-status" class="ocv-page-notice" hidden></p>
+          <div class="setting-group">
+            <label for="overlay-opacity">Opacity</label>
+            <div class="setting-row">
+              <input type="range" id="overlay-opacity" min="0.5" max="1.0" step="0.05" value="0.95"
+                     aria-label="Overlay opacity" />
+              <span id="opacity-display">95%</span>
+            </div>
+            <label for="overlay-anchor">Anchor Position</label>
             <select id="overlay-anchor" aria-label="Overlay anchor position">
               <option value="tl">Top-Left</option>
               <option value="tr">Top-Right</option>
@@ -499,106 +501,177 @@
               <option value="br">Bottom-Right</option>
               <option value="center" selected>Center</option>
             </select>
-          </label>
-        </div>
+            <div style="margin-top:1rem">
+              <button type="button" id="save-overlay-settings-btn" class="secondary-button"
+                      aria-label="Save overlay settings">Save Overlay Settings</button>
+            </div>
+          </div>
+          <!-- Event toggles — populated by JS when bridge available -->
+          <div id="overlay-event-toggles" class="setting-group" hidden>
+            <h3>Event Notifications</h3>
+            <p style="margin:0 0 0.75rem 0;color:var(--color-fg-muted)">
+              Control which critical events trigger overlay banners.
+            </p>
+            <div id="overlay-event-grid" class="overlay-event-grid"></div>
+          </div>
+          <!-- Click-through info — populated by JS when available -->
+          <div id="overlay-clickthrough-info" class="setting-group" hidden>
+            <h3>Click-Through</h3>
+            <p id="overlay-clickthrough-state" class="ocv-page-absence"></p>
+          </div>
+        </section>
 
-        <!-- AI Provider -->
-        <div class="setting-group">
-          <h3>AI Provider (Tier 2 Features)</h3>
+        <!-- Banner Test Center -->
+        <section id="banner-test-center" aria-labelledby="btc-heading">
+          <h2 id="btc-heading">Banner Test Center</h2>
+          <p>Test overlay banners without DevTools. Does not affect game telemetry or Python state.</p>
+          <div class="setting-group btc-controls">
+            <div>
+              <button type="button" id="btc-test-generic-btn" class="secondary-button"
+                      aria-label="Test generic overlay banner">Test Generic Banner</button>
+            </div>
+            <div class="btc-select-row">
+              <label for="btc-banner-type">Banner Type</label>
+              <select id="btc-banner-type" aria-label="Select banner type to test">
+                <option value="HULL_CRITICAL_10">HULL_CRITICAL_10</option>
+                <option value="SHIELDS_DOWN">SHIELDS_DOWN</option>
+                <option value="HULL_CRITICAL_25">HULL_CRITICAL_25</option>
+                <option value="FUEL_CRITICAL">FUEL_CRITICAL</option>
+                <option value="MODULE_CRITICAL">MODULE_CRITICAL</option>
+                <option value="FUEL_LOW">FUEL_LOW</option>
+                <option value="HEAT_WARNING">HEAT_WARNING</option>
+                <option value="HEAT_DAMAGE">HEAT_DAMAGE</option>
+                <option value="OMNICOVAS_TEST">OMNICOVAS_TEST</option>
+              </select>
+              <button type="button" id="btc-test-selected-btn" class="secondary-button"
+                      aria-label="Test selected banner type">Test Selected</button>
+            </div>
+            <div>
+              <button type="button" id="btc-test-all-btn" class="secondary-button"
+                      aria-label="Test all banner types in sequence">Test All Banners</button>
+            </div>
+          </div>
+        </section>
+      </div>
 
-          <label>
-            Provider
-            <select id="ai-provider" aria-label="AI provider selection">
-              <option value="null" selected>NullProvider (Rule-Based)</option>
-              <option value="gemini">Gemini (Google)</option>
-              <option value="local_llm">Local LLM (Ollama)</option>
-            </select>
-          </label>
+      <!-- Panel: AI / Advisory -->
+      <div role="tabpanel" id="panel-ai" aria-labelledby="tab-ai" class="ocv-tab-panel" hidden>
+        <section aria-labelledby="ai-settings-heading">
+          <h2 id="ai-settings-heading">AI / Advisory Configuration</h2>
+          <p>
+            Configure your AI provider for advisory features.
+            No AI calls are made without explicit Commander action.
+          </p>
+          <div class="setting-group">
+            <h3>AI Provider (Tier 2 Features)</h3>
+            <p style="color:var(--color-fg-muted);margin:0 0 0.75rem 0;font-size:0.9rem">
+              All advisory features operate in rule-based mode by default.
+              AI calls are opt-in and governed by your Confirmation Gate settings.
+            </p>
+            <label>
+              Provider
+              <select id="ai-provider" aria-label="AI provider selection">
+                <option value="null" selected>NullProvider (Rule-Based)</option>
+                <option value="gemini">Gemini (Google)</option>
+                <option value="local_llm">Local LLM (Ollama)</option>
+              </select>
+            </label>
+            <label>
+              API Key (if applicable)
+              <input type="password" id="ai-api-key"
+                     placeholder="Saved securely in encrypted vault"
+                     aria-label="AI provider API key" />
+            </label>
+          </div>
+          <div class="setting-group">
+            <h3>Confirmation Gate</h3>
+            <p style="color:var(--color-fg-muted);margin:0;font-size:0.9rem;line-height:1.5">
+              OmniCOVAS respects Commander sovereignty. No action is taken on your behalf
+              without confirmation. AI advisory output is advisory only — you retain full
+              control of every decision.
+            </p>
+          </div>
+        </section>
+      </div>
 
-          <label>
-            API Key (if applicable)
-            <input
-              type="password"
-              id="ai-api-key"
-              placeholder="Saved securely in encrypted vault"
-              aria-label="AI provider API key"
-            />
-          </label>
-        </div>
+      <!-- Panel: Future Systems -->
+      <div role="tabpanel" id="panel-future" aria-labelledby="tab-future" class="ocv-tab-panel" hidden>
+        <section aria-labelledby="future-systems-heading">
+          <h2 id="future-systems-heading">Future Systems</h2>
+          <p>
+            Reserved pillar modules — not yet available.
+            These will become configurable as OmniCOVAS phases ship.
+          </p>
+          <div class="future-reserved-list">
+            <div class="future-reserved-item">
+              <span>Combat</span><span class="future-reserved-phase">Phase 4</span>
+            </div>
+            <div class="future-reserved-item">
+              <span>Exploration</span><span class="future-reserved-phase">Phase 5</span>
+            </div>
+            <div class="future-reserved-item">
+              <span>Trading / Mining</span><span class="future-reserved-phase">Phase 6</span>
+            </div>
+            <div class="future-reserved-item">
+              <span>Squadron</span><span class="future-reserved-phase">Phase 7</span>
+            </div>
+            <div class="future-reserved-item">
+              <span>Engineering</span><span class="future-reserved-phase">Phase 8</span>
+            </div>
+            <div class="future-reserved-item">
+              <span>Powerplay / BGS</span><span class="future-reserved-phase">Phase 9</span>
+            </div>
+          </div>
+        </section>
+      </div>
 
-        <!-- Output Modes -->
-        <div class="setting-group">
-          <h3>Output Mode (per feature)</h3>
+      <!-- Panel: Advanced -->
+      <div role="tabpanel" id="panel-advanced" aria-labelledby="tab-advanced" class="ocv-tab-panel" hidden>
+        <section id="tier3-section" aria-labelledby="tier3-heading">
+          <h2 id="tier3-heading">Output Mode</h2>
+          <p>How would you like alerts and advisories delivered?</p>
+          <div class="setting-group">
+            <h3>Output Mode (per feature)</h3>
+            <label>
+              <input type="radio" name="output-mode" value="overlay" checked
+                     aria-label="Output to overlay only" />
+              Overlay Only
+            </label>
+            <label>
+              <input type="radio" name="output-mode" value="voice" disabled
+                     aria-label="Output via voice (coming in Phase 3.1)" />
+              Voice (coming in Phase 3.1)
+            </label>
+            <label>
+              <input type="radio" name="output-mode" value="both" disabled
+                     aria-label="Output to both overlay and voice (coming in Phase 3.1)" />
+              Both (coming in Phase 3.1)
+            </label>
+          </div>
+        </section>
 
-          <label>
-            <input
-              type="radio"
-              name="output-mode"
-              value="overlay"
-              checked
-              aria-label="Output to overlay only"
-            />
-            Overlay Only
-          </label>
+        <section id="actions-section">
+          <h2>Save &amp; Manage</h2>
+          <div class="action-buttons">
+            <button class="primary-button" id="save-settings-btn" aria-label="Save all settings">
+              &#128190; Save Settings
+            </button>
+            <button class="secondary-button" id="reset-settings-btn"
+                    aria-label="Reset all settings to defaults">
+              &#8635; Reset to Defaults
+            </button>
+            <button class="secondary-button" id="export-settings-btn"
+                    aria-label="Export settings as JSON">
+              &#11015;&#65039; Export Settings
+            </button>
+            <button class="secondary-button" id="import-settings-btn"
+                    aria-label="Import settings from JSON">
+              &#11014;&#65039; Import Settings
+            </button>
+          </div>
+        </section>
+      </div>
 
-          <label>
-            <input
-              type="radio"
-              name="output-mode"
-              value="voice"
-              disabled
-              aria-label="Output via voice (coming in Phase 3.1)"
-            />
-            Voice (coming in Phase 3.1)
-          </label>
-
-          <label>
-            <input
-              type="radio"
-              name="output-mode"
-              value="both"
-              disabled
-              aria-label="Output to both overlay and voice (coming in Phase 3.1)"
-            />
-            Both (coming in Phase 3.1)
-          </label>
-        </div>
-      </section>
-
-      <!-- Action Buttons -->
-      <section id="actions-section">
-        <h2>Save &amp; Manage</h2>
-
-        <div class="action-buttons">
-          <button class="primary-button" id="save-settings-btn" aria-label="Save all settings">
-            &#128190; Save Settings
-          </button>
-
-          <button
-            class="secondary-button"
-            id="reset-settings-btn"
-            aria-label="Reset all settings to defaults"
-          >
-            &#8635; Reset to Defaults
-          </button>
-
-          <button
-            class="secondary-button"
-            id="export-settings-btn"
-            aria-label="Export settings as JSON"
-          >
-            &#11015;&#65039; Export Settings
-          </button>
-
-          <button
-            class="secondary-button"
-            id="import-settings-btn"
-            aria-label="Import settings from JSON"
-          >
-            &#11014;&#65039; Import Settings
-          </button>
-        </div>
-      </section>
     </div>
     <style>
       #settings-container {

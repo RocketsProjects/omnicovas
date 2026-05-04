@@ -427,9 +427,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.log('[Overlay] Test banner requested');
       showBanner('OMNICOVAS_TEST', 'READY');
     });
+
+    await listen('overlay:show_named_test_banner', (event) => {
+      const eventType = event.payload;
+      if (typeof eventType === 'string' && CRITICAL_EVENTS[eventType]) {
+        console.log('[Overlay] Named test banner:', eventType);
+        showBanner(eventType, 'TEST');
+      }
+    });
   }
 
   console.log('[Overlay] Ready. Click-through enabled by default.');
 });
 
-export { renderBanner, showBanner, dismissBanner };
+export { renderBanner, showBanner, dismissBanner, CRITICAL_EVENTS };

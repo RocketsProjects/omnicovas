@@ -35,6 +35,31 @@ async fn show_overlay_test_banner(app: tauri::AppHandle) -> Result<(), String> {
     overlay::show_overlay(app).await
 }
 
+#[tauri::command]
+async fn show_overlay_named_test_banner(
+    app: tauri::AppHandle,
+    event_type: String,
+) -> Result<(), String> {
+    const KNOWN: &[&str] = &[
+        "HULL_CRITICAL_10",
+        "SHIELDS_DOWN",
+        "HULL_CRITICAL_25",
+        "FUEL_CRITICAL",
+        "MODULE_CRITICAL",
+        "FUEL_LOW",
+        "HEAT_WARNING",
+        "HEAT_DAMAGE",
+        "OMNICOVAS_TEST",
+    ];
+    if !KNOWN.contains(&event_type.as_str()) {
+        return Err(format!("Unknown event type: {}", event_type));
+    }
+    println!("[tauri] show_overlay_named_test_banner: {}", event_type);
+    app.emit("overlay:show_named_test_banner", &event_type)
+        .map_err(|e| e.to_string())?;
+    overlay::show_overlay(app).await
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -107,6 +132,7 @@ pub fn run() {
             overlay::show_overlay,
             overlay::hide_overlay,
             show_overlay_test_banner,
+            show_overlay_named_test_banner,
             get_bridge_info
         ])
         .run(tauri::generate_context!())

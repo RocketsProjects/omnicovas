@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { renderBanner, showBanner, dismissBanner } from '../overlay.js';
+import { renderBanner, showBanner, dismissBanner, CRITICAL_EVENTS } from '../overlay.js';
 
 beforeEach(() => {
   document.body.innerHTML = '<div id="overlay-container"></div>';
@@ -44,6 +44,29 @@ describe('renderBanner', () => {
       value: null,
     });
     expect(document.querySelector('.banner-value').textContent).toBe('');
+  });
+});
+
+describe('CRITICAL_EVENTS', () => {
+  const KNOWN = [
+    'HULL_CRITICAL_10', 'SHIELDS_DOWN', 'HULL_CRITICAL_25', 'FUEL_CRITICAL',
+    'MODULE_CRITICAL', 'FUEL_LOW', 'HEAT_WARNING', 'HEAT_DAMAGE', 'OMNICOVAS_TEST',
+  ];
+
+  it('exports CRITICAL_EVENTS with all 9 known types', () => {
+    expect(CRITICAL_EVENTS).toBeDefined();
+    KNOWN.forEach(type => expect(CRITICAL_EVENTS).toHaveProperty(type));
+  });
+
+  it('each event config has icon, label, severity, duration, priority', () => {
+    KNOWN.forEach(type => {
+      const cfg = CRITICAL_EVENTS[type];
+      expect(typeof cfg.icon).toBe('string');
+      expect(typeof cfg.label).toBe('string');
+      expect(typeof cfg.severity).toBe('string');
+      expect(typeof cfg.duration).toBe('number');
+      expect(typeof cfg.priority).toBe('number');
+    });
   });
 });
 

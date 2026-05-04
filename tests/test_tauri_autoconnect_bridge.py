@@ -37,6 +37,19 @@ def test_tauri_overlay_test_banner_command_is_registered() -> None:
     assert "tauri::generate_handler!" in text
 
 
+def test_tauri_named_test_banner_command_is_registered() -> None:
+    text = LIB_RS.read_text(encoding="utf-8")
+
+    assert "async fn show_overlay_named_test_banner" in text
+    assert 'app.emit("overlay:show_named_test_banner"' in text
+    assert "overlay::show_overlay(app).await" in text
+    assert "show_overlay_named_test_banner" in text
+    assert "tauri::generate_handler!" in text
+    # Validates known event types inside the command
+    assert '"HULL_CRITICAL_10"' in text
+    assert '"OMNICOVAS_TEST"' in text
+
+
 def test_tauri_dev_launcher_uses_verified_python_command() -> None:
     text = LIB_RS.read_text(encoding="utf-8")
 
