@@ -321,3 +321,190 @@ describe('bridge hydration', () => {
     expect(typeof globalThis.__dashboardExports.renderHeat).toBe('function');
   });
 });
+
+// ─── PB05-07: Panel toggle behaviour ───────────────────────────────────
+
+const initializeDashboardPanelToggles = exports?.initializeDashboardPanelToggles;
+const setDashboardPanelVisibility      = exports?.setDashboardPanelVisibility;
+const showAllDashboardPanels           = exports?.showAllDashboardPanels;
+const resetToggleState                 = exports?.__resetToggleState;
+
+function buildToggleDom() {
+  document.body.innerHTML = `
+    <div id="dash-schematic-frame">
+      <div id="dash-ship-schematic">
+        <div class="ship-schematic">
+          <div class="ship-schematic-hotspots">
+            <button class="ship-schematic-hotspot-button"
+                    aria-controls="dash-panel-hull-shields"
+                    aria-expanded="true"
+                    data-hotspot-id="hull">
+              <span class="ship-schematic-hotspot-label">HULL</span>
+            </button>
+            <button class="ship-schematic-hotspot-button"
+                    aria-controls="dash-panel-hull-shields"
+                    aria-expanded="true"
+                    data-hotspot-id="shield">
+              <span class="ship-schematic-hotspot-label">SHIELD</span>
+            </button>
+            <button class="ship-schematic-hotspot-button"
+                    aria-controls="dash-panel-fuel-jump"
+                    aria-expanded="true"
+                    data-hotspot-id="fuel">
+              <span class="ship-schematic-hotspot-label">FUEL</span>
+            </button>
+            <button class="ship-schematic-hotspot-button"
+                    aria-controls="dash-panel-heat-core"
+                    aria-expanded="true"
+                    data-hotspot-id="heat">
+              <span class="ship-schematic-hotspot-label">HEAT</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button id="dash-show-all-systems-btn" type="button">Show all systems</button>
+    <article id="dash-panel-hull-shields"></article>
+    <article id="dash-panel-fuel-jump"></article>
+    <article id="dash-panel-heat-core"></article>
+    <article id="dash-panel-cargo"></article>
+    <article id="dash-panel-modules"></article>
+    <article id="dash-panel-pips"></article>`;
+}
+
+describe('PB05-07 panel toggle behaviour', () => {
+  beforeEach(() => {
+    resetToggleState?.();
+    buildToggleDom();
+    initializeDashboardPanelToggles?.();
+  });
+
+  it('all callout panels are visible by default (no hidden attribute or hidden class)', () => {
+    ['dash-panel-hull-shields', 'dash-panel-fuel-jump', 'dash-panel-heat-core'].forEach(id => {
+      const panel = document.getElementById(id);
+      expect(panel.hasAttribute('hidden')).toBe(false);
+      expect(panel.classList.contains('dashboard-panel-hidden')).toBe(false);
+    });
+  });
+
+  it('clicking the fuel hotspot hides the Fuel & Jump panel', () => {
+    const fuelBtn = document.querySelector('[data-hotspot-id="fuel"]');
+    fuelBtn.click();
+    const panel = document.getElementById('dash-panel-fuel-jump');
+    expect(panel.hasAttribute('hidden') || panel.classList.contains('dashboard-panel-hidden')).toBe(true);
+  });
+
+  it('fuel hotspot aria-expanded becomes false when panel is hidden', () => {
+    const fuelBtn = document.querySelector('[data-hotspot-id="fuel"]');
+    fuelBtn.click();
+    expect(fuelBtn.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('clicking the fuel hotspot again shows the Fuel & Jump panel', () => {
+    const fuelBtn = document.querySelector('[data-hotspot-id="fuel"]');
+    fuelBtn.click();
+    fuelBtn.click();
+    const panel = document.getElementById('dash-panel-fuel-jump');
+    expect(panel.hasAttribute('hidden')).toBe(false);
+    expect(panel.classList.contains('dashboard-panel-hidden')).toBe(false);
+  });
+
+  it('fuel hotspot aria-expanded returns to true when panel is shown again', () => {
+    const fuelBtn = document.querySelector('[data-hotspot-id="fuel"]');
+    fuelBtn.click();
+    fuelBtn.click();
+    expect(fuelBtn.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('Show all systems button restores all panels to visible', () => {
+    const fuelBtn = document.querySelector('[data-hotspot-id="fuel"]');
+    const hullBtn = document.querySelector('[data-hotspot-id="hull"]');
+    fuelBtn.click();
+    hullBtn.click();
+    document.getElementById('dash-show-all-systems-btn').click();
+    ['dash-panel-hull-shields', 'dash-panel-fuel-jump'].forEach(id => {
+      const panel = document.getElementById(id);
+      expect(panel.hasAttribute('hidden')).toBe(false);
+      expect(panel.classList.contains('dashboard-panel-hidden')).toBe(false);
+    });
+  });
+
+  it('Show all systems button sets all hotspot aria-expanded to true', () => {
+    const fuelBtn = document.querySelector('[data-hotspot-id="fuel"]');
+    fuelBtn.click();
+    document.getElementById('dash-show-all-systems-btn').click();
+    document.querySelectorAll('.ship-schematic-hotspot-button').forEach(btn => {
+      expect(btn.getAttribute('aria-expanded')).toBe('true');
+    });
+  });
+
+  it('clicking a hotspot with a missing target panel does not throw', () => {
+    const orphanBtn = document.createElement('button');
+    orphanBtn.className = 'ship-schematic-hotspot-button';
+    orphanBtn.setAttribute('aria-controls', 'panel-does-not-exist');
+    orphanBtn.setAttribute('aria-expanded', 'true');
+    document.getElementById('dash-ship-schematic').appendChild(orphanBtn);
+    expect(() => orphanBtn.click()).not.toThrow();
+  });
+
+  it('both hull and shield hotspots control the hull-shields panel', () => {
+    const shieldBtn = document.querySelector('[data-hotspot-id="shield"]');
+    shieldBtn.click();
+    const panel = document.getElementById('dash-panel-hull-shields');
+    expect(panel.hasAttribute('hidden') || panel.classList.contains('dashboard-panel-hidden')).toBe(true);
+    const hullBtn = document.querySelector('[data-hotspot-id="hull"]');
+    expect(hullBtn.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('toggle initialization does not add duplicate listeners on repeated calls', () => {
+    resetToggleState?.();
+    buildToggleDom();
+    initializeDashboardPanelToggles?.();
+    initializeDashboardPanelToggles?.();
+    initializeDashboardPanelToggles?.();
+    const fuelBtn = document.querySelector('[data-hotspot-id="fuel"]');
+    fuelBtn.click();
+    const panel = document.getElementById('dash-panel-fuel-jump');
+    expect(panel.hasAttribute('hidden') || panel.classList.contains('dashboard-panel-hidden')).toBe(true);
+    fuelBtn.click();
+    expect(panel.hasAttribute('hidden')).toBe(false);
+    expect(panel.classList.contains('dashboard-panel-hidden')).toBe(false);
+  });
+
+  it('setDashboardPanelVisibility hides and shows a panel without throwing', () => {
+    setDashboardPanelVisibility?.('dash-panel-heat-core', false);
+    const panel = document.getElementById('dash-panel-heat-core');
+    expect(panel.hasAttribute('hidden') || panel.classList.contains('dashboard-panel-hidden')).toBe(true);
+    setDashboardPanelVisibility?.('dash-panel-heat-core', true);
+    expect(panel.hasAttribute('hidden')).toBe(false);
+  });
+
+  it('setDashboardPanelVisibility with a missing id does not throw', () => {
+    expect(() => setDashboardPanelVisibility?.('panel-nonexistent', false)).not.toThrow();
+  });
+});
+
+// ─── PB05-07: Safe rendering and persistence guards ─────────────────────
+
+describe('PB05-07 safe rendering and persistence guards', () => {
+  it('dashboard.js source has no localStorage or sessionStorage references for toggle state', () => {
+    const code = readFileSync('ui/views/dashboard.js', 'utf8');
+    expect(code).not.toContain('localStorage');
+    expect(code).not.toContain('sessionStorage');
+  });
+
+  it('dashboard.js source introduces no new unsafe HTML sinks beyond the existing classified innerHTML clear', () => {
+    const code = readFileSync('ui/views/dashboard.js', 'utf8');
+    expect(code).not.toContain('insertAdjacentHTML');
+    expect(code).not.toContain('outerHTML');
+  });
+
+  it('hotspot controls in the schematic are real button elements', () => {
+    buildToggleDom();
+    const btns = document.querySelectorAll('.ship-schematic-hotspot-button');
+    expect(btns.length).toBeGreaterThan(0);
+    btns.forEach(btn => {
+      expect(btn.tagName.toLowerCase()).toBe('button');
+    });
+  });
+});

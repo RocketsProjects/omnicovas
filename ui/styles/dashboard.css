@@ -126,3 +126,27 @@
   justify-content: center;
   padding: var(--space-1) 0;
 }
+
+/* ════════════════════════════════════════
+   PANEL TOGGLE STATE (PB05-07)
+   ════════════════════════════════════════ */
+
+.dashboard-panel-hidden {
+  display: none;
+}
+
+/* ════════════════════════════════════════
+   SCHEMATIC CONTROLS (PB05-07)
+   ════════════════════════════════════════ */
+
+.dashboard-schematic-controls {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-1) 0;
+}
+
+.dashboard-reset-panels-btn {
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

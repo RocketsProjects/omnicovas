@@ -123,3 +123,17 @@
   white-space: nowrap;
   user-select: none;
 }
+
+/* ════════════════════════════════════════
+   HOTSPOT EXPANDED / COLLAPSED STATE (PB05-07)
+   ════════════════════════════════════════ */
+
+.ship-schematic-hotspot-button.is-expanded {
+  border-color: var(--color-accent);
+  background: rgba(255, 136, 0, 0.18);
+}
+
+.ship-schematic-hotspot-button[aria-expanded="false"],
+.ship-schematic-hotspot-button.is-collapsed {
+  opacity: 0.55;
+}

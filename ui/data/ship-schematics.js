@@ -71,7 +71,7 @@
       hotspots: [
         {
           id: 'hull',
-          panelId: 'panel-hull',
+          panelId: 'dash-panel-hull-shields',
           label: 'Toggle hull integrity telemetry',
           x: 155,
           y: 195,
@@ -80,7 +80,7 @@
         },
         {
           id: 'shield',
-          panelId: 'panel-shield',
+          panelId: 'dash-panel-hull-shields',
           label: 'Toggle shield status telemetry',
           x: 155,
           y: 270,
@@ -89,7 +89,7 @@
         },
         {
           id: 'fuel',
-          panelId: 'panel-fuel',
+          panelId: 'dash-panel-fuel-jump',
           label: 'Toggle fuel and jump telemetry',
           x: 845,
           y: 195,
@@ -98,7 +98,7 @@
         },
         {
           id: 'heat',
-          panelId: 'panel-heat',
+          panelId: 'dash-panel-heat-core',
           label: 'Toggle heat management telemetry',
           x: 845,
           y: 295,
@@ -107,7 +107,7 @@
         },
         {
           id: 'cargo',
-          panelId: 'panel-cargo',
+          panelId: 'dash-panel-cargo',
           label: 'Toggle cargo hold telemetry',
           x: 845,
           y: 400,
@@ -116,7 +116,7 @@
         },
         {
           id: 'modules',
-          panelId: 'panel-modules',
+          panelId: 'dash-panel-modules',
           label: 'Toggle module health telemetry',
           x: 155,
           y: 400,
@@ -125,7 +125,7 @@
         },
         {
           id: 'pips',
-          panelId: 'panel-pips',
+          panelId: 'dash-panel-pips',
           label: 'Toggle power distribution telemetry',
           x: 420,
           y: 540,
@@ -175,7 +175,7 @@
       hotspots: [
         {
           id: 'hull',
-          panelId: 'panel-hull',
+          panelId: 'dash-panel-hull-shields',
           label: 'Toggle hull integrity telemetry',
           x: 155,
           y: 195,
@@ -184,7 +184,7 @@
         },
         {
           id: 'shield',
-          panelId: 'panel-shield',
+          panelId: 'dash-panel-hull-shields',
           label: 'Toggle shield status telemetry',
           x: 155,
           y: 270,
@@ -193,7 +193,7 @@
         },
         {
           id: 'fuel',
-          panelId: 'panel-fuel',
+          panelId: 'dash-panel-fuel-jump',
           label: 'Toggle fuel and jump telemetry',
           x: 845,
           y: 195,
@@ -202,7 +202,7 @@
         },
         {
           id: 'heat',
-          panelId: 'panel-heat',
+          panelId: 'dash-panel-heat-core',
           label: 'Toggle heat management telemetry',
           x: 845,
           y: 295,
@@ -211,7 +211,7 @@
         },
         {
           id: 'cargo',
-          panelId: 'panel-cargo',
+          panelId: 'dash-panel-cargo',
           label: 'Toggle cargo hold telemetry',
           x: 845,
           y: 400,
@@ -220,7 +220,7 @@
         },
         {
           id: 'modules',
-          panelId: 'panel-modules',
+          panelId: 'dash-panel-modules',
           label: 'Toggle module health telemetry',
           x: 155,
           y: 400,
@@ -229,7 +229,7 @@
         },
         {
           id: 'pips',
-          panelId: 'panel-pips',
+          panelId: 'dash-panel-pips',
           label: 'Toggle power distribution telemetry',
           x: 420,
           y: 540,

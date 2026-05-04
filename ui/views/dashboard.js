@@ -458,6 +458,84 @@ function renderShipSchematic(state) {
 }
 
 /* ─────────────────────────────────────────────
+   PB05-07 — Panel Toggle State
+───────────────────────────────────────────── */
+let _togglesInitialized = false;
+
+function setDashboardPanelVisibility(panelId, visible) {
+  const panel = el(panelId);
+  if (!panel) return;
+  if (visible) {
+    panel.removeAttribute('hidden');
+    panel.classList.remove('dashboard-panel-hidden');
+  } else {
+    panel.setAttribute('hidden', '');
+    panel.classList.add('dashboard-panel-hidden');
+  }
+}
+
+function updateHotspotExpandedState(panelId, visible) {
+  const frame = el('dash-ship-schematic');
+  if (!frame) return;
+  const selector = '.ship-schematic-hotspot-button[aria-controls="' + panelId + '"]';
+  frame.querySelectorAll(selector).forEach(function (btn) {
+    btn.setAttribute('aria-expanded', String(visible));
+    if (visible) {
+      btn.classList.add('is-expanded');
+      btn.classList.remove('is-collapsed');
+    } else {
+      btn.classList.remove('is-expanded');
+      btn.classList.add('is-collapsed');
+    }
+  });
+}
+
+function showAllDashboardPanels() {
+  const frame = el('dash-ship-schematic');
+  const panelIds = new Set();
+  if (frame) {
+    frame.querySelectorAll('.ship-schematic-hotspot-button[aria-controls]').forEach(function (btn) {
+      const pid = btn.getAttribute('aria-controls');
+      if (pid) panelIds.add(pid);
+    });
+  }
+  panelIds.forEach(function (panelId) {
+    setDashboardPanelVisibility(panelId, true);
+    updateHotspotExpandedState(panelId, true);
+  });
+}
+
+function ensureDashboardResetControl() {
+  const btn = el('dash-show-all-systems-btn');
+  if (!btn || btn.dataset.toggleWired) return;
+  btn.dataset.toggleWired = 'true';
+  btn.addEventListener('click', showAllDashboardPanels);
+}
+
+function initializeDashboardPanelToggles() {
+  if (_togglesInitialized) return;
+  _togglesInitialized = true;
+
+  const frame = el('dash-schematic-frame');
+  if (frame) {
+    frame.addEventListener('click', function (ev) {
+      const btn = ev.target.closest('.ship-schematic-hotspot-button');
+      if (!btn) return;
+      const panelId = btn.getAttribute('aria-controls');
+      if (!panelId) return;
+      const panel = el(panelId);
+      if (!panel) return;
+      const isVisible = !panel.hasAttribute('hidden') &&
+                        !panel.classList.contains('dashboard-panel-hidden');
+      setDashboardPanelVisibility(panelId, !isVisible);
+      updateHotspotExpandedState(panelId, !isVisible);
+    });
+  }
+
+  ensureDashboardResetControl();
+}
+
+/* ─────────────────────────────────────────────
    PB05-06 — Contextual Absence States
 ───────────────────────────────────────────── */
 function renderContextualAbsenceStates(state, heat, mods) {
@@ -514,6 +592,7 @@ async function loadDashboard() {
 
   renderCommandSummary(ship || {}, heat);
   renderShipSchematic(ship || {});
+  initializeDashboardPanelToggles();
   renderContextualAbsenceStates(ship || {}, heat, mods);
 }
 
@@ -656,6 +735,11 @@ if (typeof globalThis.__dashboardExports === 'undefined') {
     renderCommandSummary,
     renderShipSchematic,
     renderHeat,
+    initializeDashboardPanelToggles,
+    setDashboardPanelVisibility,
+    showAllDashboardPanels,
+    ensureDashboardResetControl,
     __resetSchematicCache: () => { _lastMountedSchematicKey = undefined; },
+    __resetToggleState: () => { _togglesInitialized = false; },
   };
 }
