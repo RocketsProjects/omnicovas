@@ -1,17 +1,10 @@
 /**
- * OmniCOVAS Dashboard View — Week 11 Part C
+ * OmniCOVAS Dashboard View — PB05-06
  *
- * Renders all 8 Pillar 1 cards:
- *  1. LiveShipState   — ship identity, system, docked, wanted
- *  2. Hull & Shields  — hull bar with 25%/10% threshold marks, shield badge
- *  3. Fuel & Jump     — fuel bar, jump range
- *  4. Cargo           — count/capacity, top-5 commodity list
- *  5. Heat            — level bar, trend arrow, 10-sample sparkline
- *  6. Power (PIPS)    — SYS / ENG / WEP pip dots
- *  7. Module Health   — ok/warning/critical counts, link to loadout
- *  8. Rebuy Estimate  — single credit figure
+ * Renders the PB05 hero page: command summary band, ship schematic,
+ * and all 7 visible-by-default subsystem callout panels.
  *
- * Pattern 1 (WebSocket-First): all cards subscribe to window.OmniEvents.
+ * Pattern 1 (WebSocket-First): all panels subscribe to window.OmniEvents.
  * HTTP /pillar1/ship-state is the initial-load path; WS events keep it live.
  */
 
@@ -133,7 +126,7 @@ function renderHullShields(s) {
     bar.className = 'progress-bar-fill ' + cls;
   }
 
-  setCardState('card-hull', cls || null);
+  setCardState('dash-panel-hull-shields', cls || null);
 
   const shieldEl = el('dash-shield');
   if (shieldEl) {
@@ -181,7 +174,7 @@ function renderFuel(s) {
   const jump = el('dash-jump');
   if (jump) jump.textContent = fmt.ly(s.jump_range_ly);
 
-  setCardState('card-fuel', cls || null);
+  setCardState('dash-panel-fuel-jump', cls || null);
 }
 
 /* ─────────────────────────────────────────────
@@ -200,7 +193,7 @@ function renderCargo(s, inventory) {
     if (items.length === 0) {
       const emptyLi = document.createElement('li');
       emptyLi.className = 'field-value unknown';
-      emptyLi.textContent = 'Empty';
+      emptyLi.textContent = 'No cargo detected';
       listEl.replaceChildren(emptyLi);
     } else {
       const nodes = items.map(item => {
@@ -252,12 +245,23 @@ function renderHeat(heat) {
 
   const stateEl = el('dash-heat-state');
   if (stateEl) {
-    stateEl.textContent = state ? state.toUpperCase() : 'NORMAL';
-    stateEl.className = 'badge ' + (state === 'warning' ? 'warn' : (state === 'damage' || state === 'critical' ? 'critical' : 'ok'));
+    if (heatPct == null && state == null) {
+      stateEl.textContent = '';
+      stateEl.className = 'badge muted';
+    } else if (state) {
+      stateEl.textContent = state.toUpperCase();
+      stateEl.className = 'badge ' + (state === 'warning' ? 'warn' : (state === 'damage' || state === 'critical' ? 'critical' : 'ok'));
+    } else {
+      stateEl.textContent = 'NORMAL';
+      stateEl.className = 'badge ok';
+    }
   }
 
+  const heatAbsenceEl = el('dash-heat-absence');
+  if (heatAbsenceEl) heatAbsenceEl.style.display = 'none';
+
   drawSparkline(el('dash-heat-sparkline'), samples);
-  setCardState('card-heat', cls || null);
+  setCardState('dash-panel-heat-core', cls || null);
 }
 
 /* ─────────────────────────────────────────────
@@ -287,21 +291,30 @@ function renderPipsGroup(groupId, value) {
    CARD 7 — Module Health Summary
 ───────────────────────────────────────────── */
 function renderModules(summary) {
+  const absenceEl = el('dash-modules-absence');
+
+  if (!summary) {
+    if (absenceEl) absenceEl.style.display = '';
+    return;
+  }
+
+  if (absenceEl) absenceEl.style.display = 'none';
+
   const set = (id, val) => { const e = el(id); if (e) e.textContent = val ?? '—'; };
-  set('dash-mod-ok',       summary?.ok);
-  set('dash-mod-warning',  summary?.warning);
-  set('dash-mod-critical', summary?.critical);
-  set('dash-mod-total',    summary?.total);
+  set('dash-mod-ok',       summary.ok);
+  set('dash-mod-warning',  summary.warning);
+  set('dash-mod-critical', summary.critical);
+  set('dash-mod-total',    summary.total);
 
   const critEl = el('dash-mod-critical');
-  if (critEl) critEl.className = 'field-value' + (summary?.critical > 0 ? ' critical' : ' ok');
+  if (critEl) critEl.className = 'field-value' + (summary.critical > 0 ? ' critical' : ' ok');
 
   const warnEl = el('dash-mod-warning');
-  if (warnEl) warnEl.className = 'field-value' + (summary?.warning > 0 ? ' warn' : '');
+  if (warnEl) warnEl.className = 'field-value' + (summary.warning > 0 ? ' warn' : '');
 
-  if (summary?.critical > 0) setCardState('card-modules', 'critical');
-  else if (summary?.warning > 0) setCardState('card-modules', 'warn');
-  else setCardState('card-modules', null);
+  if (summary.critical > 0) setCardState('dash-panel-modules', 'critical');
+  else if (summary.warning > 0) setCardState('dash-panel-modules', 'warn');
+  else setCardState('dash-panel-modules', null);
 }
 
 /* ─────────────────────────────────────────────
@@ -322,6 +335,137 @@ function renderFullState(state) {
   renderShipState(state);
   renderHullShields(state);
   renderFuel(state);
+}
+
+/* ─────────────────────────────────────────────
+   PB05-06 — Command Summary Band
+───────────────────────────────────────────── */
+function renderCommandSummary(state, heat) {
+  const shipDisplay = (state.ship_name && state.ship_name.trim().length > 0)
+    ? state.ship_name.trim()
+    : (state.ship_type || null);
+
+  const shipEl = el('dash-summary-ship');
+  if (shipEl) shipEl.textContent = shipDisplay ?? 'Unknown ship';
+
+  const locEl = el('dash-summary-location');
+  if (locEl) locEl.textContent = state.current_system ?? 'Unknown system';
+
+  const hullPct = state.hull_health;
+  const hullE = el('dash-summary-hull');
+  if (hullE) {
+    hullE.textContent = hullPct != null ? fmt.pct(hullPct) : '—';
+    hullE.className = 'dashboard-telemetry-value field-value ' + (hullClass(hullPct) || 'unknown');
+  }
+
+  const shieldE = el('dash-summary-shields');
+  if (shieldE) {
+    if (state.shield_up == null) {
+      shieldE.textContent = '—';
+      shieldE.className = 'dashboard-telemetry-value field-value unknown';
+    } else {
+      shieldE.textContent = state.shield_up ? 'UP' : 'DOWN';
+      shieldE.className = 'dashboard-telemetry-value field-value ' + (state.shield_up ? 'ok' : 'critical');
+    }
+  }
+
+  const fuelE = el('dash-summary-fuel');
+  if (fuelE) {
+    fuelE.textContent = state.fuel_pct != null ? fmt.pct(state.fuel_pct) : '—';
+    fuelE.className = 'dashboard-telemetry-value field-value ' + (fuelClass(state.fuel_pct) || 'unknown');
+  }
+
+  // Heat: undefined means caller has no heat data (skip update); null means explicitly no data
+  if (heat !== undefined) {
+    const heatE = el('dash-summary-heat');
+    if (heatE) {
+      const heatPct = Number.isFinite(heat?.level_pct) ? heat.level_pct : null;
+      if (heatPct != null) {
+        heatE.textContent = fmt.pct(heatPct, 0);
+        heatE.className = 'dashboard-telemetry-value field-value ' + (heatClass(heatPct) || '');
+      } else {
+        heatE.textContent = '—';
+        heatE.className = 'dashboard-telemetry-value field-value unknown';
+      }
+    }
+  }
+
+  const alertE = el('dash-summary-alerts');
+  if (alertE) {
+    if (state.is_wanted_in_system) {
+      alertE.textContent = 'WANTED';
+      alertE.className = 'dashboard-telemetry-value field-value critical';
+    } else if (hullPct != null && hullPct <= 10) {
+      alertE.textContent = 'HULL CRITICAL';
+      alertE.className = 'dashboard-telemetry-value field-value critical';
+    } else if (hullPct != null && hullPct <= 25) {
+      alertE.textContent = 'HULL LOW';
+      alertE.className = 'dashboard-telemetry-value field-value warn';
+    } else {
+      alertE.textContent = '—';
+      alertE.className = 'dashboard-telemetry-value field-value unknown';
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────
+   PB05-06 — Schematic Integration
+───────────────────────────────────────────── */
+function resolveDashboardShipType(state) {
+  return (state && state.ship_type) ? state.ship_type : null;
+}
+
+function renderSchematicStatus(shipType, resolvedKey) {
+  const statusEl = el('dash-schematic-status');
+  if (!statusEl) return;
+  if (resolvedKey === 'sidewinder') {
+    statusEl.textContent = 'Sidewinder schematic active';
+  } else {
+    const known = shipType && window.OmniShipSchematics &&
+      window.OmniShipSchematics.hasSchematic(shipType) &&
+      window.OmniShipSchematics.resolveShipKey(shipType) !== 'generic';
+    if (!known) {
+      statusEl.textContent = 'Generic schematic active — Ship-specific schematic not yet available';
+    } else {
+      statusEl.textContent = resolvedKey + ' schematic active';
+    }
+  }
+}
+
+let _lastMountedSchematicKey = undefined;
+
+function renderShipSchematic(state) {
+  const frame = el('dash-ship-schematic');
+  const statusEl = el('dash-schematic-status');
+  if (!frame) return;
+
+  if (!window.OmniShipSchematic || !window.OmniShipSchematics) {
+    if (statusEl) statusEl.textContent = 'Ship schematic unavailable';
+    return;
+  }
+
+  const rawShipType = resolveDashboardShipType(state);
+  const resolvedKey = window.OmniShipSchematics.resolveShipKey(rawShipType);
+
+  if (_lastMountedSchematicKey === resolvedKey) return;
+  _lastMountedSchematicKey = resolvedKey;
+
+  // Safe clear — removes all child nodes
+  frame.textContent = '';
+
+  window.OmniShipSchematic.mount(frame, rawShipType);
+  renderSchematicStatus(rawShipType, resolvedKey);
+}
+
+/* ─────────────────────────────────────────────
+   PB05-06 — Contextual Absence States
+───────────────────────────────────────────── */
+function renderContextualAbsenceStates(state, heat, mods) {
+  const heatAbsenceEl = el('dash-heat-absence');
+  if (heatAbsenceEl && !heat) {
+    heatAbsenceEl.style.display = '';
+  }
+  if (!mods) renderModules(null);
 }
 
 /* ── Fetch helpers ── */
@@ -367,6 +511,10 @@ async function loadDashboard() {
   if (heat)  renderHeat(heat);
   if (mods)  renderModules(mods);
   if (rebuy) renderRebuy(rebuy);
+
+  renderCommandSummary(ship || {}, heat);
+  renderShipSchematic(ship || {});
+  renderContextualAbsenceStates(ship || {}, heat, mods);
 }
 
 let shipRefreshTimer = null;
@@ -503,5 +651,11 @@ scheduleDashboardLoad();
 
 // Test hook for Vitest; keeps this browser-compatible without changing production module/script loading.
 if (typeof globalThis.__dashboardExports === 'undefined') {
-  globalThis.__dashboardExports = { renderCargo };
+  globalThis.__dashboardExports = {
+    renderCargo,
+    renderCommandSummary,
+    renderShipSchematic,
+    renderHeat,
+    __resetSchematicCache: () => { _lastMountedSchematicKey = undefined; },
+  };
 }

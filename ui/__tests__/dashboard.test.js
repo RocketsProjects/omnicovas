@@ -10,12 +10,12 @@ describe('renderCargo', () => {
       '<ul id="dash-cargo-list"></ul>';
   });
 
-  it('renders Empty placeholder with field-value unknown when inventory is empty', () => {
+  it('renders No cargo detected placeholder when inventory is empty', () => {
     renderCargo({}, []);
     const list = document.getElementById('dash-cargo-list');
     const li = list.querySelector('li');
     expect(li).not.toBeNull();
-    expect(li.textContent).toBe('Empty');
+    expect(li.textContent).toBe('No cargo detected');
     expect(li.className).toBe('field-value unknown');
   });
 

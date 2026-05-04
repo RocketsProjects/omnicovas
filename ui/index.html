@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="styles/command-deck.css" />
   <link rel="stylesheet" href="styles/confirmation-gate.css" />
   <link rel="stylesheet" href="styles/ship-schematic.css" />
+  <link rel="stylesheet" href="styles/dashboard.css" />
 </head>
 <body>
 
@@ -135,196 +136,275 @@
 <main id="content-area" role="main">
 
   <!-- ══════════════════════════════════════
-       VIEW: Dashboard
+       VIEW: Dashboard — Ship Systems Schematic (PB05-06)
   ══════════════════════════════════════ -->
   <section id="view-dashboard" class="view active" aria-labelledby="dash-title">
-    <h1 class="view-title" id="dash-title">Ship Dashboard</h1>
 
-    <div class="dashboard-grid">
+    <!-- Page header -->
+    <div class="ocv-page-header">
+      <p class="ocv-page-kicker">Ship Systems Schematic</p>
+      <h1 class="ocv-page-title" id="dash-title">Ship Dashboard</h1>
+    </div>
 
-      <!-- Card 1: Live Ship State -->
-      <article class="card" id="card-ship" aria-label="Ship identity and location">
-        <h2 class="card-title">
-          <span class="ocv-icon ocv-icon-sm" data-icon="ship" aria-hidden="true"></span> Ship State
-        </h2>
-        <div class="field-row">
-          <span class="field-label">Ship</span>
-          <span class="field-value" id="dash-ship-name">&mdash;</span>
+    <!-- Command summary band -->
+    <div id="dash-command-summary" class="ocv-command-summary dashboard-summary-band"
+         role="region" aria-label="Command summary">
+      <div class="ocv-command-summary-grid">
+        <div class="dashboard-summary-item">
+          <span class="dashboard-summary-label">Ship</span>
+          <span class="dashboard-telemetry-value field-value" id="dash-summary-ship">Unknown ship</span>
         </div>
-        <div class="field-row">
-          <span class="field-label">Type</span>
-          <span class="field-value" id="dash-ship-type">&mdash;</span>
+        <div class="dashboard-summary-item">
+          <span class="dashboard-summary-label">Location</span>
+          <span class="dashboard-telemetry-value field-value" id="dash-summary-location">Unknown system</span>
         </div>
-        <div class="field-row">
-          <span class="field-label">Ident</span>
-          <span class="field-value" id="dash-ship-ident">&mdash;</span>
+        <div class="dashboard-summary-item">
+          <span class="dashboard-summary-label">Hull</span>
+          <span class="dashboard-telemetry-value field-value unknown" id="dash-summary-hull">&mdash;</span>
         </div>
-        <div class="field-row">
-          <span class="field-label">System</span>
-          <span class="field-value" id="dash-system">&mdash;</span>
+        <div class="dashboard-summary-item">
+          <span class="dashboard-summary-label">Shields</span>
+          <span class="dashboard-telemetry-value field-value unknown" id="dash-summary-shields">&mdash;</span>
         </div>
-        <div class="field-row">
-          <span class="field-label">Station</span>
-          <span class="field-value" id="dash-station">&mdash;</span>
+        <div class="dashboard-summary-item">
+          <span class="dashboard-summary-label">Fuel</span>
+          <span class="dashboard-telemetry-value field-value unknown" id="dash-summary-fuel">&mdash;</span>
         </div>
-        <div class="field-row">
-          <span class="field-label">Docked</span>
-          <span class="field-value" id="dash-docked">&mdash;</span>
+        <div class="dashboard-summary-item">
+          <span class="dashboard-summary-label">Heat</span>
+          <span class="dashboard-telemetry-value field-value unknown" id="dash-summary-heat">&mdash;</span>
         </div>
-        <div class="field-row">
-          <span class="field-label">Status</span>
-          <span class="field-value unknown" id="dash-wanted">&mdash;</span>
+        <div class="dashboard-summary-item">
+          <span class="dashboard-summary-label">Status</span>
+          <span class="dashboard-telemetry-value field-value unknown" id="dash-summary-alerts">&mdash;</span>
         </div>
-      </article>
+      </div>
+    </div><!-- /#dash-command-summary -->
 
-      <!-- Card 2: Hull & Shields -->
-      <article class="card" id="card-hull" aria-label="Hull integrity and shield status">
-        <h2 class="card-title">
-          <span class="ocv-icon ocv-icon-sm" data-icon="shield" aria-hidden="true"></span> Hull &amp; Shields
-        </h2>
-        <div class="field-row">
-          <span class="field-label">Hull</span>
-          <span class="field-value" id="dash-hull-value">&mdash;</span>
-        </div>
-        <div class="progress-bar-wrap threshold-bar" aria-hidden="true">
-          <div class="progress-bar-fill" id="dash-hull-bar" style="width:0%"></div>
-          <div class="tick" style="left:25%" title="25% threshold"></div>
-          <div class="tick" style="left:10%" title="10% threshold"></div>
-        </div>
-        <div class="field-row" style="margin-top:var(--space-3)">
-          <span class="field-label">Shields</span>
-          <span class="badge muted" id="dash-shield">&mdash;</span>
-        </div>
-        <div class="field-row">
-          <span class="field-label">Strength</span>
-          <span class="field-value" id="dash-shield-pct">&mdash;</span>
-        </div>
-      </article>
+    <!-- Schematic + callout layout -->
+    <div class="dashboard-schematic-layout">
 
-      <!-- Card 3: Fuel & Jump Range -->
-      <article class="card" id="card-fuel" aria-label="Fuel level and jump range">
-        <h2 class="card-title">
-          <span class="ocv-icon ocv-icon-sm" data-icon="fuel" aria-hidden="true"></span> Fuel &amp; Jump
-        </h2>
-        <div class="field-row">
-          <span class="field-label">Fuel</span>
-          <span class="field-value" id="dash-fuel-value">&mdash;</span>
-        </div>
-        <div class="progress-bar-wrap" aria-hidden="true">
-          <div class="progress-bar-fill" id="dash-fuel-bar" style="width:0%"></div>
-        </div>
-        <div class="field-row" style="margin-top:var(--space-3)">
-          <span class="field-label">Tonnes</span>
-          <span class="field-value" id="dash-fuel-raw">&mdash;</span>
-        </div>
-        <div class="field-row">
-          <span class="field-label">Max Jump Range</span>
-          <span class="field-value" id="dash-jump">&mdash;</span>
-        </div>
-      </article>
+      <!-- Left callout column: Hull/Shields + Modules -->
+      <div class="dashboard-callout-column">
 
-      <!-- Card 4: Cargo -->
-      <article class="card" id="card-cargo" aria-label="Cargo hold">
-        <h2 class="card-title">
-          <span class="ocv-icon ocv-icon-sm" data-icon="cargo" aria-hidden="true"></span> Cargo
-        </h2>
-        <div class="field-row">
-          <span class="field-label">Units</span>
-          <span class="field-value" id="dash-cargo-count">&mdash;</span>
-        </div>
-        <ul id="dash-cargo-list" role="list" aria-label="Top cargo commodities"
-            style="margin-top:var(--space-2);list-style:none;padding:0">
-          <li class="field-value unknown">No data</li>
-        </ul>
-      </article>
-
-      <!-- Card 5: Heat -->
-      <article class="card" id="card-heat" aria-label="Ship heat management">
-        <h2 class="card-title">
-          <span class="ocv-icon ocv-icon-sm" data-icon="heat" aria-hidden="true"></span> Heat
-        </h2>
-        <div class="field-row">
-          <span class="field-label">Level</span>
-          <span class="field-value" id="dash-heat-value">&mdash;</span>
-          <span class="trend steady" id="dash-heat-trend" aria-live="polite"></span>
-        </div>
-        <div class="progress-bar-wrap" aria-hidden="true">
-          <div class="progress-bar-fill" id="dash-heat-bar" style="width:0%"></div>
-        </div>
-        <div class="field-row">
-          <span class="badge" id="dash-heat-state" aria-live="polite"></span>
-        </div>
-        <div class="sparkline-wrap" aria-hidden="true">
-          <canvas class="sparkline" id="dash-heat-sparkline"
-                  role="img" aria-label="Heat history sparkline"></canvas>
-        </div>
-      </article>
-
-      <!-- Card 6: Power Distribution (PIPS) -->
-      <article class="card" id="card-pips" aria-label="Power distribution">
-        <h2 class="card-title">
-          <span class="ocv-icon ocv-icon-sm" data-icon="pips" aria-hidden="true"></span> Power Distribution
-        </h2>
-        <div class="pips-row" role="group" aria-label="Power pips">
-          <div class="pips-group" id="pips-sys" aria-label="Systems pips">
-            <span class="pips-label">SYS</span>
-            <div class="pips-dots" aria-hidden="true"></div>
-            <span class="field-value" id="pips-sys-val" aria-live="polite">&mdash;</span>
+        <!-- Panel: Hull & Shields -->
+        <article class="card dashboard-callout-panel" id="dash-panel-hull-shields"
+                 aria-labelledby="dp-hull-shields-title">
+          <h2 class="card-title" id="dp-hull-shields-title">
+            <span class="ocv-icon ocv-icon-sm" data-icon="shield" aria-hidden="true"></span>
+            Hull &amp; Shields
+          </h2>
+          <div class="field-row">
+            <span class="field-label">Hull</span>
+            <span class="field-value" id="dash-hull-value">&mdash;</span>
           </div>
-          <div class="pips-group" id="pips-eng" aria-label="Engines pips">
-            <span class="pips-label">ENG</span>
-            <div class="pips-dots" aria-hidden="true"></div>
-            <span class="field-value" id="pips-eng-val" aria-live="polite">&mdash;</span>
+          <div class="progress-bar-wrap threshold-bar" aria-hidden="true">
+            <div class="progress-bar-fill" id="dash-hull-bar" style="width:0%"></div>
+            <div class="tick" style="left:25%" title="25% threshold"></div>
+            <div class="tick" style="left:10%" title="10% threshold"></div>
           </div>
-          <div class="pips-group" id="pips-wep" aria-label="Weapons pips">
-            <span class="pips-label">WEP</span>
-            <div class="pips-dots" aria-hidden="true"></div>
-            <span class="field-value" id="pips-wep-val" aria-live="polite">&mdash;</span>
+          <div class="field-row" style="margin-top:var(--space-3)">
+            <span class="field-label">Shields</span>
+            <span class="badge muted" id="dash-shield">&mdash;</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Strength</span>
+            <span class="field-value" id="dash-shield-pct">&mdash;</span>
+          </div>
+        </article>
+
+        <!-- Panel: Module Health -->
+        <article class="card dashboard-callout-panel" id="dash-panel-modules"
+                 aria-labelledby="dp-modules-title">
+          <h2 class="card-title" id="dp-modules-title">
+            <span class="ocv-icon ocv-icon-sm" data-icon="modules" aria-hidden="true"></span>
+            Module Health
+          </h2>
+          <p id="dash-modules-absence" class="dashboard-absence-state">Waiting for Loadout</p>
+          <div class="field-row">
+            <span class="field-label">Total</span>
+            <span class="field-value" id="dash-mod-total">&mdash;</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">OK (&ge;80%)</span>
+            <span class="field-value ok" id="dash-mod-ok">&mdash;</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Warning</span>
+            <span class="field-value" id="dash-mod-warning">&mdash;</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Critical</span>
+            <span class="field-value" id="dash-mod-critical">&mdash;</span>
+          </div>
+        </article>
+
+      </div><!-- /.left column -->
+
+      <!-- Center: Schematic frame + ship identity -->
+      <div class="dashboard-schematic-column">
+
+        <div class="ocv-schematic-frame" id="dash-schematic-frame"
+             aria-label="Top-down ship systems schematic">
+          <div id="dash-ship-schematic"></div>
+          <p id="dash-schematic-status" class="dashboard-absence-state"
+             aria-live="polite">Loading ship schematic&hellip;</p>
+        </div>
+
+        <!-- Ship identity detail (preserves existing IDs) -->
+        <div class="dashboard-ship-identity" aria-label="Ship identity">
+          <h2 class="dashboard-ship-identity-title">Ship Identity</h2>
+          <div class="field-row">
+            <span class="field-label">Name</span>
+            <span class="field-value" id="dash-ship-name">&mdash;</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Type</span>
+            <span class="field-value" id="dash-ship-type">&mdash;</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Ident</span>
+            <span class="field-value" id="dash-ship-ident">&mdash;</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">System</span>
+            <span class="field-value" id="dash-system">&mdash;</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Station</span>
+            <span class="field-value" id="dash-station">&mdash;</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Docked</span>
+            <span class="field-value" id="dash-docked">&mdash;</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Status</span>
+            <span class="field-value unknown" id="dash-wanted">&mdash;</span>
           </div>
         </div>
-      </article>
 
-      <!-- Card 7: Module Health Summary -->
-      <article class="card" id="card-modules" aria-label="Module health summary">
-        <h2 class="card-title">
-          <span class="ocv-icon ocv-icon-sm" data-icon="modules" aria-hidden="true"></span> Module Health
-        </h2>
-        <div class="field-row">
-          <span class="field-label">Total</span>
-          <span class="field-value" id="dash-mod-total">&mdash;</span>
-        </div>
-        <div class="field-row">
-          <span class="field-label">OK (&ge;80%)</span>
-          <span class="field-value ok" id="dash-mod-ok">&mdash;</span>
-        </div>
-        <div class="field-row">
-          <span class="field-label">Warning</span>
-          <span class="field-value" id="dash-mod-warning">&mdash;</span>
-        </div>
-        <div class="field-row">
-          <span class="field-label">Critical</span>
-          <span class="field-value" id="dash-mod-critical">&mdash;</span>
-        </div>
-      </article>
+      </div><!-- /.center schematic column -->
 
-      <!-- Card 8: Rebuy Estimate -->
-      <article class="card" id="card-rebuy" aria-label="Ship rebuy cost estimate">
-        <h2 class="card-title">
-          <span class="ocv-icon ocv-icon-sm" data-icon="rebuy" aria-hidden="true"></span> Rebuy Estimate
-        </h2>
-        <div class="field-row">
-          <span class="field-label">Cost (5%)</span>
-          <span class="field-value unknown" id="dash-rebuy">&mdash;</span>
-        </div>
-        <div class="field-row">
-          <span class="field-label"
-                style="font-size:var(--font-size-xs);color:var(--color-fg-unknown)">
-            Standard insurance &middot; Tier 1 telemetry
-          </span>
-        </div>
-      </article>
+      <!-- Right callout column: Fuel/Jump + Heat/Core + Cargo + Pips -->
+      <div class="dashboard-callout-column">
 
-    </div><!-- /.dashboard-grid -->
+        <!-- Panel: Fuel & Jump -->
+        <article class="card dashboard-callout-panel" id="dash-panel-fuel-jump"
+                 aria-labelledby="dp-fuel-title">
+          <h2 class="card-title" id="dp-fuel-title">
+            <span class="ocv-icon ocv-icon-sm" data-icon="fuel" aria-hidden="true"></span>
+            Fuel &amp; Jump
+          </h2>
+          <div class="field-row">
+            <span class="field-label">Fuel</span>
+            <span class="field-value" id="dash-fuel-value">&mdash;</span>
+          </div>
+          <div class="progress-bar-wrap" aria-hidden="true">
+            <div class="progress-bar-fill" id="dash-fuel-bar" style="width:0%"></div>
+          </div>
+          <div class="field-row" style="margin-top:var(--space-3)">
+            <span class="field-label">Tonnes</span>
+            <span class="field-value" id="dash-fuel-raw">&mdash;</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Max Jump</span>
+            <span class="field-value" id="dash-jump">&mdash;</span>
+          </div>
+        </article>
+
+        <!-- Panel: Heat / Core -->
+        <article class="card dashboard-callout-panel" id="dash-panel-heat-core"
+                 aria-labelledby="dp-heat-title">
+          <h2 class="card-title" id="dp-heat-title">
+            <span class="ocv-icon ocv-icon-sm" data-icon="heat" aria-hidden="true"></span>
+            Heat
+          </h2>
+          <p id="dash-heat-absence" class="dashboard-absence-state"
+             aria-live="polite">Heat telemetry unavailable &mdash; critical heat events will appear here</p>
+          <div class="field-row">
+            <span class="field-label">Level</span>
+            <span class="field-value" id="dash-heat-value">&mdash;</span>
+            <span class="trend steady" id="dash-heat-trend" aria-live="polite"></span>
+          </div>
+          <div class="progress-bar-wrap" aria-hidden="true">
+            <div class="progress-bar-fill" id="dash-heat-bar" style="width:0%"></div>
+          </div>
+          <div class="field-row">
+            <span class="badge" id="dash-heat-state" aria-live="polite"></span>
+          </div>
+          <div class="sparkline-wrap" aria-hidden="true">
+            <canvas class="sparkline" id="dash-heat-sparkline"
+                    role="img" aria-label="Heat history sparkline"></canvas>
+          </div>
+        </article>
+
+        <!-- Panel: Cargo -->
+        <article class="card dashboard-callout-panel" id="dash-panel-cargo"
+                 aria-labelledby="dp-cargo-title">
+          <h2 class="card-title" id="dp-cargo-title">
+            <span class="ocv-icon ocv-icon-sm" data-icon="cargo" aria-hidden="true"></span>
+            Cargo
+          </h2>
+          <div class="field-row">
+            <span class="field-label">Units</span>
+            <span class="field-value" id="dash-cargo-count">&mdash;</span>
+          </div>
+          <ul id="dash-cargo-list" role="list" aria-label="Top cargo commodities"
+              style="margin-top:var(--space-2);list-style:none;padding:0">
+            <li class="field-value unknown">No cargo detected</li>
+          </ul>
+        </article>
+
+        <!-- Panel: Power Distribution -->
+        <article class="card dashboard-callout-panel" id="dash-panel-pips"
+                 aria-labelledby="dp-pips-title">
+          <h2 class="card-title" id="dp-pips-title">
+            <span class="ocv-icon ocv-icon-sm" data-icon="pips" aria-hidden="true"></span>
+            Power Distribution
+          </h2>
+          <div class="pips-row" role="group" aria-label="Power pips">
+            <div class="pips-group" id="pips-sys" aria-label="Systems pips">
+              <span class="pips-label">SYS</span>
+              <div class="pips-dots" aria-hidden="true"></div>
+              <span class="field-value" id="pips-sys-val" aria-live="polite">&mdash;</span>
+            </div>
+            <div class="pips-group" id="pips-eng" aria-label="Engines pips">
+              <span class="pips-label">ENG</span>
+              <div class="pips-dots" aria-hidden="true"></div>
+              <span class="field-value" id="pips-eng-val" aria-live="polite">&mdash;</span>
+            </div>
+            <div class="pips-group" id="pips-wep" aria-label="Weapons pips">
+              <span class="pips-label">WEP</span>
+              <div class="pips-dots" aria-hidden="true"></div>
+              <span class="field-value" id="pips-wep-val" aria-live="polite">&mdash;</span>
+            </div>
+          </div>
+        </article>
+
+      </div><!-- /.right column -->
+
+    </div><!-- /.dashboard-schematic-layout -->
+
+    <!-- Rebuy / Insurance — full-width reference panel -->
+    <article class="card dashboard-callout-panel" id="dash-panel-rebuy"
+             aria-labelledby="dp-rebuy-title">
+      <h2 class="card-title" id="dp-rebuy-title">
+        <span class="ocv-icon ocv-icon-sm" data-icon="rebuy" aria-hidden="true"></span>
+        Rebuy / Insurance
+      </h2>
+      <div class="field-row">
+        <span class="field-label">Cost (5%)</span>
+        <span class="field-value unknown" id="dash-rebuy">&mdash;</span>
+      </div>
+      <div class="field-row">
+        <span class="field-label"
+              style="font-size:var(--font-size-xs);color:var(--color-fg-unknown)">
+          Standard insurance &middot; Tier 1 telemetry
+        </span>
+      </div>
+    </article>
+
   </section>
 
   <!-- ══════════════════════════════════════

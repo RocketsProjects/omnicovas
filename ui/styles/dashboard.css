@@ -1,0 +1,128 @@
+/* OmniCOVAS Dashboard — Ship Systems Schematic layout
+   PB05-06 — Dashboard-specific layout. All values reference tokens.css. */
+
+/* ════════════════════════════════════════
+   COMMAND SUMMARY BAND
+   ════════════════════════════════════════ */
+
+.dashboard-summary-band {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.dashboard-summary-band .ocv-command-summary-grid {
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-2) var(--space-4);
+}
+
+.dashboard-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dashboard-summary-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-telemetry-label);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+}
+
+.dashboard-telemetry-value {
+  font-size: var(--font-size-sm);
+  color: var(--color-fg);
+  font-family: var(--font-family-mono);
+}
+
+/* ════════════════════════════════════════
+   SCHEMATIC LAYOUT (3-column)
+   ════════════════════════════════════════ */
+
+.dashboard-schematic-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .dashboard-schematic-layout {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dashboard-schematic-column {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-schematic-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ════════════════════════════════════════
+   CALLOUT COLUMN
+   ════════════════════════════════════════ */
+
+.dashboard-callout-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ════════════════════════════════════════
+   SCHEMATIC COLUMN
+   ════════════════════════════════════════ */
+
+.dashboard-schematic-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ════════════════════════════════════════
+   SHIP IDENTITY (below schematic)
+   ════════════════════════════════════════ */
+
+.dashboard-ship-identity {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.dashboard-ship-identity-title {
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--space-2) 0;
+}
+
+/* ════════════════════════════════════════
+   ABSENCE STATE
+   ════════════════════════════════════════ */
+
+.dashboard-absence-state {
+  font-size: var(--font-size-xs);
+  color: var(--color-fg-unknown);
+  font-style: italic;
+  text-align: center;
+  padding: var(--space-2) var(--space-4);
+  margin: 0;
+  line-height: var(--line-height);
+}
+
+/* ════════════════════════════════════════
+   SCHEMATIC STATUS LINE
+   ════════════════════════════════════════ */
+
+.dashboard-schematic-status-bar {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-1) 0;
+}
