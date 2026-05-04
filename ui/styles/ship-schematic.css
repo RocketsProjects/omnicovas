@@ -1,0 +1,125 @@
+/* OmniCOVAS Ship Schematic Component
+   Technical blueprint wireframe for Dashboard ship display.
+   Token-driven — all values reference tokens.css.
+   PB05-06 integrates this into the Dashboard layout. */
+
+/* ════════════════════════════════════════
+   WRAPPER
+   ════════════════════════════════════════ */
+
+.ship-schematic {
+  position: relative;
+  width: 100%;
+  background: transparent;
+  border-radius: var(--radius-md);
+}
+
+/* ════════════════════════════════════════
+   SVG CANVAS
+   ════════════════════════════════════════ */
+
+.ship-schematic-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* ════════════════════════════════════════
+   SHAPE CLASSES
+   ════════════════════════════════════════ */
+
+.ship-schematic-shape {
+  fill: none;
+  stroke: var(--color-telemetry-label);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.ship-schematic-outline {
+  stroke: var(--color-shield-up);
+  stroke-width: 2;
+}
+
+.ship-schematic-line {
+  stroke: var(--color-telemetry-label);
+  stroke-width: 1;
+  stroke-dasharray: 8 4;
+  opacity: 0.55;
+}
+
+.ship-schematic-core {
+  stroke: var(--color-shield-up);
+  stroke-width: 1.5;
+  opacity: 0.75;
+}
+
+/* Generic fallback — muted, dashed */
+.ship-schematic-fallback {
+  stroke: var(--color-fg-unknown);
+  stroke-dasharray: 6 6;
+  stroke-width: 1.5;
+  opacity: 0.4;
+}
+
+/* ════════════════════════════════════════
+   HOTSPOT OVERLAY
+   ════════════════════════════════════════ */
+
+.ship-schematic-hotspots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ship-schematic-hotspot {
+  /* Marker class — no visual output */
+}
+
+/* ════════════════════════════════════════
+   HOTSPOT BUTTON
+   ════════════════════════════════════════ */
+
+.ship-schematic-hotspot-button {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  background: var(--color-accent-dim);
+  border: 1px solid var(--color-border-active);
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.ship-schematic-hotspot-button:hover {
+  background: rgba(255, 136, 0, 0.22);
+  border-color: var(--color-accent);
+}
+
+.ship-schematic-hotspot-button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* ════════════════════════════════════════
+   HOTSPOT LABEL
+   ════════════════════════════════════════ */
+
+.ship-schematic-hotspot-label {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-mono);
+  color: var(--color-accent);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  pointer-events: none;
+  white-space: nowrap;
+  user-select: none;
+}
