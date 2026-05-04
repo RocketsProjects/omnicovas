@@ -18,6 +18,9 @@
   <link rel="stylesheet" href="styles/ship-schematic.css" />
   <link rel="stylesheet" href="styles/dashboard.css" />
   <link rel="stylesheet" href="styles/settings.css" />
+  <link rel="stylesheet" href="styles/activity-log.css" />
+  <link rel="stylesheet" href="styles/resources.css" />
+  <link rel="stylesheet" href="styles/privacy.css" />
 </head>
 <body>
 
@@ -418,24 +421,109 @@
   </section>
 
   <!-- ══════════════════════════════════════
-       VIEW: Activity Log
+       VIEW: Activity Log — Flight Recorder / Black Box (PB05-09)
   ══════════════════════════════════════ -->
-  <section id="view-activity-log" class="view" aria-labelledby="log-title">
-    <h1 class="view-title" id="log-title">Activity Log</h1>
+  <section id="view-activity-log" class="view ocv-page" aria-labelledby="log-title">
+
+    <div class="ocv-page-header">
+      <p class="ocv-page-kicker">Flight Recorder</p>
+      <h1 class="ocv-page-title" id="log-title">Activity Log</h1>
+      <p class="ocv-page-subtitle">Local event record &mdash; black box telemetry audit trail</p>
+    </div>
+
+    <!-- Controls bar -->
     <div id="log-controls" class="ocv-form-row">
       <input type="search" id="log-search" class="ocv-search-input"
              placeholder="Search events&hellip;"
              aria-label="Search activity log" />
+
+      <fieldset class="log-filter-group">
+        <legend class="ocv-sr-only">Filter by category</legend>
+        <label class="log-filter-label">
+          <input type="checkbox" class="log-filter" value="critical" />
+          Critical
+        </label>
+        <label class="log-filter-label">
+          <input type="checkbox" class="log-filter" value="extended" />
+          Extended
+        </label>
+        <label class="log-filter-label">
+          <input type="checkbox" class="log-filter" value="ai" />
+          AI
+        </label>
+        <label class="log-filter-label">
+          <input type="checkbox" class="log-filter" value="telemetry" />
+          Telemetry
+        </label>
+      </fieldset>
+
+      <button id="log-export-btn" class="ocv-btn-ghost"
+              aria-label="Export activity log as JSON">
+        Export
+      </button>
       <button id="log-clear-btn" class="ocv-btn-ghost"
               aria-label="Clear activity log display">
         Clear
       </button>
     </div>
+
+    <!-- Live event feed (inline-event-log.js) -->
     <div id="log-entries" role="log" aria-live="polite" aria-atomic="false"
-         aria-label="Activity log entries"
-         style="max-height:calc(100vh - 220px);overflow-y:auto;">
+         aria-label="Live activity log entries"
+         class="ocv-recorder-timeline">
       <p class="field-value unknown" style="padding:var(--space-3)">No events yet.</p>
     </div>
+
+    <!-- Full history table (ActivityLogController from views/activity-log.js) -->
+    <div class="ocv-recorder-table-wrap" role="region" aria-label="Activity log history">
+      <table class="ocv-recorder-table" aria-label="Flight recorder log">
+        <thead>
+          <tr>
+            <th scope="col">Timestamp</th>
+            <th scope="col">Event</th>
+            <th scope="col">Source</th>
+            <th scope="col">Summary</th>
+            <th scope="col">AI Tier</th>
+          </tr>
+        </thead>
+        <tbody id="log-body">
+          <!-- Populated by ActivityLogController -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="log-pagination">
+      <button id="log-prev-btn" class="ocv-btn-ghost"
+              aria-label="Previous page" disabled>
+        &larr; Prev
+      </button>
+      <span id="log-page-info" class="log-page-info">Page 1 of 1</span>
+      <button id="log-next-btn" class="ocv-btn-ghost"
+              aria-label="Next page" disabled>
+        Next &rarr;
+      </button>
+    </div>
+
+    <!-- Clear confirmation modal -->
+    <div id="log-clear-modal" style="display:none;"
+         role="dialog" aria-modal="true" aria-labelledby="log-clear-modal-title">
+      <div class="ocv-modal-content">
+        <h2 id="log-clear-modal-title">Clear Activity Log?</h2>
+        <p>This will remove all entries from the display.</p>
+        <div class="ocv-modal-buttons">
+          <button id="log-clear-confirm-btn" class="ocv-btn-danger"
+                  aria-label="Confirm clear activity log">
+            Clear Log
+          </button>
+          <button id="log-clear-cancel-btn" class="ocv-btn-ghost"
+                  aria-label="Cancel clear">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
   </section>
 
   <!-- ══════════════════════════════════════
@@ -910,17 +998,21 @@
   </section>
 
   <!-- ══════════════════════════════════════
-       VIEW: Privacy
+       VIEW: Privacy — Data Firewall / Data Control (PB05-09)
   ══════════════════════════════════════ -->
-  <section id="view-privacy" class="view" aria-labelledby="privacy-title">
+  <section id="view-privacy" class="view ocv-page" aria-labelledby="privacy-title">
+
+    <div class="ocv-page-header">
+      <p class="ocv-page-kicker">Data Firewall</p>
+      <h1 class="ocv-page-title" id="privacy-title">Privacy</h1>
+      <p class="ocv-page-subtitle">Local-only by default &mdash; all data sharing is off until you enable it</p>
+    </div>
+
     <div id="privacy-container">
-      <div class="page-header">
-        <h1 id="privacy-title">&#128274; Your Data, Your Choice</h1>
-        <p>
-          All data sharing is disabled by default. Enable only what you're comfortable with.
-          You control every toggle.
-        </p>
-      </div>
+      <p class="privacy-local-only-notice" id="privacy-local-only-notice">
+        OmniCOVAS is local-only by default. No data leaves your machine unless you explicitly enable a sharing toggle below.
+        You control every toggle.
+      </p>
 
       <!-- Privacy Toggles Section -->
       <section id="privacy-toggles-section" aria-labelledby="privacy-toggles-heading">
@@ -1059,307 +1151,24 @@
         </div>
       </div>
     </div>
-    <style>
-      #privacy-container {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-
-      #view-privacy .page-header {
-        margin-bottom: 3rem;
-        text-align: center;
-      }
-
-      #view-privacy .page-header h1 {
-        margin: 0 0 0.5rem 0;
-        font-size: 2rem;
-        color: var(--color-fg);
-      }
-
-      #view-privacy .page-header p {
-        margin: 0;
-        color: var(--color-fg-muted);
-        font-size: 1.05rem;
-      }
-
-      #view-privacy section {
-        margin-bottom: 2rem;
-        padding: 1.5rem;
-        border: 1px solid var(--color-border);
-        border-radius: 8px;
-        background: var(--color-surface);
-      }
-
-      #view-privacy section h2 {
-        margin: 0 0 0.75rem 0;
-        font-size: 1.3rem;
-        color: var(--color-fg);
-      }
-
-      #view-privacy section p {
-        margin: 0 0 1rem 0;
-        color: var(--color-fg-muted);
-        line-height: 1.5;
-      }
-
-      .privacy-toggles-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1rem;
-      }
-
-      .toggle-card {
-        background: var(--color-bg);
-        border: 1px solid var(--color-border);
-        border-radius: 6px;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .toggle-header {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-
-      .toggle-card .toggle-label {
-        font-weight: 600;
-        color: var(--color-fg);
-        flex: 1;
-      }
-
-      .toggle-switch {
-        width: 50px;
-        height: 28px;
-        background: var(--color-border);
-        border-radius: 14px;
-        position: relative;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-
-      .toggle-switch input {
-        display: none;
-      }
-
-      .toggle-switch input:checked + .toggle-slider {
-        background: var(--color-accent);
-        left: 26px;
-      }
-
-      .toggle-slider {
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 24px;
-        height: 24px;
-        background: white;
-        border-radius: 50%;
-        transition: all 0.2s;
-      }
-
-      .toggle-description {
-        font-size: 0.85rem;
-        color: var(--color-fg-muted);
-        line-height: 1.4;
-      }
-
-      .flows-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1rem;
-      }
-
-      .flow-card {
-        background: var(--color-bg);
-        border: 1px solid var(--color-border);
-        border-radius: 6px;
-        padding: 1rem;
-      }
-
-      .flow-destination {
-        font-weight: 600;
-        color: var(--color-fg);
-        margin-bottom: 0.5rem;
-      }
-
-      .flow-status {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 12px;
-        font-size: 0.85rem;
-        margin-bottom: 0.5rem;
-      }
-
-      .flow-status.active {
-        background: var(--color-surface);
-        color: var(--color-accent);
-      }
-
-      .flow-status.disabled {
-        background: var(--color-border);
-        color: var(--color-fg-muted);
-      }
-
-      .flow-status.not_shipped {
-        background: var(--color-surface);
-        color: var(--color-fg-muted);
-      }
-
-      .flow-frequency,
-      .flow-purpose {
-        font-size: 0.85rem;
-        color: var(--color-fg-muted);
-      }
-
-      .flow-purpose {
-        margin-top: 0.5rem;
-      }
-
-      .modal-no-flows-banner {
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: 4px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        color: var(--color-fg);
-      }
-
-      .privacy-secondary-button,
-      .privacy-primary-button,
-      .privacy-danger-button {
-        padding: 0.75rem 1.5rem;
-        border-radius: 4px;
-        font-size: 1rem;
-        cursor: pointer;
-        border: none;
-        transition: all 0.2s;
-      }
-
-      .privacy-secondary-button {
-        background: var(--color-bg);
-        border: 1px solid var(--color-border);
-        color: var(--color-fg);
-      }
-
-      .privacy-secondary-button:focus-visible {
-        outline: 2px solid var(--color-accent);
-        outline-offset: 2px;
-      }
-
-      .privacy-primary-button {
-        background: var(--color-accent);
-        color: white;
-      }
-
-      .privacy-primary-button:focus-visible {
-        outline: 2px solid var(--color-accent);
-        outline-offset: 2px;
-      }
-
-      .privacy-danger-button {
-        background: var(--color-critical);
-        color: white;
-      }
-
-      .privacy-danger-button:focus-visible {
-        outline: 2px solid var(--color-critical);
-        outline-offset: 2px;
-      }
-
-      .privacy-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-        z-index: 1000;
-      }
-
-      .privacy-modal-content {
-        background: var(--color-surface);
-        border-radius: 8px;
-        padding: 2rem;
-        max-width: 600px;
-        width: 100%;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      }
-
-      .privacy-modal-content h2 {
-        margin: 0 0 1rem 0;
-        color: var(--color-fg);
-      }
-
-      .privacy-modal-content p {
-        margin: 0 0 1rem 0;
-        color: var(--color-fg-muted);
-      }
-
-      .privacy-modal-content ul {
-        margin: 0 0 1rem 1.5rem;
-        color: var(--color-fg-muted);
-      }
-
-      .privacy-modal-content ul li {
-        margin-bottom: 0.5rem;
-      }
-
-      .privacy-modal-danger {
-        border: 2px solid var(--color-critical);
-      }
-
-      .privacy-modal-buttons {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1.5rem;
-      }
-
-      .privacy-modal-buttons button {
-        flex: 1;
-      }
-
-      @media (max-width: 600px) {
-        #privacy-container {
-          padding: 1rem;
-        }
-
-        .privacy-toggles-grid,
-        .flows-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .privacy-modal-content {
-          padding: 1.5rem;
-        }
-      }
-    </style>
   </section>
 
   <!-- ══════════════════════════════════════
-       VIEW: Resources
+       VIEW: Resources — Diagnostics Console (PB05-09)
   ══════════════════════════════════════ -->
-  <section id="view-resources" class="view" aria-labelledby="resources-title">
-    <h1 class="view-title" id="resources-title">Resources</h1>
-    <p class="field-value unknown" style="margin-bottom:var(--space-3)">
-      Local resource usage &mdash; all data stays on your machine.
-    </p>
+  <section id="view-resources" class="view ocv-page" aria-labelledby="resources-title">
+
+    <div class="ocv-page-header">
+      <p class="ocv-page-kicker">Diagnostics Console</p>
+      <h1 class="ocv-page-title" id="resources-title">Resources</h1>
+      <p class="ocv-page-subtitle">Local resource usage &mdash; all data stays on your machine</p>
+    </div>
 
     <!-- Status banner: enabled / initializing / unavailable -->
     <p id="res-status-msg" class="field-value unknown"
        aria-live="polite" aria-atomic="true" style="display:none"></p>
 
-    <div class="dashboard-grid">
+    <div class="ocv-diagnostics-grid">
 
       <!-- Card: Memory -->
       <article class="card" id="card-res-mem" aria-label="Memory usage">
@@ -1443,10 +1252,10 @@
         </div>
       </article>
 
-    </div><!-- /.dashboard-grid -->
+    </div><!-- /.ocv-diagnostics-grid -->
 
     <!-- Footer: last updated + manual refresh -->
-    <div style="margin-top:var(--space-4);display:flex;align-items:center;gap:var(--space-4)">
+    <div class="res-footer">
       <span class="field-value unknown" id="res-last-updated"></span>
       <button id="res-refresh-btn" class="ocv-btn-ghost"
               aria-label="Refresh resource data">
@@ -2126,6 +1935,7 @@
 <script src="views/privacy.js"></script>
 <script src="views/onboarding.js"></script>
 <script src="views/resources.js"></script>
+<script src="views/activity-log.js"></script>
 
 <!-- Wire log entries from the WS bus after all scripts are loaded -->
 <script>

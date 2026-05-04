@@ -1,5 +1,51 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import fs from 'fs';
 import '../views/activity-log.js';
+
+const indexHtml = fs.readFileSync('ui/index.html', 'utf8');
+
+// ── PB05-09: Flight Recorder identity in index.html ───────────────────────
+
+describe('Activity Log — Flight Recorder identity (index.html)', () => {
+  it('Flight Recorder kicker exists in index.html', () => {
+    expect(indexHtml).toContain('Flight Recorder');
+  });
+
+  it('#log-body tbody exists in index.html', () => {
+    expect(indexHtml).toContain('id="log-body"');
+  });
+
+  it('#log-export-btn exists in index.html', () => {
+    expect(indexHtml).toContain('id="log-export-btn"');
+  });
+
+  it('.log-filter category checkboxes exist in index.html', () => {
+    expect(indexHtml).toContain('class="log-filter"');
+  });
+
+  it('#log-clear-modal exists in index.html', () => {
+    expect(indexHtml).toContain('id="log-clear-modal"');
+  });
+
+  it('#log-clear-confirm-btn and #log-clear-cancel-btn exist in index.html', () => {
+    expect(indexHtml).toContain('id="log-clear-confirm-btn"');
+    expect(indexHtml).toContain('id="log-clear-cancel-btn"');
+  });
+
+  it('#log-prev-btn and #log-next-btn exist in index.html', () => {
+    expect(indexHtml).toContain('id="log-prev-btn"');
+    expect(indexHtml).toContain('id="log-next-btn"');
+  });
+
+  it('#log-search and #log-controls still present', () => {
+    expect(indexHtml).toContain('id="log-search"');
+    expect(indexHtml).toContain('id="log-controls"');
+  });
+
+  it('#log-entries live feed still present', () => {
+    expect(indexHtml).toContain('id="log-entries"');
+  });
+});
 
 const { ActivityLogController } = globalThis.__activityLogExports ?? {};
 

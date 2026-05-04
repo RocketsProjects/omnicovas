@@ -1,5 +1,64 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import fs from 'fs';
 import '../views/privacy.js';
+
+const indexHtml = fs.readFileSync('ui/index.html', 'utf8');
+
+// ── PB05-09: Data Firewall identity in index.html ─────────────────────────
+
+describe('Privacy — Data Firewall identity (index.html)', () => {
+  it('Data Firewall kicker exists in index.html', () => {
+    expect(indexHtml).toContain('Data Firewall');
+  });
+
+  it('local-only by default statement exists in index.html', () => {
+    expect(indexHtml).toContain('local-only by default');
+  });
+
+  it('#privacy-toggles-list exists in index.html', () => {
+    expect(indexHtml).toContain('id="privacy-toggles-list"');
+  });
+
+  it('#view-data-flows-btn exists in index.html', () => {
+    expect(indexHtml).toContain('id="view-data-flows-btn"');
+  });
+
+  it('#data-flows-modal exists in index.html', () => {
+    expect(indexHtml).toContain('id="data-flows-modal"');
+  });
+
+  it('#delete-confirm-modal exists in index.html (two-stage delete)', () => {
+    expect(indexHtml).toContain('id="delete-confirm-modal"');
+  });
+
+  it('#delete-confirm-1st-btn and #delete-confirm-2nd-btn both exist in index.html', () => {
+    expect(indexHtml).toContain('id="delete-confirm-1st-btn"');
+    expect(indexHtml).toContain('id="delete-confirm-2nd-btn"');
+  });
+
+  it('#export-data-btn exists in index.html', () => {
+    expect(indexHtml).toContain('id="export-data-btn"');
+  });
+
+  it('#delete-data-btn exists in index.html', () => {
+    expect(indexHtml).toContain('id="delete-data-btn"');
+  });
+
+  it('toggle endpoint path /week13/privacy/toggles not changed in controller', () => {
+    const privacyJs = fs.readFileSync('ui/views/privacy.js', 'utf8');
+    expect(privacyJs).toContain('/week13/privacy/toggles');
+  });
+
+  it('export endpoint path /week13/privacy/export not changed in controller', () => {
+    const privacyJs = fs.readFileSync('ui/views/privacy.js', 'utf8');
+    expect(privacyJs).toContain('/week13/privacy/export');
+  });
+
+  it('delete endpoint path /week13/privacy/delete not changed in controller', () => {
+    const privacyJs = fs.readFileSync('ui/views/privacy.js', 'utf8');
+    expect(privacyJs).toContain('/week13/privacy/delete');
+  });
+});
 
 const { PrivacyController } = globalThis.__privacyExports ?? {};
 

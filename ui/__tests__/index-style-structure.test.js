@@ -135,3 +135,44 @@ describe('extracted inline styles — no regressions', () => {
     expect(indexHtml).toContain('id="log-controls" class="ocv-form-row"');
   });
 });
+
+// ─────────────────────────────────────────
+describe('PB05-09R — Route Visibility Repair', () => {
+  it('pages.css contains .view.ocv-page:not(.active) guard', () => {
+    const pagesCss = fs.readFileSync('ui/styles/pages.css', 'utf8');
+    expect(pagesCss).toContain('.view.ocv-page:not(.active)');
+    expect(pagesCss).toContain('display: none');
+  });
+
+  it('route sections with ocv-page are direct children of #content-area', () => {
+    const mainMatch = indexHtml.match(/<main id="content-area" role="main">([\s\S]*?)<\/main>/);
+    expect(mainMatch).not.toBeNull();
+    const mainContent = mainMatch[1];
+
+    // Assert they are present in the main content area
+    expect(mainContent).toContain('id="view-activity-log" class="view ocv-page"');
+    expect(mainContent).toContain('id="view-privacy" class="view ocv-page"');
+    expect(mainContent).toContain('id="view-resources" class="view ocv-page"');
+
+    // Heuristic: check they are not nested inside another div within main
+    // Since we are doing a string match on raw HTML, we can check for direct-child-like appearance
+    // In index.html they are at the first indentation level under <main>
+    expect(mainContent).toMatch(/^\s+<section id="view-activity-log"/m);
+    expect(mainContent).toMatch(/^\s+<section id="view-privacy"/m);
+    expect(mainContent).toMatch(/^\s+<section id="view-resources"/m);
+  });
+
+  it('PB05-09 identity strings exist in index.html', () => {
+    expect(indexHtml).toContain('Flight Recorder');
+    expect(indexHtml).toContain('Diagnostics Console');
+    expect(indexHtml).toContain('Data Firewall');
+  });
+
+  it('CSS route hiding contract: inactive .view.ocv-page must not be forced visible', () => {
+    const pagesCss = fs.readFileSync('ui/styles/pages.css', 'utf8');
+    // Ensure no plain .ocv-page { display: flex } in pages.css
+    // We allow .ocv-page-wrap, .ocv-page-section etc, but not .ocv-page by itself
+    const plainOcvPage = pagesCss.match(/\.ocv-page\s*{[^}]*display\s*:\s*flex/);
+    expect(plainOcvPage, 'pages.css must not contain plain .ocv-page display:flex').toBeNull();
+  });
+});

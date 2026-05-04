@@ -1,5 +1,33 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import fs from 'fs';
 import '../views/resources.js';
+
+const indexHtml = fs.readFileSync('ui/index.html', 'utf8');
+
+// ── PB05-09: Diagnostics Console identity in index.html ───────────────────
+
+describe('Resources — Diagnostics Console identity (index.html)', () => {
+  it('Diagnostics Console kicker exists in index.html', () => {
+    expect(indexHtml).toContain('Diagnostics Console');
+  });
+
+  it('#res-refresh-btn exists in index.html', () => {
+    expect(indexHtml).toContain('id="res-refresh-btn"');
+  });
+
+  it('all required resource field IDs exist in index.html', () => {
+    expect(indexHtml).toContain('id="res-mem-used"');
+    expect(indexHtml).toContain('id="res-mem-total"');
+    expect(indexHtml).toContain('id="res-cpu-pct"');
+    expect(indexHtml).toContain('id="res-cpu-badge"');
+    expect(indexHtml).toContain('id="res-disk-used"');
+    expect(indexHtml).toContain('id="res-disk-total"');
+    expect(indexHtml).toContain('id="res-budget-cache"');
+    expect(indexHtml).toContain('id="res-budget-api"');
+    expect(indexHtml).toContain('id="res-last-updated"');
+    expect(indexHtml).toContain('id="res-status-msg"');
+  });
+});
 
 const { ResourcesController } = globalThis.__resourcesExports ?? {};
 
