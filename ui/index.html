@@ -10,6 +10,11 @@
   <link rel="stylesheet" href="styles/icons.css" />
   <link rel="stylesheet" href="styles/shell.css" />
   <link rel="stylesheet" href="styles/components.css" />
+  <link rel="stylesheet" href="styles/forms.css" />
+  <link rel="stylesheet" href="styles/modals.css" />
+  <link rel="stylesheet" href="styles/pages.css" />
+  <link rel="stylesheet" href="styles/command-deck.css" />
+  <link rel="stylesheet" href="styles/confirmation-gate.css" />
 </head>
 <body>
 
@@ -326,21 +331,12 @@
   ══════════════════════════════════════ -->
   <section id="view-activity-log" class="view" aria-labelledby="log-title">
     <h1 class="view-title" id="log-title">Activity Log</h1>
-    <div id="log-controls"
-         style="margin-bottom:var(--space-4);display:flex;gap:var(--space-3);
-                flex-wrap:wrap;align-items:center">
-      <input type="search" id="log-search" placeholder="Search events&hellip;"
-             aria-label="Search activity log"
-             style="background:var(--color-surface);border:1px solid var(--color-border);
-                    color:var(--color-fg);padding:var(--space-2) var(--space-3);
-                    border-radius:var(--radius-md);font-family:var(--font-family);
-                    font-size:var(--font-size-sm);width:240px;" />
-      <button id="log-clear-btn"
-              aria-label="Clear activity log display"
-              style="background:transparent;border:1px solid var(--color-border);
-                     color:var(--color-fg-muted);padding:var(--space-2) var(--space-3);
-                     border-radius:var(--radius-md);font-family:var(--font-family);
-                     font-size:var(--font-size-sm);cursor:pointer;">
+    <div id="log-controls" class="ocv-form-row">
+      <input type="search" id="log-search" class="ocv-search-input"
+             placeholder="Search events&hellip;"
+             aria-label="Search activity log" />
+      <button id="log-clear-btn" class="ocv-btn-ghost"
+              aria-label="Clear activity log display">
         Clear
       </button>
     </div>
@@ -1289,12 +1285,8 @@
     <!-- Footer: last updated + manual refresh -->
     <div style="margin-top:var(--space-4);display:flex;align-items:center;gap:var(--space-4)">
       <span class="field-value unknown" id="res-last-updated"></span>
-      <button id="res-refresh-btn"
-              aria-label="Refresh resource data"
-              style="background:transparent;border:1px solid var(--color-border);
-                     color:var(--color-fg-muted);padding:var(--space-2) var(--space-3);
-                     border-radius:var(--radius-md);font-family:var(--font-family);
-                     font-size:var(--font-size-sm);cursor:pointer;">
+      <button id="res-refresh-btn" class="ocv-btn-ghost"
+              aria-label="Refresh resource data">
         &#8635; Refresh
       </button>
     </div>
