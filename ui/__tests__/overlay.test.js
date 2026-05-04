@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { renderBanner, showBanner, dismissBanner, CRITICAL_EVENTS } from '../overlay.js';
+import { renderBanner, showBanner, dismissBanner, CRITICAL_EVENTS, _resetState } from '../overlay.js';
 
 beforeEach(() => {
+  _resetState();
   document.body.innerHTML = '<div id="overlay-container"></div>';
 });
 
@@ -67,6 +68,24 @@ describe('CRITICAL_EVENTS', () => {
       expect(typeof cfg.duration).toBe('number');
       expect(typeof cfg.priority).toBe('number');
     });
+  });
+});
+
+describe('showBanner and rendering', () => {
+  it('renders a banner with expected structure and text', () => {
+    showBanner('OMNICOVAS_TEST', 'READY');
+    const banner = document.querySelector('.banner');
+    expect(banner).not.toBeNull();
+    expect(banner.querySelector('.banner-source').textContent).toBe('OmniCOVAS');
+    expect(banner.querySelector('.banner-label').textContent).toBe('OMNICOVAS TEST BANNER');
+    expect(banner.querySelector('.banner-value').textContent).toBe('READY');
+  });
+
+  it('renders hostile values as text, not HTML', () => {
+    showBanner('OMNICOVAS_TEST', '<b>XSS</b>');
+    const value = document.querySelector('.banner-value');
+    expect(value.textContent).toBe('<b>XSS</b>');
+    expect(value.innerHTML).not.toContain('<b>');
   });
 });
 

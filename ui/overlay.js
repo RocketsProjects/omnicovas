@@ -145,6 +145,10 @@ function renderBanner(banner) {
   bannerEl.className = `banner ${banner.config.severity}`;
   bannerEl.style.opacity = overlaySettings.opacity.toString();
 
+  const sourceEl = document.createElement('span');
+  sourceEl.className = 'banner-source';
+  sourceEl.textContent = 'OmniCOVAS';
+
   const iconEl = document.createElement('span');
   iconEl.className = 'banner-icon';
   iconEl.textContent = banner.config.icon;
@@ -160,6 +164,7 @@ function renderBanner(banner) {
       ? banner.value.toFixed(0) + '%'
       : (banner.value == null ? '' : String(banner.value));
 
+  bannerEl.appendChild(sourceEl);
   bannerEl.appendChild(iconEl);
   bannerEl.appendChild(labelEl);
   bannerEl.appendChild(valueEl);
@@ -440,4 +445,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   console.log('[Overlay] Ready. Click-through enabled by default.');
 });
 
-export { renderBanner, showBanner, dismissBanner, CRITICAL_EVENTS };
+function _resetState() {
+  if (currentBanner?.timeoutId) clearTimeout(currentBanner.timeoutId);
+  currentBanner = null;
+  bannerQueue = [];
+}
+
+export { renderBanner, showBanner, dismissBanner, CRITICAL_EVENTS, _resetState };

@@ -9,8 +9,8 @@ const FULL_DOM = `
     <div id="onboarding-easy-mode" style="display:none"></div>
     <div id="onboarding-custom-mode" style="display:none"></div>
     <div id="onboarding-power-user" style="display:none">
-      <span id="power-user-settings-check">☐ Settings opened</span>
-      <span id="power-user-privacy-check">☐ Privacy opened</span>
+      <span id="power-user-settings-check">☐ Configuration Bay opened</span>
+      <span id="power-user-privacy-check">☐ Data Firewall opened</span>
       <button id="onboarding-power-user-complete-btn" disabled></button>
     </div>
   </div>
@@ -203,7 +203,7 @@ describe('OnboardingController.updatePowerUserProgress', () => {
     ctrl.powerUserSeen.settings = true;
     ctrl.updatePowerUserProgress();
     const el = document.getElementById('power-user-settings-check');
-    expect(el.textContent).toBe('✓ Settings opened');
+    expect(el.textContent).toBe('✓ Configuration Bay opened');
     expect(el.querySelector('script')).toBeNull();
     expect(el.querySelector('img')).toBeNull();
   });
@@ -212,7 +212,7 @@ describe('OnboardingController.updatePowerUserProgress', () => {
     ctrl.powerUserSeen.privacy = true;
     ctrl.updatePowerUserProgress();
     const el = document.getElementById('power-user-privacy-check');
-    expect(el.textContent).toBe('✓ Privacy opened');
+    expect(el.textContent).toBe('✓ Data Firewall opened');
     expect(el.querySelector('script')).toBeNull();
     expect(el.querySelector('img')).toBeNull();
   });

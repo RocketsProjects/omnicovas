@@ -249,10 +249,10 @@ class OnboardingController {
     const completeBtn = document.getElementById("onboarding-power-user-complete-btn");
 
     if (settingsCheck && this.powerUserSeen.settings) {
-      settingsCheck.textContent = "✓ Settings opened";
+      settingsCheck.textContent = "✓ Configuration Bay opened";
     }
     if (privacyCheck && this.powerUserSeen.privacy) {
-      privacyCheck.textContent = "✓ Privacy opened";
+      privacyCheck.textContent = "✓ Data Firewall opened";
     }
 
     // Enable complete button only if both are seen
