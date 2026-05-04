@@ -1,0 +1,457 @@
+OmniCOVAS PB05-04 — Command Deck Component Primitives and CSS Extraction
+Executor Target: Claude Code
+Architect Authority: CLAUDE.MD + OmniCOVAS_Index.md + Master Blueprint v4.2
+Executor Alignment: CLAUDE_CODE.md
+Safety Authority: ui_safe_rendering_checklist.md
+PB05 v2 Position: after PB05-PRE, PB05-PRE-B, PB05-00, PB05-01, PB05-02, PB05-03/03A-D
+
+================================================================================
+CLAUDE CODE EXECUTION CONTRACT
+================================================================================
+
+You are Claude Code acting as the OmniCOVAS executor.
+
+You are not the architect. Do not redesign this task. Do not expand scope.
+Execute only PB05-04. Make the smallest safe file-limited changes that satisfy
+this playbook.
+
+Stop and report if this task requires:
+- backend, Python, FastAPI, Tauri, Rust, bridge, package, or dependency changes
+- route behavior changes
+- controller rewrites
+- dashboard schematic implementation
+- dashboard command-summary implementation
+- settings tab redesign
+- overlay bridge/banner test implementation
+- Phase 4 combat logic
+- unsafe dynamic HTML
+- new architecture decisions
+
+Manual smoke must not be claimed unless you personally run it or Commander reports
+it passed.
+
+================================================================================
+OBJECTIVE
+================================================================================
+
+Refactor style debt and create reusable command-deck CSS primitives that support
+route-specific UI and the upcoming Dashboard-only ship schematic work.
+
+This playbook is CSS foundation and safe extraction only. Existing UI behavior,
+route IDs, controller selectors, bridge behavior, tests, and current route layouts
+must remain unchanged.
+
+PB05-04 prepares the UI language. It does not build the Sidewinder schematic,
+does not redesign Dashboard, does not add Settings tabs, and does not wire Overlay
+settings.
+
+================================================================================
+LOCKED PB05 v2 UX MODEL
+================================================================================
+
+Keep this model intact:
+
+- Left sidebar remains primary navigation.
+- Sidebar labels remain simple:
+  Dashboard, Activity Log, Resources, Settings, Privacy, Credits, Future Systems.
+- Each route opens its own dedicated page.
+- Dashboard is the only route that will use the ship wireframe / ship systems
+  schematic hero later.
+- Other routes get route-specific identities while staying simple:
+  Dashboard     -> Ship Systems Schematic
+  Activity Log  -> Flight Recorder / Black Box
+  Resources     -> Diagnostics Console
+  Settings      -> Configuration Bay
+  Privacy       -> Firewall / Data Control
+  Onboarding    -> Commissioning Flow
+  Overlay       -> HUD Projection
+  Credits       -> Registry Plaque.
+- No Frontier assets, screenshots, traced silhouettes, extracted game models,
+  or copied ship art.
+- Cool visuals are allowed only when they make the app easier to understand.
+
+================================================================================
+AUTHORITY REFERENCES
+================================================================================
+
+Read first:
+- docs/internal/ai-workflow/CLAUDE_CODE.md
+- docs/internal/ai-workflow/ui_safe_rendering_checklist.md
+- docs/internal/ai-workflow/playbooks/OmniCOVAS_PB05_v2_Gemini_Playbooks/PB05_v2_Master_Plan_and_Execution_Order_GEMINI.txt
+- docs/testing/pb05_ui_overhaul/PB05_00_UI_Audit_Baseline.md, if present
+- ui/styles/tokens.css
+- ui/index.html
+- ui/styles/components.css
+- ui/styles/shell.css
+- ui/styles/confirmation-gate.css
+- ui/styles/icons.css, if present
+- package.json
+
+Do not load the full Master Blueprint unless a conflict or ambiguity appears.
+Use CLAUDE_CODE.md execution rules: narrow task, smallest safe change, stop on
+scope/compliance/architecture ambiguity.
+
+================================================================================
+PRE-FLIGHT GATE
+================================================================================
+
+Run before editing:
+
+git status --short
+git log --oneline -5
+npm.cmd test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+
+Expected:
+- Working tree is clean or only contains explicitly known PB05-03/PB05 v2
+  playbook-folder state from the Commander.
+- PB05-03 icon/shell work should be committed before beginning PB05-04, unless
+  Commander explicitly says it is intentionally pending.
+- npm tests pass before edits.
+- Safe-rendering grep matches known PB05 baseline; no UNSAFE_DYNAMIC.
+
+Stop and report if unexpected dirty files exist.
+
+================================================================================
+ALLOWED FILES
+================================================================================
+
+Modify:
+- ui/index.html
+- ui/styles/components.css
+- ui/styles/shell.css
+- ui/styles/confirmation-gate.css
+- ui/styles/icons.css, only if class integration is needed
+
+Create:
+- ui/styles/forms.css
+- ui/styles/pages.css
+- ui/styles/modals.css
+- ui/styles/command-deck.css
+- ui/__tests__/index-style-structure.test.js, only if useful and narrow
+
+Optional test update only if existing tests assert old stylesheet order:
+- ui/__tests__/index-html-log.test.js
+- ui/__tests__/shell-nav.test.js
+
+Do not modify any other file.
+
+================================================================================
+FORBIDDEN FILES / AREAS
+================================================================================
+
+Do not modify:
+- package.json
+- package-lock.json
+- omnicovas/**
+- src-tauri/**
+- tests/**
+- ui/views/*.js
+- ui/components/shell.js
+- ui/components/icons.js
+- backend / Python / FastAPI files
+- Tauri / Rust files
+
+Do not create:
+- ship schematic JS
+- ship schematic SVG data
+- route behavior JS
+- settings tab JS
+- overlay bridge JS
+
+================================================================================
+DO NOT BUILD
+================================================================================
+
+Do not build:
+- Sidewinder schematic
+- generic schematic fallback
+- dashboard callout panels
+- dashboard command summary implementation
+- hotspot toggles
+- snap zones
+- draggable windows
+- Settings tabs
+- Overlay settings bridge
+- Banner test center
+- Activity Recorder redesign
+- Resources Diagnostics redesign
+- Privacy Firewall redesign
+- Onboarding commissioning redesign
+- Phase 4 combat logic
+
+PB05-04 is only reusable CSS primitives plus safe CSS extraction.
+
+================================================================================
+IMPLEMENTATION PLAN
+================================================================================
+
+Phase A — Stylesheet load order
+
+1. In ui/index.html, add links for new CSS files in a clear order.
+   Recommended order:
+   - styles/tokens.css
+   - styles/icons.css
+   - styles/shell.css
+   - styles/components.css
+   - styles/forms.css
+   - styles/modals.css
+   - styles/pages.css
+   - styles/command-deck.css
+   - styles/confirmation-gate.css, if currently loaded or appropriate
+
+2. Preserve all existing scripts and classic script loading.
+3. Do not alter route IDs, controller IDs, data attributes, hrefs, or script order.
+
+Phase B — Create reusable CSS primitive files
+
+Create ui/styles/command-deck.css with token-driven primitives:
+
+- .ocv-page
+- .ocv-page-header
+- .ocv-page-title
+- .ocv-page-kicker
+- .ocv-page-subtitle
+- .ocv-panel
+- .ocv-panel-header
+- .ocv-panel-title
+- .ocv-panel-body
+- .ocv-chip
+- .ocv-chip-muted
+- .ocv-chip-accent
+- .ocv-chip-telemetry
+- .ocv-chip-warning
+- .ocv-chip-critical
+- .ocv-command-summary
+- .ocv-command-summary-grid
+- .ocv-callout-panel
+- .ocv-callout-line
+- .ocv-schematic-frame
+- .ocv-schematic-hotspot
+- .ocv-hotspot-button
+- .ocv-panel-zone
+- .ocv-recorder-timeline
+- .ocv-diagnostics-grid
+- .ocv-firewall-map
+- .ocv-config-tabs
+- .ocv-registry-plaque
+
+Use only existing tokens where possible:
+- --color-bg
+- --color-surface
+- --color-surface-hover
+- --color-fg
+- --color-fg-muted
+- --color-accent
+- --color-accent-hover
+- --color-telemetry-label
+- --color-telemetry-value
+- --color-telemetry-border
+- --color-border-subtle
+- --color-backdrop
+- --shadow-panel
+- --shadow-modal
+- --z-*
+- --space-*
+- --radius-*
+- --transition-fast
+
+Create ui/styles/forms.css for shared:
+- buttons
+- form rows
+- form groups
+- fields
+- sliders/selects where safe
+- no behavior change
+
+Create ui/styles/modals.css for shared:
+- modal backdrop
+- modal content panel
+- modal header/body/actions
+- danger actions
+- do not wire focus trap in PB05-04
+
+Create ui/styles/pages.css for shared:
+- route page headers
+- page section spacing
+- page helper text / absence text
+- status/notice surfaces
+
+Phase C — Safe CSS extraction
+
+1. Inspect ui/index.html for large inline <style> blocks and repeated inline
+   style attributes.
+2. Extract only low-risk repeated CSS into the new files.
+3. Preserve all existing IDs and class names that controllers rely on.
+4. If a style block is too large or risky to extract safely without behavior risk,
+   leave it in place and document in the final report.
+5. Do not rewrite route markup broadly.
+6. Do not alter form control semantics.
+7. Do not alter modal visibility behavior or DOM IDs.
+
+Good extraction targets:
+- repeated button styles
+- repeated modal panel/backdrop styles
+- repeated page heading/section styles
+- repeated form row/label/control styles
+- repeated chip/badge-like styles
+
+Risky extraction targets to leave alone if uncertain:
+- deeply nested onboarding wizard step styles
+- privacy toggle switch mechanics
+- any selector tightly coupled to current JS behavior
+- any inline style that controls display/hide flow
+
+Phase D — confirmation-gate.css token cleanup
+
+1. Check ui/styles/confirmation-gate.css for undefined token names.
+2. If any remain, replace with tokens defined in ui/styles/tokens.css.
+3. Do not alter confirmation endpoint behavior or component JS.
+
+Phase E — Tests
+
+Create ui/__tests__/index-style-structure.test.js if useful.
+
+Narrow tests may assert:
+- index.html links new CSS files
+- CSS file order is sane
+- new CSS files exist
+- command-deck.css contains required primitive class names
+- route-critical IDs remain in index.html:
+  #view-dashboard
+  #view-activity-log
+  #view-settings
+  #view-privacy
+  #view-resources
+  #view-credits
+  #onboarding-container
+- package.json/package-lock unchanged is verified by command, not test
+
+Avoid brittle visual snapshots and exact CSS value tests.
+
+================================================================================
+SAFE RENDERING RULES
+================================================================================
+
+PB05-04 should not add production JavaScript. If any JS edit appears necessary,
+stop and report.
+
+No unsafe dynamic HTML is allowed. Existing grep hits must remain classified as
+safe:
+- test fixture innerHTML
+- SAFE_LITERAL_CLEAR
+- SAFE_STATIC_LITERAL
+- SAFE_ESCAPER_INTERNAL
+
+If a new production innerHTML/outerHTML/insertAdjacentHTML hit appears, stop and
+report unless it is a literal empty-string clear and is directly justified.
+
+================================================================================
+ACCEPTANCE CRITERIA
+================================================================================
+
+PB05-04 is accepted when:
+
+- New stylesheet files exist and are loaded by index.html.
+- Required command-deck primitive classes exist.
+- Current routes still use the same IDs and controller selectors.
+- Existing UI behavior is unchanged.
+- No dashboard schematic, callout panels, or route redesign is implemented.
+- No Settings tab behavior is implemented.
+- No overlay bridge/banner test center is implemented.
+- No backend/Tauri/package changes exist.
+- npm tests pass.
+- Safe-rendering grep shows no new unsafe production sinks.
+- Fixed-port grep remains clean.
+- package.json/package-lock diff is empty.
+- git status contains only allowed PB05-04 files.
+
+================================================================================
+COMMANDS
+================================================================================
+
+Run after edits:
+
+npm.cmd test
+git grep -n "innerHTML\|outerHTML\|insertAdjacentHTML" -- ui
+git grep -n "8000\|OMNICOVAS_PORT || 8000\|window.PORT || 8000" -- ui
+git diff -- package.json package-lock.json
+git status
+
+Manual smoke if GUI available:
+
+npm run tauri dev
+
+Confirm:
+- app launches
+- sidebar/topbar still render
+- Dashboard route still renders
+- Activity Log route still renders
+- Resources route still renders
+- Settings route still renders
+- Privacy route still renders
+- Credits route still renders
+- Onboarding still appears only when expected
+- no new devtools red errors
+- Settings/Privacy dynamic bridge behavior remains clean
+
+================================================================================
+STOP / ESCALATE
+================================================================================
+
+Stop and report if:
+
+- working tree has unexpected dirty files before editing
+- tests fail before edits
+- extraction requires JS/controller rewrites
+- preserving behavior requires backend/Tauri/package changes
+- route IDs or controller selectors need to change
+- CSS extraction causes route behavior ambiguity
+- safe rendering grep reveals UNSAFE_DYNAMIC
+- package files change
+- you are tempted to implement dashboard schematic/dashboard redesign/settings tabs
+- you need an architecture decision
+
+================================================================================
+EXACT CLAUDE CODE PROMPT
+================================================================================
+
+Execute this playbook exactly.
+
+You are Claude Code acting as the OmniCOVAS executor. Implement PB05-04 only:
+Command Deck Component Primitives and CSS Extraction.
+
+Stay inside allowed files. Preserve all current UI behavior, route IDs,
+controller selectors, classic script loading, and dynamic bridge behavior.
+
+Do not build the schematic, dashboard redesign, Settings tabs, Overlay bridge,
+Banner Test Center, route redesign, backend changes, Tauri changes, package
+changes, or Phase 4 combat logic.
+
+Make the smallest safe CSS and index.html changes needed to create reusable
+command-deck primitives and safely extract low-risk repeated styles.
+
+If extraction would require controller rewrites or behavior changes, leave that
+style in place and report it.
+
+Run the required verification commands and report exact results. Do not claim
+manual smoke passed unless you personally ran it.
+
+================================================================================
+FINAL REPORT FORMAT
+================================================================================
+
+PB05-04 Final Report
+
+1. Files changed
+2. New CSS files created
+3. Primitives added
+4. CSS extracted / intentionally left inline
+5. Confirmation-gate token cleanup result
+6. Tests added/updated
+7. Verification command results
+8. Safe-rendering grep classification
+9. Fixed-port grep classification
+10. package.json/package-lock status
+11. Manual smoke result or pending Commander smoke
+12. PB05-05 readiness verdict
