@@ -1,0 +1,1774 @@
+OmniCOVAS Backend Blueprint v1.0 — AI Reference
+===============================================
+
+STATUS: FINAL_BACKEND_REFERENCE
+DATE: 2026-05-06
+VERSION: 1.0
+COMPANION: OmniCOVAS_Backend_Blueprint_v1_0_Human_Reference.txt
+            OmniCOVAS_UI_Blueprint_v1_0_Human_Reference.txt
+            OmniCOVAS_UI_Blueprint_v1_0_AI_Reference.txt
+            OmniCOVAS_Source_Capability_Routing_Reference_v1.txt
+AUDIENCE: AI architect assistants, audit/roadmap planners, playbook authors,
+          implementation ownership checks.
+
+DO_NOT_USE_THIS_DOCUMENT_TO:
+  - override_master_blueprint
+  - override_compliance_matrix
+  - override_ui_blueprint_v1_0
+  - override_source_capability_routing_reference
+  - invent_provider_capabilities
+  - invent_elite_dangerous_mechanics
+  - create_implementation_code
+  - create_playbooks
+  - create_roadmaps
+  - reintroduce_eddi_as_active_dependency
+  - require_voiceattack
+  - treat_ai_as_source_of_facts
+  - create_second_statemanager_or_dispatcher_or_cache_or_vault_or_bridge
+  - assign_intel_facts_to_operations
+  - assign_routes_to_operations
+  - turn_dashboard_into_workflow_or_audit_or_settings_console
+
+INDEX
+-----
+A. Header (this block)
+B. Authority posture
+C. Global invariants
+D. Backend ownership matrix
+E. Route-to-service matrix
+F. Service registry
+G. State model registry
+H. API/bridge contract registry
+I. Event taxonomy
+J. Source routing contract
+K. Provenance contract
+L. Cache/queue/request budget contract
+M. Workflow engine contract
+N. AI boundary contract
+O. Confirmation Gate contract
+P. Privacy/security contract
+Q. Phase implementation matrix
+R. Route activation matrix
+S. Unsupported/fallback wording table
+T. Collision/duplication forbidden patterns
+U. Checklist for future playbook authors
+V. Open reconciliation list
+
+================================================================================
+B. AUTHORITY POSTURE
+================================================================================
+
+AUTHORITY_RANK:
+  1: master_blueprint_v4_2          # docs/internal/blueprints/OmniCOVAS_Master_Blueprint_v4_2.txt
+  2: compliance_matrix_v4_1         # docs/internal/blueprints/OmniCOVAS_Compliance_Matrix_v4_1.txt
+  3: ui_blueprint_v1_0              # frontend/route ownership
+  4: backend_blueprint_v1_0         # this document; backend service ownership
+  5: source_capability_routing_v1   # provider capability/budget/wording
+  6: phase_guides_and_release_notes # task detail and shipped state
+  7: claude_md_and_executor_files   # operating rules (CLAUDE.md / CLAUDE_CODE.md / Soldier.md)
+  8: playbooks                      # implementation assignment
+  9: session_conversation           # user intent
+
+CONFLICT_RULES:
+  master_beats_backend_on: [laws, principles, scope, phase, priority, doctrine]
+  compliance_beats_backend_on: [legal, privacy, license, attribution, external_relationships]
+  ui_beats_backend_on: [route_existence, route_layout, route_owner_at_surface]
+  source_routing_beats_backend_on: [provider_capability, budget, fallback_wording, unsupported_facts]
+  backend_beats_lower_docs_on: [service_ownership, state_models, event_taxonomy, api_contracts, workflow_engine, source_routing_execution, cache_queue_provenance, privacy_enforcement_at_service_layer]
+
+REPORT_AND_OBEY:
+  on_real_conflict: report_conflict_and_obey_higher_authority
+
+================================================================================
+C. GLOBAL INVARIANTS
+================================================================================
+
+LOCAL_FIRST: true
+EVENT_DRIVEN: true
+ASYNC_FIRST: true
+SOURCE_BACKED: true
+AUDITABLE: true
+PRIVACY_PROTECTIVE: true
+AI_PROVIDER_AGNOSTIC: true
+AI_FACT_SOURCE: false
+PERFORMANCE_FIRST: true
+CONFIRMATION_GATE_NON_BYPASSABLE: true
+UNKNOWN_REMAINS_UNKNOWN: true
+FIELD_LEVEL_PROVENANCE_REQUIRED: true
+CACHE_AND_BATCH_BEFORE_EXTERNAL_CALLS: true
+CONSENT_AND_AUTH_REQUIRED_FOR: [capi, inara, commander_profile_lookup, outbound_submission, privacy_sensitive_source]
+NO_SCRAPING_BY_DEFAULT: true
+ROUTE_ACTIVATION_REQUIRES_COMMANDER_ACTION: true
+GAME_ACTION_BY_AI_OR_BACKEND: forbidden
+EDDI_ACTIVE_DEPENDENCY: false
+VOICEATTACK_REQUIRED: false
+NEW_PRIMARY_ROUTE_BY_BACKEND: forbidden
+DUPLICATE_BASELINE_SERVICE: forbidden
+
+SOURCE_PRIORITY_ORDER:
+  1: local_journal
+  2: status_json
+  3: companion_json_files
+  4: omnicovas_state_cache
+  5: capi_authenticated_snapshot_if_consented
+  6: verified_external_per_source_capability_routing
+  7: link_only_or_unsupported_declaration
+
+FALLBACK_WORDING_REQUIRED:
+  - Unknown
+  - Not Loaded
+  - Disabled
+  - Stale
+  - Requires Authorization
+  - Unsupported
+  - No Verified Source
+
+================================================================================
+D. BACKEND OWNERSHIP MATRIX
+================================================================================
+
+D.1 Cross-cutting backend owners
+  state_owner: core/state.StateManager
+  event_taxonomy_owner: core/event_types
+  dispatcher_owner: core/dispatcher
+  broadcaster_owner: core/broadcaster
+  activity_log_owner: core/activity_log
+  confirmation_gate_owner: core/confirmation_gate
+  bridge_owner: core/api_bridge + api/*
+  vault_owner: config/vault
+  resource_monitor_owner: core/resource_monitor
+  ai_provider_owner: ai/ (AIProvider, NullProvider, GeminiProvider, factory)
+  kb_owner: knowledge_base/
+  db_owner: db/
+  forward_source_registry_owner: services/source/registry (Phase 5+)
+  forward_source_router_owner: services/source/router (Phase 5+)
+  forward_external_request_queue_owner: services/source/queue (Phase 5+)
+  forward_cache_owner: services/source/cache (Phase 5+)
+  forward_provenance_owner: services/source/provenance (Phase 5+)
+  forward_workflow_engine_owner: services/workflow/engine (Phase 4+ narrow → Phase 5+ general)
+  forward_ai_workflow_planner_owner: services/workflow/ai_planner (Phase 4+ narrow → Phase 5+ general)
+
+D.2 Cross-cutting non-owners
+  ai_owns_facts: false
+  operations_owns_intel_facts: false
+  operations_owns_routes: false
+  navigation_owns_facts: false
+  dashboard_owns_workflows: false
+  dashboard_owns_facts: false
+  about_owns_privacy: false
+  about_owns_settings: false
+  about_owns_audit: false
+
+================================================================================
+E. ROUTE-TO-SERVICE MATRIX
+================================================================================
+
+ROUTE_BACKEND:
+  route: dashboard
+  backend_owner: dashboard_projection_service (assembles from many)
+  state_models: [DashboardLayoutState, PinRecord]
+  endpoint_families: [GET dashboard/state, WS events]
+  event_families: [state.*, intel.* summaries, operation.* summaries, route.* summaries, source.*, gate.*]
+  source_requirements: live_local_telemetry_first
+  privacy_gates: [redact_unconsented_external, hide_disabled_source_chips]
+  activity_log_requirements: [pin_changes, layout_changes, ai_command_bar_use, slash_command_invocations]
+  must_link_to: [intel, navigation, operations, activity_log, settings, about]
+  must_not_own: [facts, routes, workflows, audit, settings, project_identity]
+  implementation_phase: phase_1_through_3_baseline_extended_per_phase
+
+ROUTE_BACKEND:
+  route: intel
+  backend_owner: intel_service_group
+  state_models: [KnownFact, EntityRef, FieldProvenance, FreshnessState, TruthClass, SourceCaveat, IntelSnapshot]
+  endpoint_families: [GET intel/galaxy, GET intel/system/<id>, GET intel/local/<id>, GET intel/personal, GET intel/fact/<id>, POST intel/queue-source-lookup]
+  event_families: [intel.fact_recorded, intel.fact_updated, intel.fact_invalidated, intel.lookup_queued, intel.lookup_completed, intel.lookup_blocked, intel.scope_view_assembled]
+  source_requirements: per_source_capability_routing_section_4_and_section_2
+  privacy_gates: [capi_consent_and_auth, inara_whitelist_consent, commander_pii_local_only_default]
+  activity_log_requirements: [every_fact_change_recorded, source_chain_resolvable_by_fact_id]
+  must_link_to: [navigation, operations, activity_log, settings]
+  must_not_own: [routes, workflows, audit_history, settings]
+  implementation_phase: phase_5_unifies_intel_scope_assemblies
+
+ROUTE_BACKEND:
+  route: navigation
+  backend_owner: navigation_service_group
+  state_models: [ActiveRouteState, RouteCandidate, RouteIntent, RouteJob, SavedRoute, Bookmark, RouteSourceStatus]
+  endpoint_families: [GET navigation/active, GET navigation/candidates, POST navigation/plan, GET navigation/library, GET navigation/bookmarks, POST navigation/bookmark, GET navigation/sources, POST navigation/copy-next-jump]
+  event_families: [route.active_changed, route.next_jump_advanced, route.candidate_proposed, route.candidate_accepted, route.candidate_rejected, route.job_queued, route.job_completed, route.job_blocked, route.bookmark_*, route.library_*, route.source_status_changed]
+  source_requirements: [navroute_json_proof, spansh_linkout, future_spansh_api_after_verification, edsm_for_context, ardent_for_adjacency_when_relevant]
+  privacy_gates: [no_outbound_route_submission_by_default]
+  activity_log_requirements: [route_state_transitions, source_request_records, blocked_attempts]
+  must_link_to: [intel, operations, settings, activity_log]
+  must_not_own: [facts, workflows, audit_history, settings]
+  implementation_phase: phase_5_principal_navigation_phase
+
+ROUTE_BACKEND:
+  route: operations
+  backend_owner: operations_service_group + workflow_engine
+  state_models: [Operation, OperationObjective, SessionFocus, WorkflowState, WorkflowStep, WorkflowBlocker, WorkflowRecommendation, WorkflowNextAction, LinkedIntelRef, LinkedRouteRef]
+  endpoint_families: [GET operations/command-board, GET operations/<id>, POST operations, POST operations/<id>/step, POST operations/<id>/recommendation, POST operations/<id>/debrief, POST operations/focus]
+  event_families: [operation.*, workflow.*, gate.*, ai.*, source.*]
+  source_requirements: [workflow_source_plan_required_before_external_request]
+  privacy_gates: [external_only_via_source_router]
+  activity_log_requirements: [lifecycle_events, workflow_step_transitions, recommendation_decisions, next_action_triggers, debrief]
+  must_link_to: [intel, navigation, activity_log, settings]
+  must_not_own: [intel_facts, navigation_routes, audit_history, settings]
+  implementation_phase: phase_4_combat_packages_first_then_phase_5_plus
+
+ROUTE_BACKEND:
+  route: activity_log
+  backend_owner: activity_log_service
+  state_models: [ActivityEvent, SourceChain, ExternalRequestRecord, GateDecisionRecord, ExportRecord, DeleteRecord, DiagnosticRecord, RawPayloadDrawerEntry]
+  endpoint_families: [GET activity/timeline, GET activity/event/<id>, GET activity/source-chain/<fact_id>, GET activity/external-requests, GET activity/ai-gates, POST activity/export, POST activity/clear]
+  event_families: all_families  # see I. Event taxonomy
+  source_requirements: none_outbound
+  privacy_gates: [redaction_at_write_time, raw_drawer_policy_per_source]
+  activity_log_requirements: self
+  must_link_to: [all_routes_via_view_activity_links]
+  must_not_own: [workflows, facts, routes, settings, project_identity]
+  implementation_phase: phase_1_baseline_extended_per_phase
+
+ROUTE_BACKEND:
+  route: settings
+  backend_owner: settings_service_group + vault
+  state_models: [ProfileState, DashboardLayoutState, OverlayProfileState, AIProviderState, VoiceState, PrivacyDataState, SourcesDataFlowState, DiagnosticsView, ImportExportJob, VaultState]
+  endpoint_families: [GET settings/<category>, POST settings/<category>, POST settings/reset, POST settings/sources/<provider>, POST settings/export, POST settings/import, GET diagnostics/health]
+  event_families: [settings.*, privacy.*, diagnostic.*]
+  source_requirements: governs_consent_auth_for_sources
+  privacy_gates: [dpapi_vault, log_redaction, consent_per_source]
+  activity_log_requirements: [settings_changes, privacy_actions, diagnostic_events]
+  must_link_to: [activity_log, about]
+  must_not_own: [facts, routes, workflows, audit_history, project_identity]
+  implementation_phase: phase_1_baseline_expanded_phase_3_extended_per_phase
+
+ROUTE_BACKEND:
+  route: about
+  backend_owner: about_metadata_service
+  state_models: [AboutMetadata]
+  endpoint_families: [GET about/metadata]
+  event_families: [diagnostic.update_validated_consumed]
+  source_requirements: none
+  privacy_gates: none
+  activity_log_requirements: [build_signing_status_changes_optional]
+  must_link_to: [readme, license, security, contributing, cla, sbom, repo, docs]
+  must_not_own: [privacy_controls, source_setup, ai_configuration, voice_setup, onboarding_acks, audit_history, full_legal_text_rendering, diagnostics_or_export_import]
+  implementation_phase: phase_3_baseline_then_extension_only
+
+ROUTE_BACKEND:
+  route: squadrons
+  backend_owner: squadrons_service_group (forward-looking)
+  state_models: [PeerState, TelemetrySyncState, InviteCode, RoleAuthority, SharedOperationLink, SharedNavigationLink, EmergencySecurityState, SquadronLogEntry, IntegrationState]
+  endpoint_families: [GET squadrons/overview, GET squadrons/roster, POST squadrons/invite, POST squadrons/sync/*, POST squadrons/role/*, POST squadrons/emergency/*, GET squadrons/log, POST squadrons/integrations/*]
+  event_families: [squadron.*, gate.*, privacy.*, source.* (integrations)]
+  source_requirements: [chacha20_poly1305_telemetry_encryption, p2p_with_relay_fallback]
+  privacy_gates: [explicit_share_scope, top_secret_burn_reserved_with_doctrine]
+  activity_log_requirements: [peer_state_changes, invite_lifecycle, sync_events, role_changes, emergency_actions, integration_outbound]
+  must_link_to: [intel, navigation, operations, settings, activity_log]
+  must_not_own: [facts, routes, workflows, settings, audit_history]
+  implementation_phase: phase_7
+
+ROUTE_BACKEND:
+  route: engineering
+  backend_owner: engineering_service_group (forward-looking)
+  state_models: [EngineeringGoal, MaterialGap, BlueprintProgress, EngineerUnlockState, GuardianTechProgress, SuitEngineeringState, BuildPlan, AcquisitionPlan, ImportSourceState]
+  endpoint_families: [GET engineering/overview, GET engineering/goals, POST engineering/goal, GET engineering/materials, GET engineering/blueprints, GET engineering/engineers, GET engineering/guardian-tech, GET engineering/builds, POST engineering/acquisition-plan]
+  event_families: [engineering.*, source.*]
+  source_requirements: [intel_owns_raw_facts, navigation_owns_routes, edsy_coriolis_link_format_only]
+  privacy_gates: [build_link_imports_through_settings_import_export]
+  activity_log_requirements: [goal_changes, plan_changes, acquisition_progress]
+  must_link_to: [intel, navigation, operations, settings, activity_log]
+  must_not_own: [facts, routes, workflows, settings, audit_history]
+  implementation_phase: phase_8
+
+ROUTE_BACKEND:
+  route: carriers
+  backend_owner: carriers_service_group (reserved)
+  state_models: [CarrierIdentity, CarrierTritiumState, CarrierMarketState, CarrierStorageState, CarrierJumpLogistics, CarrierServicesState, ColonizationSupportState]
+  endpoint_families: [GET carriers/overview, GET carriers/tritium, GET carriers/market, GET carriers/storage, GET carriers/jump, GET carriers/services, POST carriers/colonization-support/*]
+  event_families: [carrier.*, source.* (capi), gate.*, privacy.*]
+  source_requirements: [capi_consent_and_auth, intel_for_public_carrier_context, navigation_for_routes]
+  privacy_gates: [capi_token_in_vault, no_outbound_without_consent]
+  activity_log_requirements: [ownership_state_changes, jump_actions, market_changes]
+  must_link_to: [intel, navigation, operations, settings, activity_log]
+  must_not_own: [facts, routes, workflows, settings, audit_history]
+  implementation_phase: reserved_until_fc_full_command_center_or_state_overload
+
+================================================================================
+F. SERVICE REGISTRY
+================================================================================
+
+SERVICE:
+  name: journal_watcher
+  purpose: tail Elite Dangerous Journal.*.log; emit raw events
+  owns: [file_tail, rotation, encoding, line_buffering]
+  does_not_own: [parsing_semantics, state]
+  inputs: [filesystem]
+  outputs: [raw_journal_event]
+  events: [state.snapshot_updated_indirect_via_handlers]
+  source_dependencies: [local_journal]
+  privacy_gates: none
+  route_consumers: [all]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: status_json_reader
+  purpose: read Status.json safely
+  owns: [status_polling_or_watch, snapshot_emission]
+  does_not_own: [interpretation]
+  inputs: [filesystem]
+  outputs: [status_json_snapshot]
+  events: [state.* via handlers]
+  source_dependencies: [local_status_json]
+  privacy_gates: none
+  route_consumers: [dashboard, intel_personal, operations]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: companion_json_readers
+  purpose: read Cargo/Market/Outfitting/Shipyard/ModulesInfo/NavRoute JSON
+  owns: [snapshot_emission, slot_filtering_against_current_ship]
+  does_not_own: [interpretation_outside_filter]
+  inputs: [filesystem]
+  outputs: [typed_companion_snapshot]
+  events: [route.active_changed (navroute), state.* (others)]
+  source_dependencies: [local_companion_json]
+  privacy_gates: none
+  route_consumers: [dashboard, intel, navigation, operations]
+  phase: phase_1_or_2_per_file_type_baseline
+
+SERVICE:
+  name: dispatcher
+  purpose: route parsed events to typed handlers
+  owns: [event_to_handler_mapping]
+  does_not_own: [state]
+  inputs: [parsed_event]
+  outputs: [handler_invocation]
+  events: none_emitted_directly
+  source_dependencies: none
+  privacy_gates: none
+  route_consumers: [all]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: state_manager
+  purpose: canonical state with typed extensions; source-priority enforcement
+  owns: [snapshot, typed_extensions, source_priority]
+  does_not_own: [domain_logic, presentation]
+  inputs: [handler_writes]
+  outputs: [snapshot]
+  events: [state.field_changed]
+  source_dependencies: none
+  privacy_gates: none
+  route_consumers: [all]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: broadcaster
+  purpose: async fan-out of typed events with subscriber isolation
+  owns: [subscription, isolation, queueing]
+  does_not_own: [event_semantics]
+  inputs: [event]
+  outputs: [delivered_event]
+  events: none
+  source_dependencies: none
+  privacy_gates: none
+  route_consumers: [all]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: activity_log_service
+  purpose: canonical proof layer
+  owns: [event_log_store, source_chain_records, external_request_records, ai_gate_records, exports_deletes, redaction_policy_at_write_time]
+  does_not_own: [workflows, facts, routes, settings]
+  inputs: [events]
+  outputs: [activity_log_records]
+  events: all_families_observed
+  source_dependencies: none
+  privacy_gates: [redaction]
+  route_consumers: [all_via_view_activity_links]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: confirmation_gate
+  purpose: wrap protected actions; cannot be bypassed
+  owns: [proposal_state_machine, audit_id_emission]
+  does_not_own: [actions_themselves]
+  inputs: [proposed_action]
+  outputs: [confirmed_or_canceled_or_blocked]
+  events: [gate.*]
+  source_dependencies: none
+  privacy_gates: [aligned_with_privacy_rules]
+  route_consumers: [all]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: ai_provider_factory
+  purpose: select AIProvider implementation; NullProvider always available
+  owns: [provider_selection]
+  does_not_own: [facts]
+  inputs: [settings]
+  outputs: [active_provider]
+  events: [ai.disabled, ai.fallback_engaged]
+  source_dependencies: [settings_ai]
+  privacy_gates: [no_outbound_when_provider_off]
+  route_consumers: [operations, intel_drafts, dashboard_command_bar]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: knowledge_base_loader
+  purpose: load and validate KB JSON with metadata
+  owns: [kb_load, kb_validation]
+  does_not_own: [domain_logic]
+  inputs: [knowledge_base/*]
+  outputs: [typed_kb_records]
+  events: [diagnostic.kb_validated]
+  source_dependencies: [local_kb]
+  privacy_gates: none
+  route_consumers: [intel, operations, navigation, diagnostics]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: vault
+  purpose: DPAPI-encrypted secret store bound to commander Windows account
+  owns: [secret_storage, rotation]
+  does_not_own: [logging]
+  inputs: [secret_write]
+  outputs: [secret_read_redacted]
+  events: [privacy.consent_granted/revoked_for_credential_lifecycle_only]
+  source_dependencies: [windows_dpapi]
+  privacy_gates: [never_log_secret]
+  route_consumers: [settings, source_router, capi_consumers]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: resource_monitor
+  purpose: self-report CPU, memory, latency, queue depth
+  owns: [perf_counters]
+  does_not_own: [enforcement_outside_diagnostics]
+  inputs: [process_metrics]
+  outputs: [diagnostic.health_warning, diagnostic.budget_breach]
+  events: [diagnostic.*]
+  source_dependencies: none
+  privacy_gates: none
+  route_consumers: [diagnostics, settings_diagnostics]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: api_bridge
+  purpose: FastAPI HTTP + WebSocket surface to UI; dynamic port discovery
+  owns: [endpoint_routing, ws_subscription, dynamic_port]
+  does_not_own: [domain_state]
+  inputs: [ui_requests, broadcaster_events]
+  outputs: [ui_responses, ws_events]
+  events: none_directly
+  source_dependencies: none
+  privacy_gates: [redaction_in_payloads]
+  route_consumers: [all]
+  phase: phase_1_baseline
+
+SERVICE:
+  name: source_registry
+  purpose: catalog providers + state (enabled, consent, auth, budget, health)
+  owns: [provider_state, capability_card_binding]
+  does_not_own: [routing_logic]
+  inputs: [settings, runtime_observations]
+  outputs: [registry_view]
+  events: [source.health_changed]
+  source_dependencies: [source_capability_routing_section_4]
+  privacy_gates: [consent_and_auth_state_visible]
+  route_consumers: [intel, navigation, operations, settings_sources, dashboard_data_bar]
+  phase: phase_5_introduction
+
+SERVICE:
+  name: source_router
+  purpose: produce WorkflowSourcePlan per workflow
+  owns: [plan_construction, allowed_sources_per_fact, preferred_order]
+  does_not_own: [request_execution]
+  inputs: [workflow_intent, registry_view]
+  outputs: [WorkflowSourcePlan]
+  events: [source.lookup_planned]
+  source_dependencies: [source_registry, source_capability_routing_section_2]
+  privacy_gates: [enforce_consent_and_auth_in_plan]
+  route_consumers: [operations, intel, navigation]
+  phase: phase_5_introduction
+
+SERVICE:
+  name: external_request_queue
+  purpose: per-provider scheduler with bucket awareness and backoff
+  owns: [request_dispatch, jittered_backoff, hard_cap_enforcement]
+  does_not_own: [provider_capability]
+  inputs: [ExternalRequestBundle]
+  outputs: [SourceResponse_or_blocker]
+  events: [source.request_queued, source.response_received, source.rate_limited, source.blocked]
+  source_dependencies: [source_capability_routing_section_6]
+  privacy_gates: [no_send_without_consent_or_auth]
+  route_consumers: [intel, navigation, operations]
+  phase: phase_5_introduction
+
+SERVICE:
+  name: cache_layer
+  purpose: store responses with provenance and TTL
+  owns: [cache_record_store, freshness_evaluation]
+  does_not_own: [domain_logic]
+  inputs: [SourceResponse]
+  outputs: [CacheRecord, cache_hit_or_miss]
+  events: [source.cache_hit, source.cache_miss]
+  source_dependencies: none
+  privacy_gates: [redacted_response_summary]
+  route_consumers: [all_consumers_of_external_facts]
+  phase: phase_5_introduction
+
+SERVICE:
+  name: provenance_registry
+  purpose: resolve field-level provenance for displayed values
+  owns: [field_provenance_resolution]
+  does_not_own: [facts]
+  inputs: [field_writes]
+  outputs: [provenance_records]
+  events: none_directly
+  source_dependencies: none
+  privacy_gates: none
+  route_consumers: [intel, dashboard, ui_chips_and_drawers]
+  phase: phase_5_introduction
+
+SERVICE:
+  name: workflow_engine
+  purpose: execute WorkflowSourcePlans; produce blockers, recommendations, next actions, debriefs
+  owns: [step_state_machine, recommendation_grounding, debrief_assembly]
+  does_not_own: [provider_capability, facts]
+  inputs: [WorkflowSourcePlan, telemetry, kb]
+  outputs: [WorkflowState, WorkflowRecommendation, WorkflowNextAction, ActivityLog]
+  events: [workflow.*, gate.*, source.*, ai.*]
+  source_dependencies: [source_router]
+  privacy_gates: [confirmation_gate_for_protected_actions]
+  route_consumers: [operations]
+  phase: phase_4_narrow_phase_5_general
+
+SERVICE:
+  name: ai_workflow_planner
+  purpose: classify intent and draft WorkflowSourcePlans; produce labeled drafts
+  owns: [intent_classification, draft_plan_construction, draft_text]
+  does_not_own: [facts, external_calls]
+  inputs: [commander_intent, telemetry_summary, kb_excerpts]
+  outputs: [draft_workflow_source_plan, ai_draft_text]
+  events: [ai.draft_proposed, ai.draft_accepted, ai.draft_rejected]
+  source_dependencies: [active_ai_provider, kb]
+  privacy_gates: [no_outbound_to_provider_without_consent]
+  route_consumers: [operations, intel_drafts, dashboard_command_bar]
+  phase: phase_4_narrow_phase_5_general
+
+================================================================================
+G. STATE MODEL REGISTRY
+================================================================================
+
+STATE_MODEL:
+  name: KnownFact
+  fields:
+    - id: string
+    - entity_ref: EntityRef
+    - field_name: string
+    - value_or_null: any
+    - truth_class: TruthClass
+    - source_id: string
+    - source_endpoint_family: string
+    - observed_at: datetime
+    - ingested_at: datetime
+    - freshness_state: FreshnessState
+    - cache_key: string_or_null
+    - caveat: SourceCaveat
+    - activity_log_ref: string
+    - schema_version: integer
+
+STATE_MODEL:
+  name: EntityRef
+  fields:
+    - kind: enum [galaxy, system, body, ring, station, carrier, settlement, site, poi, commander, ship, cargo, material, mission, discovery, fleet_carrier]
+    - id: string
+    - name: string_or_null
+    - parent_ref: EntityRef_or_null
+    - canonical_source: string
+
+STATE_MODEL:
+  name: FieldProvenance
+  fields:
+    - source_id: string
+    - endpoint_family: string
+    - request_bundle_id: string_or_null
+    - cache_record_id: string_or_null
+    - recorded_by: enum [local_journal, status_json, companion_json, capi, edsm, ardent, edastro, elitebgs, spansh, inara, eddn_listener, commander_entered, ai_draft, inferred]
+    - recorded_at: datetime
+    - expires_at_or_null: datetime_or_null
+    - signature_or_null: string_or_null
+
+STATE_MODEL:
+  name: FreshnessState
+  values: [LIVE, FRESH, STALE, EXPIRED, UNKNOWN, NOT_LOADED]
+
+STATE_MODEL:
+  name: TruthClass
+  values: [LIVE_LOCAL_TELEMETRY, LOCAL_SNAPSHOT, CACHED_EXTERNAL, AUTHENTICATED_SNAPSHOT, COMMUNITY_KNOWN, COMMANDER_ENTERED, INFERRED, AI_DRAFT, UNKNOWN, NOT_LOADED, DISABLED, STALE, REQUIRES_AUTHORIZATION, UNSUPPORTED, NO_VERIFIED_SOURCE]
+
+STATE_MODEL:
+  name: SourceCaveat
+  values: [NONE, INCOMPLETE_COVERAGE, RATE_LIMITED, REQUIRES_AUTH, REQUIRES_CONSENT, COMMUNITY_OBSERVED, INFERRED, AI_DRAFT, UNSUPPORTED, NO_VERIFIED_SOURCE]
+  optional_note: string
+
+STATE_MODEL:
+  name: IntelSnapshot
+  fields:
+    - scope: enum [galaxy, system, local, ship_personal]
+    - entity_ref: EntityRef
+    - facts_by_field: map[string, KnownFact]
+    - source_summary: list[SourceSummary]
+    - last_updated: datetime
+    - queued_lookups: list[WorkflowSourcePlan_ref]
+
+STATE_MODEL:
+  name: ActiveRouteState
+  fields:
+    - source: enum [navroute_json, omnicovas_candidate, spansh_linkout, spansh_api_future, internal_router_future]
+    - destination_ref: EntityRef_or_null
+    - next_jump_ref: EntityRef_or_null
+    - progress: ProgressShape
+    - status: enum [idle, planning, active, paused, completed, aborted]
+    - linked_operation_ref: string_or_null
+    - linked_intel_refs: list[EntityRef]
+    - source_freshness: FreshnessState
+    - started_at: datetime_or_null
+    - updated_at: datetime
+
+STATE_MODEL:
+  name: RouteCandidate
+  fields:
+    - id: string
+    - intent_ref: string
+    - type: enum [destination, exploration, exobiology, trade_loop, mining_run, mission, engineering, carrier, bgs_circuit, colonization]
+    - waypoints: list[EntityRef]
+    - total_jumps: integer_or_null
+    - total_distance_ly: number_or_null
+    - ship_constraints: ShipConstraintsShape
+    - source: string
+    - freshness: FreshnessState
+    - caveat: SourceCaveat
+
+STATE_MODEL:
+  name: RouteIntent
+  fields:
+    - id: string
+    - commander_intent: string
+    - parameters: map
+    - ship_constraints: ShipConstraintsShape
+    - allowed_sources: list[string]
+    - preferred_order: list[string]
+    - created_at: datetime
+
+STATE_MODEL:
+  name: RouteJob
+  fields:
+    - id: string
+    - intent_id: string
+    - provider_id: string
+    - status: enum [queued, running, complete, rate_limited, blocked, cancelled]
+    - submitted_at: datetime
+    - completed_at: datetime_or_null
+    - activity_log_ref: string
+    - result_candidate_id_or_null: string_or_null
+    - fallback_behavior: string
+
+STATE_MODEL:
+  name: SavedRoute
+  fields:
+    - id: string
+    - name: string
+    - type: enum [destination, exploration, exobiology, trade_loop, mining_run, mission, engineering, carrier, bgs_circuit, colonization]
+    - source: string
+    - freshness: FreshnessState
+    - tags: list[string]
+    - owner: enum [local, imported, shared_future]
+    - waypoints: list[EntityRef]
+    - created_at: datetime
+    - updated_at: datetime
+
+STATE_MODEL:
+  name: Bookmark
+  fields:
+    - id: string
+    - entity_ref: EntityRef
+    - folder: string_or_null
+    - tags: list[string]
+    - commander_note: string_or_null
+    - created_at: datetime
+    - last_used_at: datetime_or_null
+
+STATE_MODEL:
+  name: RouteSourceStatus
+  fields:
+    - provider_id: string
+    - enabled: bool
+    - healthy: bool
+    - last_success_at: datetime_or_null
+    - last_failure_at: datetime_or_null
+    - rate_limit_state: enum [ok, near_limit, throttled, hard_cap]
+    - queue_depth: integer
+    - blocker: SourceBlocker_or_null
+    - notes: string_or_null
+
+STATE_MODEL:
+  name: Operation
+  fields:
+    - id: string
+    - package: enum [combat, exploration_exobiology, trade_mining, passenger, bgs_powerplay, carrier_logistics, engineering_pre, squadron_pre, custom]
+    - name: string
+    - status: enum [proposed, active, paused, complete, aborted]
+    - started_at: datetime_or_null
+    - ended_at: datetime_or_null
+    - owner: enum [commander]
+    - session_focus_ref: string_or_null
+    - linked_intel_refs: list[LinkedIntelRef]
+    - linked_route_refs: list[LinkedRouteRef]
+    - recommendations: list[WorkflowRecommendation]
+    - next_actions: list[WorkflowNextAction]
+    - blockers: list[WorkflowBlocker]
+    - debrief_summary_or_null: string_or_null
+
+STATE_MODEL:
+  name: OperationObjective
+  fields:
+    - id: string
+    - operation_id: string
+    - description: string
+    - success_criteria: string
+    - progress: number_or_null
+    - status: enum [pending, in_progress, blocked, complete, abandoned]
+    - linked_intel_refs: list[LinkedIntelRef]
+    - linked_route_refs: list[LinkedRouteRef]
+    - blockers: list[WorkflowBlocker]
+
+STATE_MODEL:
+  name: SessionFocus
+  fields:
+    - active_focus: string
+    - candidate_list: list[string]
+    - applied_at: datetime_or_null
+    - defaults_ref: string
+
+STATE_MODEL:
+  name: WorkflowState
+  fields:
+    - operation_id: string
+    - step_index: integer
+    - current_step: WorkflowStep
+    - history: list[WorkflowStep]
+    - parameters: map
+    - pending_confirmations: list[ConfirmationProposal]
+
+STATE_MODEL:
+  name: WorkflowStep
+  fields:
+    - id: string
+    - kind: enum [gather_facts, queue_source_request, confirm_action, propose_recommendation, wait_for_telemetry, record_outcome, branch, end]
+    - inputs: map
+    - outputs: map_or_null
+    - source_plan_ref_or_null: string_or_null
+    - confirmation_required: bool
+
+STATE_MODEL:
+  name: WorkflowBlocker
+  fields:
+    - id: string
+    - kind: enum [missing_fact, source_disabled, source_blocked, consent_missing, auth_missing, rate_limited, unsupported, commander_input_required, confirmation_pending]
+    - reason: string
+    - fallback_action: string
+
+STATE_MODEL:
+  name: WorkflowRecommendation
+  fields:
+    - id: string
+    - operation_id: string
+    - draft_or_final: enum [draft, final]
+    - grounding_refs: list[ActivityLogRef_or_FactRef]
+    - confidence: enum [high, medium, low, unknown]
+    - requires_confirmation: bool
+    - ai_draft_flag: bool
+
+STATE_MODEL:
+  name: WorkflowNextAction
+  fields:
+    - id: string
+    - operation_id: string
+    - label: string
+    - target: enum [intel_ref, route_ref, settings_ref, activity_log_ref, commander_input]
+    - confirmation_required: bool
+
+STATE_MODEL:
+  name: LinkedIntelRef
+  fields:
+    - operation_id: string
+    - entity_ref: EntityRef
+    - field_name_or_null: string_or_null
+    - snapshot_id: string
+    - last_resolved_at: datetime
+
+STATE_MODEL:
+  name: LinkedRouteRef
+  fields:
+    - operation_id: string
+    - reference: ref_to[ActiveRouteState | RouteCandidate | SavedRoute]
+
+STATE_MODEL:
+  name: ActivityEvent
+  fields:
+    - id: string
+    - family: string
+    - type: string
+    - occurred_at: datetime
+    - recorded_at: datetime
+    - source: string
+    - entity_refs: list[EntityRef]
+    - field_changes: list[FieldChange]
+    - old_value_or_null: any
+    - new_value_or_null: any
+    - redacted_fields: list[string]
+    - links: ActivityLinks
+    - commander_visible: bool
+    - severity: enum [info, notice, warning, error, critical]
+
+STATE_MODEL:
+  name: SourceRegistryEntry
+  fields:
+    - provider_id: string
+    - capability_card_ref: string  # ref to source_capability_routing_section_4 entry
+    - enabled: bool
+    - consent_state: enum [granted, revoked, never_asked, blocked_by_policy]
+    - auth_state: enum [valid, missing, expired, revoked]
+    - budget_state: BudgetSnapshot
+    - health: enum [healthy, degraded, blocked, unknown]
+    - attribution_acknowledged: bool
+
+STATE_MODEL:
+  name: WorkflowSourcePlan
+  fields_from_source_routing_section_6:
+    - workflow_type
+    - commander_intent
+    - required_facts
+    - optional_facts
+    - allowed_sources_per_fact
+    - preferred_source_order
+    - cache_key_strategy
+    - cache_ttl
+    - request_bundle_plan
+    - rate_limit_bucket
+    - consent_requirements
+    - fallback_behavior
+    - unsupported_fields
+    - output_wording_rules
+
+STATE_MODEL:
+  name: ExternalRequestBundle
+  fields_from_source_routing_section_6:
+    - workflow_id
+    - workflow_type
+    - provider_id
+    - call_type
+    - endpoint_family
+    - required_facts
+    - optional_facts
+    - fields_requested
+    - cache_key
+    - cache_status
+    - source_priority
+    - consent_status
+    - auth_status
+    - documented_provider_limit
+    - documented_provider_guidance
+    - omnicovas_bucket
+    - batch_plan
+    - max_batch_size
+    - queue_policy
+    - freshness_requirement
+    - fallback_behavior
+    - unsupported_fields
+    - status
+    - activity_log_ids
+  status_values_from_source_routing:
+    - not_needed
+    - satisfied_by_cache
+    - partially_satisfied_by_cache
+    - queued
+    - running
+    - complete
+    - complete_with_missing_fields
+    - failed
+    - rate_limited
+    - blocked_by_privacy
+    - source_unsupported
+    - needs_verification
+
+STATE_MODEL:
+  name: CacheRecord
+  fields:
+    - cache_key: string
+    - provider_id: string
+    - endpoint_family: string
+    - response_summary_redacted: any
+    - recorded_at: datetime
+    - ttl_seconds: integer
+    - source_confidence: enum [high, medium, low]
+    - stale_behavior: enum [serve_labeled, refuse]
+
+STATE_MODEL:
+  name: SourceBlocker
+  fields:
+    - kind: enum [consent_missing, auth_missing, rate_limited, source_disabled, unsupported, needs_verification]
+    - provider_id: string_or_null
+    - workflow_ref: string
+    - reason: string
+    - fallback_action: string
+
+STATE_MODEL:
+  name: AboutMetadata
+  fields:
+    - name
+    - version
+    - build_hash
+    - build_timestamp
+    - signing_status
+    - license
+    - license_url
+    - security_url
+    - contributing_url
+    - cla_url
+    - sbom_url
+    - repo_url
+    - docs_url
+    - attributions: list[AttributionEntry]
+
+================================================================================
+H. API/BRIDGE CONTRACT REGISTRY
+================================================================================
+
+GLOBAL_BRIDGE_RULES:
+  bridge_url: dynamic_discovery_at_startup
+  hard_coded_localhost_port_in_ui: forbidden
+  payload_required_fields_when_source_bearing: [source, freshness_state, truth_class, caveat, activity_log_ref]
+  protected_action_via_confirmation_gate: required
+
+ENDPOINT_FAMILY:
+  family: dashboard
+  endpoints: [GET dashboard/state]
+  payload_principles: [projection_only, source_chips, freshness_chips]
+
+ENDPOINT_FAMILY:
+  family: events
+  endpoints: [WS events]
+  payload_principles: [typed_event, severity, redaction_for_privacy_sensitive]
+
+ENDPOINT_FAMILY:
+  family: intel
+  endpoints: [GET intel/galaxy, GET intel/system/<id>, GET intel/local/<id>, GET intel/personal, GET intel/fact/<id>, POST intel/queue-source-lookup]
+  payload_principles: [field_level_provenance_required, never_unsourced_fact]
+
+ENDPOINT_FAMILY:
+  family: navigation
+  endpoints: [GET navigation/active, GET navigation/candidates, POST navigation/plan, GET navigation/library, GET navigation/bookmarks, POST navigation/bookmark, GET navigation/sources, POST navigation/copy-next-jump]
+  payload_principles: [navroute_proof_when_present, candidate_caveat_when_external]
+
+ENDPOINT_FAMILY:
+  family: operations
+  endpoints: [GET operations/command-board, GET operations/<id>, POST operations, POST operations/<id>/step, POST operations/<id>/recommendation, POST operations/<id>/debrief, POST operations/focus]
+  payload_principles: [linked_intel_and_route_refs_only_no_inline_facts, blocker_kinds_typed]
+
+ENDPOINT_FAMILY:
+  family: activity
+  endpoints: [GET activity/timeline, GET activity/event/<id>, GET activity/source-chain/<fact_id>, GET activity/external-requests, GET activity/ai-gates, POST activity/export, POST activity/clear]
+  payload_principles: [redaction_at_serialization, raw_payload_only_when_policy_allows]
+
+ENDPOINT_FAMILY:
+  family: settings
+  endpoints: [GET settings/<category>, POST settings/<category>, POST settings/reset, POST settings/sources/<provider>, POST settings/export, POST settings/import]
+  payload_principles: [confirmation_gate_for_high_impact, vault_state_never_includes_key_material]
+
+ENDPOINT_FAMILY:
+  family: sources
+  endpoints: [GET sources/registry, GET sources/queue, POST sources/<provider>/consent, POST sources/<provider>/auth]
+  payload_principles: [budget_snapshot_visible, consent_and_auth_state_visible]
+
+ENDPOINT_FAMILY:
+  family: diagnostics
+  endpoints: [GET diagnostics/health, GET diagnostics/budgets, GET diagnostics/cache, GET diagnostics/queue]
+  payload_principles: [no_secret_in_response, latency_units_documented]
+
+ENDPOINT_FAMILY:
+  family: about
+  endpoints: [GET about/metadata]
+  payload_principles: [link_only_no_full_legal_text]
+
+================================================================================
+I. EVENT TAXONOMY
+================================================================================
+
+EVENT_FAMILY:
+  family: state
+  examples: [state.snapshot_updated, state.field_changed]
+  required_fields: [id, occurred_at, recorded_at, severity, entity_refs, field_changes, source]
+  redaction_rules: [secrets_never, pii_minimized]
+  route_consumers: [dashboard, intel, operations, activity_log]
+
+EVENT_FAMILY:
+  family: source
+  examples: [source.health_changed, source.lookup_planned, source.request_queued, source.response_received, source.cache_hit, source.cache_miss, source.rate_limited, source.blocked, source.unsupported]
+  required_fields: [id, occurred_at, recorded_at, severity, provider_id_or_null, workflow_ref_or_null, bundle_ref_or_null]
+  redaction_rules: [redact_request_payload, never_log_token]
+  route_consumers: [intel, navigation, operations, settings_sources, activity_log, dashboard_data_bar]
+
+EVENT_FAMILY:
+  family: workflow
+  examples: [workflow.step_started, workflow.step_completed, workflow.step_blocked, workflow.recommendation_proposed, workflow.recommendation_accepted, workflow.recommendation_rejected, workflow.next_action_proposed, workflow.next_action_triggered, workflow.debrief_finalized]
+  required_fields: [id, occurred_at, recorded_at, severity, operation_id, step_id_or_null, blocker_kind_or_null]
+  redaction_rules: [redact_inline_secrets]
+  route_consumers: [operations, activity_log, dashboard_summary]
+
+EVENT_FAMILY:
+  family: route
+  examples: [route.active_changed, route.next_jump_advanced, route.candidate_proposed, route.candidate_accepted, route.candidate_rejected, route.job_queued, route.job_completed, route.job_blocked, route.bookmark_created, route.bookmark_updated, route.bookmark_removed, route.library_imported, route.library_exported, route.source_status_changed]
+  required_fields: [id, occurred_at, recorded_at, severity, source]
+  redaction_rules: [no_special]
+  route_consumers: [navigation, operations, dashboard_summary, activity_log]
+
+EVENT_FAMILY:
+  family: intel
+  examples: [intel.fact_recorded, intel.fact_updated, intel.fact_invalidated, intel.lookup_queued, intel.lookup_completed, intel.lookup_blocked, intel.scope_view_assembled]
+  required_fields: [id, occurred_at, recorded_at, severity, entity_ref, field_name_or_null, source]
+  redaction_rules: [pii_minimized]
+  route_consumers: [intel, dashboard_summary, operations, activity_log]
+
+EVENT_FAMILY:
+  family: operation
+  examples: [operation.created, operation.started, operation.paused, operation.completed, operation.aborted, operation.objective_updated]
+  required_fields: [id, occurred_at, recorded_at, severity, operation_id]
+  redaction_rules: [no_special]
+  route_consumers: [operations, dashboard_summary, activity_log]
+
+EVENT_FAMILY:
+  family: ai
+  examples: [ai.draft_proposed, ai.draft_accepted, ai.draft_rejected, ai.disabled, ai.fallback_engaged]
+  required_fields: [id, occurred_at, recorded_at, severity, provider_id_or_null, workflow_ref_or_null]
+  redaction_rules: [redact_prompt_secrets, store_grounding_refs_not_full_prompt]
+  route_consumers: [operations, settings_ai, activity_log, dashboard_command_bar]
+
+EVENT_FAMILY:
+  family: gate
+  examples: [gate.proposed, gate.confirmed, gate.canceled, gate.blocked]
+  required_fields: [id, occurred_at, recorded_at, severity, proposal_id, target_kind]
+  redaction_rules: [redact_payload_summary_secrets]
+  route_consumers: [all_routes_that_propose_protected_actions, activity_log]
+
+EVENT_FAMILY:
+  family: privacy
+  examples: [privacy.consent_granted, privacy.consent_revoked, privacy.export_started, privacy.export_completed, privacy.delete_started, privacy.delete_completed]
+  required_fields: [id, occurred_at, recorded_at, severity, target]
+  redaction_rules: [audit_metadata_only_after_delete]
+  route_consumers: [settings_privacy, activity_log]
+
+EVENT_FAMILY:
+  family: settings
+  examples: [settings.changed, settings.profile_loaded, settings.reset]
+  required_fields: [id, occurred_at, recorded_at, severity, category, key, old_value_redacted_or_null, new_value_redacted_or_null]
+  redaction_rules: [redact_secret_values]
+  route_consumers: [settings, activity_log]
+
+EVENT_FAMILY:
+  family: diagnostic
+  examples: [diagnostic.budget_breach, diagnostic.health_warning, diagnostic.update_validated, diagnostic.kb_validated]
+  required_fields: [id, occurred_at, recorded_at, severity, area]
+  redaction_rules: [no_secret]
+  route_consumers: [settings_diagnostics, activity_log, about_for_build_signing]
+
+EVENT_FAMILY:
+  family: combat
+  examples: [combat.target_changed, combat.target_lost, combat.interdiction_started, combat.interdiction_escaped, combat.interdiction_submitted, combat.interdiction_failed, combat.pvp_contact_detected, combat.pvp_threat_flagged, combat.bounty_awarded, combat.combat_bond_awarded, combat.combat_rank_changed, combat.munitions_changed, combat.combat_zone_entered, combat.combat_zone_left, combat.combat_threat_changed, combat.ax_context_detected, combat.on_foot_combat_state_changed]
+  required_fields: [id, occurred_at, recorded_at, severity, source]
+  redaction_rules: [pii_for_pvp_contacts]
+  route_consumers: [operations_combat, intel_personal, dashboard, overlay, activity_log]
+
+EVENT_FAMILY:
+  family: exploration
+  examples: [exploration.scan_recorded, exploration.body_value_resolved, exploration.exobio_sample_started, exploration.exobio_sample_completed, exploration.exobio_value_estimated, exploration.poi_detected, exploration.session_summary_finalized]
+  required_fields: [id, occurred_at, recorded_at, severity, entity_ref]
+  redaction_rules: [no_special]
+  route_consumers: [operations_exploration, intel, navigation, activity_log]
+
+EVENT_FAMILY:
+  family: trade
+  examples: [trade.market_observed, trade.candidate_loop_proposed, trade.cargo_changed, trade.community_goal_overlap_detected]
+  required_fields: [id, occurred_at, recorded_at, severity, entity_ref]
+  redaction_rules: [no_special]
+  route_consumers: [operations_trade_mining, intel, navigation, activity_log]
+
+EVENT_FAMILY:
+  family: mining
+  examples: [mining.candidate_workflow_proposed, mining.session_yield_recorded, mining.coaching_hint_proposed]
+  required_fields: [id, occurred_at, recorded_at, severity, entity_ref_or_null]
+  redaction_rules: [no_special]
+  route_consumers: [operations_trade_mining, intel, navigation, activity_log]
+
+EVENT_FAMILY:
+  family: carrier
+  examples: [carrier.tritium_state_changed, carrier.market_observed, carrier.jump_initiated, carrier.jump_completed, carrier.services_state_changed, carrier.colonization_progress_recorded]
+  required_fields: [id, occurred_at, recorded_at, severity, entity_ref]
+  redaction_rules: [redact_capi_secrets]
+  route_consumers: [operations_carrier_logistics_pre_or_carriers_post, intel_personal, navigation, activity_log]
+
+EVENT_FAMILY:
+  family: squadron
+  examples: [squadron.peer_state_changed, squadron.invite_created, squadron.invite_accepted, squadron.telemetry_sync_event, squadron.role_changed, squadron.shared_operation_event, squadron.shared_navigation_event, squadron.emergency_event, squadron.integration_event]
+  required_fields: [id, occurred_at, recorded_at, severity, peer_id_or_null]
+  redaction_rules: [pii_for_peers, redact_secrets, encrypt_at_transport]
+  route_consumers: [squadrons, operations, navigation, activity_log]
+
+EVENT_FAMILY:
+  family: engineering
+  examples: [engineering.goal_added, engineering.goal_completed, engineering.material_gap_recorded, engineering.blueprint_progress_recorded, engineering.unlock_state_changed, engineering.acquisition_plan_updated]
+  required_fields: [id, occurred_at, recorded_at, severity, entity_ref_or_null]
+  redaction_rules: [no_special]
+  route_consumers: [engineering, operations_engineering_pre_or_thin_post, intel, navigation, activity_log]
+
+EVENT_FAMILY:
+  family: bgs
+  examples: [bgs.faction_state_changed, bgs.influence_recorded, bgs.tick_observed, bgs.station_state_changed, bgs.tally_export_initiated]
+  required_fields: [id, occurred_at, recorded_at, severity, entity_ref]
+  redaction_rules: [no_special]
+  route_consumers: [intel_system, operations_bgs_powerplay, navigation, activity_log]
+
+EVENT_FAMILY:
+  family: powerplay
+  examples: [powerplay.context_observed, powerplay.merit_state_changed, powerplay.cg_overlap_detected]
+  required_fields: [id, occurred_at, recorded_at, severity, entity_ref]
+  redaction_rules: [no_special]
+  route_consumers: [intel, operations_bgs_powerplay, navigation, activity_log]
+
+================================================================================
+J. SOURCE ROUTING CONTRACT
+================================================================================
+
+SOURCE_ROUTING_BIND:
+  authoritative_source: source_capability_routing_v1
+  bind_points:
+    - section_2_call_type_router
+    - section_3_provider_priority_map
+    - section_4_capability_cards
+    - section_5_unsupported_facts
+    - section_6_external_request_design_contract
+    - section_7_implementation_guardrails
+    - section_8_contact_routes
+
+LOCAL_FIRST_SEQUENCE:
+  - local_journal
+  - local_companion_json
+  - omnicovas_state_cache
+  - capi_authenticated_snapshot_if_consented
+  - verified_external_per_call_type_router
+  - link_only_or_unsupported_declaration
+
+ROUTING_RULE:
+  ai_calls_provider_directly: forbidden
+  workflow_without_workflow_source_plan: forbidden
+  request_without_external_request_bundle: forbidden
+  request_without_consent_or_auth_when_required: forbidden
+  request_after_429_without_backoff: forbidden
+  scrape_undocumented_endpoint: forbidden
+  promote_candidate_provider_to_dependency_without_verification: forbidden
+
+PER_PROVIDER_BIND:
+  ardent: source_capability_routing_section_4_4
+  edsm: source_capability_routing_section_4_5
+  capi: source_capability_routing_section_4_6
+  edastro: source_capability_routing_section_4_7
+  elitebgs: source_capability_routing_section_4_8
+  spansh: source_capability_routing_section_4_9
+  inara: source_capability_routing_section_4_10
+  eddn: source_capability_routing_section_4_11
+  edmc_eddiscovery_eddi: source_capability_routing_section_4_12
+  edsy_coriolis: source_capability_routing_section_4_13
+
+================================================================================
+K. PROVENANCE CONTRACT
+================================================================================
+
+PROVENANCE_REQUIRED_PER_FIELD:
+  - source
+  - timestamp
+  - freshness_state
+  - truth_class
+  - caveat
+  - activity_log_ref
+
+TRUTH_CLASS_VALUES:
+  - LIVE_LOCAL_TELEMETRY
+  - LOCAL_SNAPSHOT
+  - CACHED_EXTERNAL
+  - AUTHENTICATED_SNAPSHOT
+  - COMMUNITY_KNOWN
+  - COMMANDER_ENTERED
+  - INFERRED
+  - AI_DRAFT
+  - UNKNOWN
+  - NOT_LOADED
+  - DISABLED
+  - STALE
+  - REQUIRES_AUTHORIZATION
+  - UNSUPPORTED
+  - NO_VERIFIED_SOURCE
+
+UI_DISPLAY_RULES:
+  source_chip: required_when_source_bearing
+  freshness_chip: required_when_cached_or_external
+  why_link: resolves_to_activity_log_event
+  view_activity_link: resolves_to_activity_log_event_or_chain
+  fallback_wording_required_for: [UNKNOWN, NOT_LOADED, DISABLED, STALE, REQUIRES_AUTHORIZATION, UNSUPPORTED, NO_VERIFIED_SOURCE]
+
+================================================================================
+L. CACHE/QUEUE/REQUEST BUDGET CONTRACT
+================================================================================
+
+CACHE_RULES:
+  store_response_summary_redacted: true
+  cache_record_required_fields: [cache_key, provider_id, endpoint_family, response_summary_redacted, recorded_at, ttl_seconds, source_confidence, stale_behavior]
+  serve_stale_only_with_label: true
+  invalidate_on_consent_revocation: true
+  invalidate_on_auth_change: true
+
+QUEUE_RULES:
+  per_provider_queue: required
+  jittered_backoff_on_429: required
+  hard_cap_enforcement: required
+  graceful_degrade_on_provider_blocked: required
+  no_silent_retry_after_block: true
+
+BUDGET_BIND:
+  authoritative_source: source_capability_routing_v1_section_6
+  values_bind_to:
+    edsm_public: {default: 2_per_min, hard: 120_per_hour}
+    edsm_commander: {default: 1_per_min, hard: endpoint_specific_use_less}
+    edastro: {default: 40_per_15min, hard: 75_per_15min, provider_max: 100_per_15min}
+    capi: {default: 1_per_min, hard: 60_per_day_until_relationship}
+    inara: {default: 1_per_min, hard: 2_per_min_unless_granted_more}
+    elitebgs: {default: 2_per_min, hard: 60_per_hour, provider_rate_known: false}
+    spansh: {posture: link_out_or_manual_now, candidate_api_if_approved: 2_route_jobs_per_5min_30_per_day}
+    ardent: {default: 6_per_min, hard: 240_per_hour, provider_enforced_limit: none_currently_identified}
+    eddn_listener: {posture: local_listener_budget_not_request_bucket}
+    eddn_submitter: {posture: event_driven_consent_gated_schema_validated}
+
+BUDGET_RULE:
+  no_inventing_numbers_in_backend: true
+  changes_require: source_capability_routing_revision
+
+================================================================================
+M. WORKFLOW ENGINE CONTRACT
+================================================================================
+
+WORKFLOW:
+  name: combat_target_intelligence
+  owning_route: operations_combat_target_threat
+  backend_owner: workflow_engine + combat_target_intelligence_handler
+  linked_intel: [intel_personal_encounters, intel_system_traffic_risk]
+  linked_navigation: none_or_active_route
+  source_plan_required: false_unless_external_pvp_lookup
+  confirmation_required: false_for_telemetry_true_for_external_lookup
+  activity_log_events: [combat.target_changed, combat.target_lost]
+  unsupported_states: [unknown_target_rank, unknown_target_faction]
+
+WORKFLOW:
+  name: combat_interdiction_response
+  owning_route: operations_combat_interdiction_escape
+  backend_owner: workflow_engine + interdiction_handler + escape_planner
+  linked_intel: [intel_system_traffic_risk]
+  linked_navigation: [navigation_planner_or_active_route]
+  source_plan_required: false_unless_external_route_assist
+  confirmation_required: true_for_any_advisory_apply
+  activity_log_events: [combat.interdiction_started, combat.interdiction_escaped, combat.interdiction_submitted, combat.interdiction_failed]
+  unsupported_states: [no_kb_threshold]
+
+WORKFLOW:
+  name: pvp_encounter_lookup
+  owning_route: operations_combat_pvp + intel_personal_encounters
+  backend_owner: workflow_engine + pvp_handler + (future) external_pvp_lookup_gated
+  linked_intel: [intel_personal_encounters]
+  linked_navigation: none
+  source_plan_required: true_when_external_lookup_enabled
+  confirmation_required: true_for_external_lookup
+  activity_log_events: [combat.pvp_contact_detected, combat.pvp_threat_flagged]
+  unsupported_states: [external_lookup_disabled, ganker_label_without_source]
+
+WORKFLOW:
+  name: trade_loop_candidate_review
+  owning_route: operations_trade_mining
+  backend_owner: workflow_engine + trade_candidate_service
+  linked_intel: [intel_local_market_commodity, intel_personal_cargo]
+  linked_navigation: [navigation_planner_or_library]
+  source_plan_required: true
+  confirmation_required: false_for_review_true_for_outbound_submission
+  activity_log_events: [trade.candidate_loop_proposed]
+  unsupported_states: [no_verified_global_source, partial_coverage]
+
+WORKFLOW:
+  name: mining_candidate_workflow
+  owning_route: operations_trade_mining
+  backend_owner: workflow_engine + mining_candidate_service
+  linked_intel: [intel_local_body_ring, intel_local_market]
+  linked_navigation: [navigation_planner_or_library]
+  source_plan_required: true
+  confirmation_required: false
+  activity_log_events: [mining.candidate_workflow_proposed]
+  unsupported_states: [no_verified_hotspot_source, no_verified_ring_candidate_source]
+
+WORKFLOW:
+  name: route_planning
+  owning_route: navigation_planner
+  backend_owner: workflow_engine + route_planner_service
+  linked_intel: [intel_system, intel_local]
+  linked_navigation: navigation_active_route
+  source_plan_required: true
+  confirmation_required: true_for_copy_next_jump
+  activity_log_events: [route.candidate_proposed, route.candidate_accepted, route.candidate_rejected]
+  unsupported_states: [spansh_api_not_verified]
+
+WORKFLOW:
+  name: bgs_operation_recommendation
+  owning_route: operations_bgs_powerplay
+  backend_owner: workflow_engine + bgs_recommendation_service
+  linked_intel: [intel_system_factions, intel_galaxy_bgs_tick]
+  linked_navigation: navigation_planner_or_library
+  source_plan_required: true
+  confirmation_required: true_for_outbound_tally_action
+  activity_log_events: [bgs.faction_state_changed, bgs.tally_export_initiated]
+  unsupported_states: [no_official_bgs_truth_disclaimer_required]
+
+WORKFLOW:
+  name: settings_change_workflow
+  owning_route: settings
+  backend_owner: settings_service + confirmation_gate
+  linked_intel: none
+  linked_navigation: none
+  source_plan_required: false
+  confirmation_required: true_for_high_impact_changes
+  activity_log_events: [settings.changed, gate.proposed, gate.confirmed, gate.canceled]
+  unsupported_states: none
+
+================================================================================
+N. AI BOUNDARY CONTRACT
+================================================================================
+
+AI_PROVIDER_INTERFACE:
+  required: true
+  null_provider_required: true
+  ai_off_core_must_work: true
+
+AI_ALLOWED:
+  - classify_commander_intent
+  - summarize_source_backed_facts_with_label
+  - explain_source_backed_recommendations
+  - compare_source_backed_options
+  - draft_workflow_source_plan
+  - draft_ui_text_with_AI_DRAFT_label
+
+AI_FORBIDDEN:
+  - produce_facts
+  - call_external_apis_directly
+  - bypass_source_router
+  - bypass_confirmation_gate
+  - perform_game_actions
+  - hidden_background_work_without_activity_log
+  - generate_recommendations_against_unsourced_or_unsupported_claims
+
+AI_OUTPUT_LABELING:
+  ai_draft_class: required_when_not_promoted_to_recorded_fact
+  grounding_refs: required_for_recommendations
+  confidence_indicator: required_for_recommendations
+
+================================================================================
+O. CONFIRMATION GATE CONTRACT
+================================================================================
+
+GATE_NON_BYPASSABLE: true
+
+PROTECTED_ACTIONS:
+  - settings_change_high_impact
+  - outbound_submission_eddn_inara_capi_tally_or_future
+  - export_commander_data
+  - delete_commander_data
+  - route_activation_hint_copy_next_jump
+  - ai_proposed_action_with_side_effects
+  - input_assist_actions_future
+
+GATE_STATES: [PROPOSED, CONFIRMED, CANCELED, BLOCKED]
+
+PROPOSAL_FIELDS:
+  - proposal_id
+  - kind
+  - target
+  - payload_summary
+  - justification
+  - source_refs
+  - ai_draft_flag
+  - severity
+  - deadline_or_null
+
+GATE_AUDIT_REQUIREMENTS:
+  - audit_id_emitted_per_decision
+  - decision_recorded_in_activity_log
+  - blocked_state_records_block_reason
+
+================================================================================
+P. PRIVACY/SECURITY CONTRACT
+================================================================================
+
+DEFAULTS:
+  outbound_data: off
+  third_party_telemetry_to_maintainers: off
+
+SECRETS:
+  vault: dpapi_bound_to_commander_windows_account
+  rotation_supported: true
+  redaction_processor: required_on_every_log_record
+
+PRIVACY_GATES:
+  per_source_consent: required
+  per_action_consent_for_outbound: required
+  capi_token_in_vault: required
+  inara_whitelist_consent: required
+  commander_pii_local_only_default: true
+
+EXPORT_DELETE:
+  export_via_confirmation_gate: required
+  delete_via_confirmation_gate: required
+  audit_metadata_retained_after_delete: true
+  raw_data_retained_after_delete: false
+
+SQUADRON_PRIVACY_PHASE_7:
+  consent_per_share_scope: required
+  encrypted_telemetry_sync: required
+  top_secret_mode: reserved_with_future_security_doctrine
+  burn_command: reserved_with_future_security_doctrine
+
+SECURITY_REPORTING:
+  surface: about_security_link
+  channel: github_private_vulnerability_reporting
+  no_silent_crash_reports: true
+
+================================================================================
+Q. PHASE IMPLEMENTATION MATRIX
+================================================================================
+
+PHASE_BACKEND:
+  phase: 1
+  status: complete_integrated_baseline
+  services: [journal_watcher, status_json_reader, dispatcher, state_manager, broadcaster, activity_log_service, confirmation_gate, ai_provider_factory, knowledge_base_loader, vault, resource_monitor, api_bridge, db]
+  state_additions: [base_state_manager_snapshot]
+  events: [state.*, gate.*, settings.*, diagnostic.*, ai.*]
+  endpoints: [GET dashboard/state base, WS events base]
+  source_dependencies: [local_journal, status_json]
+  privacy_gates: [vault, redaction]
+  ui_route_consumers: [dashboard_skeleton, settings_skeleton, activity_log_skeleton, about_skeleton]
+  implementation_caution: do_not_redo
+
+PHASE_BACKEND:
+  phase: 2
+  status: complete_integrated_baseline
+  services: [pillar_1_handlers]
+  state_additions: [ship_state, fuel, cargo, loadout, module_health, hull_triggers, power_distribution, heat_management, rebuy, extended_events]
+  events: [state.*, ship_*, dashboard_card_updates]
+  endpoints: [pillar1_endpoints]
+  source_dependencies: [local_journal, status_json, companion_json]
+  privacy_gates: [none_new]
+  ui_route_consumers: [dashboard_left_rail, intel_personal_pre_unification]
+  implementation_caution: do_not_redo
+
+PHASE_BACKEND:
+  phase: 2_5
+  status: complete_integrated_baseline
+  services: [reconciled_into_phase_2]
+  state_additions: [shield_intelligence_under_hull_shields_safety]
+  events: [reused]
+  endpoints: [none_new]
+  source_dependencies: [none_new]
+  privacy_gates: [none_new]
+  ui_route_consumers: [dashboard_top_core_bar, dashboard_left_rail]
+  implementation_caution: do_not_recreate_shield_intelligence_as_separate_service
+
+PHASE_BACKEND:
+  phase: 3
+  status: complete_integrated_baseline
+  services: [tauri_shell, fastapi_bridge_full, websocket_event_stream_full, overlay_window, first_run_setup, privacy_page, settings_full, activity_log_view, dashboard_view, output_mode_router]
+  state_additions: [dashboard_layout_state, overlay_profile_state, profile_state, privacy_data_state, sources_data_flow_state_skeleton]
+  events: [overlay_alerts, settings.*, privacy.*]
+  endpoints: [GET dashboard/state, WS events, GET activity, GET settings/<category>, GET about/metadata]
+  source_dependencies: [none_new]
+  privacy_gates: [first_run_acks, per_source_skeleton]
+  ui_route_consumers: [dashboard, intel_skeleton, navigation_skeleton, operations_skeleton, activity_log, settings, about, overlay]
+  implementation_caution: do_not_redo_safe_rendering_pattern_locked_by_adr_0003
+
+PHASE_BACKEND:
+  phase: 4
+  status: active_roadmap_beginning_implementation_planning
+  services_new: [combat_target_intelligence, interdiction_handler, escape_planner, pvp_handler, hostility_threat_service, rewards_service, combat_rank_service, munitions_service, combat_zone_service, pirate_hunting_classification, threat_scoring, ax_partial, on_foot_combat_awareness, workflow_engine_narrow, ai_workflow_planner_narrow]
+  state_additions: [target_snapshot, interdiction_state, pvp_contact, munitions_snapshot, combat_zone_snapshot, combat_threat_snapshot, ax_context_snapshot, on_foot_combat_snapshot, combat_rank_snapshot, combat_reward]
+  events: [combat.*, gate.*, ai.*, source.* if external_pvp_enabled]
+  endpoints: [GET combat/target, GET combat/interdiction, GET combat/escape-options, GET combat/pvp/contact/<name>, GET combat/rewards, GET combat/rank, GET combat/munitions, GET combat/zone, GET combat/threat]
+  source_dependencies: [local_journal, status_json; external_pvp_lookup_gated]
+  privacy_gates: [pvp_lookup_default_off, no_invented_ganker_label]
+  ui_route_consumers: [operations_combat, overlay_for_critical_alerts, intel_personal_for_encounters, dashboard_external_rail, activity_log]
+  implementation_caution: respect_ui_blueprint_v1_0_combat_under_operations_not_dashboard_cards
+
+PHASE_BACKEND:
+  phase: 5
+  status: planned
+  services_new: [source_registry, source_router, external_request_queue, cache_layer, provenance_registry, intel_service_group_unified, navigation_service_group_unified, exploration_service_group, exobiology_service_group, expedition_planner]
+  state_additions: [KnownFact_registry, IntelSnapshot, ActiveRouteState_full, RouteCandidate, RouteIntent, RouteJob, SavedRoute, Bookmark, RouteSourceStatus]
+  events: [source.*, intel.*, route.*, exploration.*]
+  endpoints: [intel_endpoints, navigation_endpoints, sources_endpoints, exploration_endpoints]
+  source_dependencies: [local + edsm + edastro + ardent + spansh_linkout + eddn_listener_candidate]
+  privacy_gates: [source_consent_per_provider, attribution_acknowledgments]
+  ui_route_consumers: [intel_full, navigation_full, operations_exploration_exobiology, dashboard_external_rail, activity_log, settings_sources_full]
+  implementation_caution: respect_respectful_budgets_per_source_capability_routing_section_6
+
+PHASE_BACKEND:
+  phase: 6
+  status: planned
+  services_new: [trade_candidate_service, mining_candidate_service, cargo_intel, efficiency_tracking, eddn_market_submission_consent_gated, tritium_manager_pre_carriers, fc_market_basic_pre_carriers, colonization_operations_under_carrier_logistics, smuggling_intelligence_base_future]
+  state_additions: [trade_candidate, mining_candidate, cargo_session_summary, eddn_submission_state, tritium_state_pre, colonization_state]
+  events: [trade.*, mining.*, carrier.*, source.*, gate.*, privacy.*]
+  endpoints: [operations_trade_mining_endpoints, operations_carrier_logistics_endpoints]
+  source_dependencies: [ardent + edsm + capi_when_consented + eddn]
+  privacy_gates: [eddn_submission_consent, capi_auth, commander_cargo_local_default]
+  ui_route_consumers: [operations_trade_mining, operations_carrier_logistics, intel, navigation, dashboard_external_rail, activity_log]
+  implementation_caution: forbid_best_in_galaxy_or_guaranteed_best_hotspot_language
+
+PHASE_BACKEND:
+  phase: 7
+  status: planned
+  services_new: [squadrons_service_group, peer_state, telemetry_sync_chacha20_poly1305, invite_service, role_authority_service, shared_operations_service, shared_navigation_links, emergency_security_state, squadron_log_service, integrations_service]
+  state_additions: [PeerState, TelemetrySyncState, InviteCode, RoleAuthority, SharedOperationLink, SharedNavigationLink, EmergencySecurityState, SquadronLogEntry, IntegrationState]
+  events: [squadron.*, gate.*, privacy.*, source.* (integrations)]
+  endpoints: [squadrons_endpoints]
+  source_dependencies: [stun_p2p, peer_relay_fallback]
+  privacy_gates: [explicit_share_scope, top_secret_burn_doctrine_required]
+  ui_route_consumers: [squadrons, operations, navigation, intel, settings, activity_log]
+  implementation_caution: top_secret_and_burn_command_require_future_security_doctrine
+
+PHASE_BACKEND:
+  phase: 8
+  status: planned
+  services_new: [engineering_service_group, materials_planner, blueprints_planner, engineers_unlocks, guardian_tech_service, suit_engineering, builds_loadouts_planner, acquisition_planner]
+  state_additions: [EngineeringGoal, MaterialGap, BlueprintProgress, EngineerUnlockState, GuardianTechProgress, SuitEngineeringState, BuildPlan, AcquisitionPlan, ImportSourceState]
+  events: [engineering.*, source.*]
+  endpoints: [engineering_endpoints]
+  source_dependencies: [intel_owned_facts, navigation_owned_routes, edsy_coriolis_link_format_only]
+  privacy_gates: [build_link_imports_via_settings_import_export]
+  ui_route_consumers: [engineering, operations, intel, navigation, settings, activity_log]
+  implementation_caution: edsy_coriolis_are_link_formats_not_telemetry
+
+PHASE_BACKEND:
+  phase: 9
+  status: planned
+  services_new: [bgs_facts_service, powerplay_context_service, bgs_tally_export_action, faction_influence_history_service]
+  state_additions: [bgs_faction_state, powerplay_context, tally_export_record]
+  events: [bgs.*, powerplay.*, source.*, gate.*]
+  endpoints: [intel_bgs_powerplay_endpoints, operations_bgs_powerplay_endpoints]
+  source_dependencies: [elitebgs + edsm_for_context]
+  privacy_gates: [outbound_consent_for_tally_export]
+  ui_route_consumers: [intel, operations_bgs_powerplay, navigation, squadrons_for_group, activity_log]
+  implementation_caution: never_present_community_bgs_as_official_or_final_truth
+
+PHASE_BACKEND:
+  phase: final_pre_v1_0
+  status: planned
+  services_new: [diagnostics_expansion, security_audit_self_test, hallucination_guard_stress_test_runner, beta_release_readiness_view]
+  state_additions: [readiness_view]
+  events: [diagnostic.*, ai.*]
+  endpoints: [GET diagnostics/health_full]
+  source_dependencies: [none_new]
+  privacy_gates: [none_new]
+  ui_route_consumers: [settings_diagnostics, activity_log, about]
+  implementation_caution: no_new_primary_routes
+
+================================================================================
+R. ROUTE ACTIVATION MATRIX
+================================================================================
+
+ROUTE_ACTIVATION:
+  route: squadrons
+  trigger: phase_7_begins
+  pre_activation_owner: operations_squadron_thin
+  post_activation_owner: squadrons_service_group
+  ownership_transfer: operations_squadron_becomes_thin_handoff
+  links_after_activation: [intel, navigation, operations, settings, activity_log]
+
+ROUTE_ACTIVATION:
+  route: engineering
+  trigger: phase_8_begins
+  pre_activation_owner: operations_engineering_thin
+  post_activation_owner: engineering_service_group
+  ownership_transfer: operations_engineering_becomes_thin_handoff
+  links_after_activation: [intel, navigation, operations, settings, activity_log]
+
+ROUTE_ACTIVATION:
+  route: carriers
+  trigger: fc_full_command_center_scope_begins_or_state_overload_in_operations
+  pre_activation_owner: operations_carrier_logistics + intel_personal_fleet_carrier + navigation_carrier_routes
+  post_activation_owner: carriers_service_group
+  ownership_transfer: operations_carrier_logistics_becomes_thin_handoff_intel_navigation_retain_their_facts_and_routes_carriers_links
+  links_after_activation: [intel, navigation, operations, settings, activity_log]
+
+================================================================================
+S. UNSUPPORTED/FALLBACK WORDING TABLE
+================================================================================
+
+UNSUPPORTED_FACT_HANDLING:
+  best_hotspot_near_me_without_verified_source: "No Verified Source"
+  best_in_galaxy_without_verified_complete_source: "Unsupported"
+  known_ganker_without_verified_source: "Unsupported"
+  nearest_guaranteed_module_without_exact_inventory_source: "Unsupported"
+  official_final_bgs_truth_for_community_sources: "Community-known data"
+  guaranteed_all_exobiology_opportunities: "Unsupported"
+  query_eddn_for_latest_market: "Unsupported"
+  inara_market_or_faction_or_system_or_station_lookup: "Unsupported"
+
+FALLBACK_WORDING_REGISTRY:
+  unknown: "Unknown"
+  not_loaded: "Not Loaded"
+  disabled: "Disabled"
+  stale: "Stale"
+  requires_authorization: "Requires Authorization"
+  unsupported: "Unsupported"
+  no_verified_source: "No Verified Source"
+  partial_coverage: "Partial result from enabled sources"
+  community_observed: "Known/observed, not guaranteed complete"
+  cached: "Cached from {source}, last updated {timestamp}"
+
+================================================================================
+T. COLLISION/DUPLICATION FORBIDDEN PATTERNS
+================================================================================
+
+FORBIDDEN_PATTERNS:
+  second_state_manager: forbidden
+  second_dispatcher: forbidden
+  second_broadcaster: forbidden
+  second_event_taxonomy: forbidden
+  second_cache_for_state: forbidden
+  second_dpapi_vault: forbidden
+  second_fastapi_bridge: forbidden
+  second_websocket_stream: forbidden
+  second_activity_log: forbidden
+  second_confirmation_gate: forbidden
+  parallel_kb_loader: forbidden
+  parallel_kb_validation: forbidden
+  pillar_named_state_manager: forbidden  # e.g., CombatStateManager
+  ai_creates_facts: forbidden
+  ai_calls_apis_directly: forbidden
+  ai_bypasses_source_router: forbidden
+  ai_bypasses_confirmation_gate: forbidden
+  operations_owns_intel_facts: forbidden
+  operations_owns_navigation_routes: forbidden
+  navigation_owns_facts: forbidden
+  dashboard_owns_workflows: forbidden
+  dashboard_owns_facts: forbidden
+  about_duplicates_settings_or_privacy_or_audit: forbidden
+  hard_coded_localhost_port_in_ui: forbidden
+  scraping_undocumented_endpoint: forbidden
+  promoting_candidate_provider_to_dependency_without_verification: forbidden
+  inventing_provider_budget_numbers_in_backend: forbidden
+  reintroducing_eddi_as_active_dependency: forbidden
+  requiring_voiceattack: forbidden
+  shield_intelligence_as_separate_card_route_or_setting: forbidden  # phase_2_5_collision_lock
+
+================================================================================
+U. CHECKLIST FOR FUTURE PLAYBOOK AUTHORS
+================================================================================
+
+PRE_PLAYBOOK_VERIFICATION_CHECKLIST:
+  - confirm_route_owner_in_ui_blueprint_v1_0
+  - confirm_backend_owner_in_this_document_section_E_or_F
+  - confirm_state_models_in_section_G
+  - confirm_endpoint_family_in_section_H
+  - confirm_event_family_in_section_I
+  - confirm_source_routing_in_section_J_and_source_capability_routing_v1
+  - confirm_provenance_required_per_field_section_K
+  - confirm_cache_queue_budget_in_section_L_using_source_capability_routing_section_6
+  - confirm_workflow_in_section_M_or_state_new_workflow_using_workflow_schema
+  - confirm_ai_boundary_in_section_N
+  - confirm_confirmation_gate_in_section_O_for_protected_actions
+  - confirm_privacy_security_in_section_P
+  - confirm_phase_in_section_Q
+  - confirm_route_activation_status_in_section_R
+  - confirm_fallback_wording_in_section_S
+  - confirm_no_collision_in_section_T
+  - escalate_if_required_fixture_missing
+  - escalate_if_kb_threshold_missing
+  - escalate_if_new_dependency_required
+  - escalate_if_new_external_service_required
+  - escalate_if_outside_phase_scope
+
+PLAYBOOK_NEVER:
+  - request_full_master_blueprint_or_compliance_matrix_in_context
+  - request_phase_guide_in_context_when_section_reference_suffices
+  - allow_soldier_to_invent_journal_field_or_kb_threshold
+  - allow_soldier_to_promote_candidate_provider
+  - allow_soldier_to_skip_activity_log_writes
+
+================================================================================
+V. OPEN RECONCILIATION LIST
+================================================================================
+
+RECONCILIATION_ITEMS:
+  - id: idx_backend_blueprint_entries
+    summary: "Index v2.2 needs Backend Blueprint entries (BBP_HR, BBP_AI) under Section 2.2 and Section 3 section maps."
+    owner: index_maintainer
+    blocking: false
+
+  - id: source_capability_filename_vs_status_drift
+    summary: "Companion file is _v1.txt; document Status reads 'v0.6 Candidate'. Reconcile filename or document status."
+    owner: source_capability_maintainer
+    blocking: false
+
+  - id: phase_4_dev_guide_predates_ui_blueprint_v1_0
+    summary: "Phase 4 Dev Guide uses 'combat dashboard cards' and 'PvP Gank Database'. UI Blueprint v1.0 places combat under Operations and renames to 'PvP Encounter Log & Risk Intel'. Backend Blueprint mirrors UI v1.0; Dev Guide needs revision."
+    owner: phase_4_guide_maintainer
+    blocking: false
+
+  - id: adr_0003_collision
+    summary: "docs/decisions/0003-ui-safe-rendering.md exists; Phase 4 Dev Guide Week 15 Part A asks for a new 0003-phase4-combat-scope.md. Phase 4 ADR must take a new number."
+    owner: phase_4_guide_maintainer
+    blocking: true_for_phase_4_kickoff
+
+  - id: master_phase_status_drift
+    summary: "Master v4.2 Status Dashboard predates Phase 3 close-out and Phase 4 start."
+    owner: master_blueprint_maintainer
+    blocking: false
+
+  - id: master_section_13_vs_source_capability_section_6
+    summary: "Master §13 Rate Limit Registry and Source Capability Routing Section 6 both define rate posture. Recommendation: Master declares the law; Source Capability holds the numbers; Backend binds to Source Capability values."
+    owner: master_blueprint_maintainer
+    blocking: false
+
+  - id: ai_default_provider_vs_null_provider_law
+    summary: "GeminiProvider operational by default while Master Law 4 / §7 require NullProvider to keep core working. Backend Blueprint documents AI-off contract; reconcile in code if ever non-compliant."
+    owner: ai_module_maintainer
+    blocking: false
+
+  - id: eddi_voiceattack_drift
+    summary: "Master §8 and CONTRIBUTING.md still mention EDDI as integration. UI Blueprint v1.0 cuts EDDI from current UI scope; VoiceAttack optional adapter only. Reconcile in Master/CONTRIBUTING."
+    owner: master_blueprint_maintainer
+    blocking: false
+
+  - id: contributing_legacy_paths
+    summary: "CONTRIBUTING.md references OmniCOVAS_Master_Blueprint_v4_0.txt and CLAUDE.MD legacy uppercase. Master is now v4.2; CLAUDE.md path is docs/internal/ai-workflow/CLAUDE.md."
+    owner: docs_maintainer
+    blocking: false
+
+  - id: phase_count_normalization
+    summary: "Some older documents use the pre-revision phase order. v4.2 adopted the revised order (Pillar 7 = Phase 7, Pillar 6 = Phase 8, Pillar 4 = Phase 9). Use revised order in all new docs."
+    owner: docs_maintainer
+    blocking: false
+
+End of AI Reference.

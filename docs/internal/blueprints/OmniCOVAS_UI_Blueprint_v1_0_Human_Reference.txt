@@ -1,0 +1,964 @@
+OmniCOVAS UI Blueprint v1.0 — Human Reference
+=============================================
+
+Status
+------
+Final UI/product reference for the current OmniCOVAS vision.
+Created from: OmniCOVAS_UI_Blueprint_v0_9.txt, OmniCOVAS_UI_Blueprint_v0_9_1.txt, and the final Phase 4–9 route-reconciliation audit.
+Date: 2026-05-06
+Audience: human architects, maintainers, reviewers, and future playbook authors.
+
+Purpose
+-------
+This document explains the finalized OmniCOVAS user-facing UI structure in human-readable form. It defines route ownership, route boundaries, future route reservations, feature containment, source/provenance display expectations, and phase-by-phase UI placement for Phase 4 through final pre-v1.0 hardening.
+
+This document is paired with:
+- OmniCOVAS_UI_Blueprint_v1_0_AI_Reference.txt — structured, AI-readable route and feature placement contract.
+
+How to Use This Document
+------------------------
+Use this document when deciding where a feature belongs in the UI, whether a future feature needs a new route, or whether an existing route is being overloaded. The most important rule is that features are not “placed” merely by naming a route. Every feature must have a true containment pattern, a primary surface, secondary surfaces, suppressed surfaces, link targets, and a non-duplication rule.
+
+Table of Contents
+-----------------
+1. Executive Summary
+2. Authority and Reconciliation Posture
+3. Current Implementation Baseline
+4. Core Route Philosophy
+5. Global Route Ownership Rule
+6. Feature Containment Doctrine
+7. Route Expansion and Promotion Doctrine
+8. Active Primary Routes
+9. Reserved and Future Primary Routes
+10. Dashboard Route Definition
+11. Intel Route Definition
+12. Navigation Route Definition
+13. Operations Route Definition
+14. Activity Log Route Definition
+15. Settings Route Definition
+16. About Route Definition
+17. Overlay Role Definition
+18. AI / Voice / Slash Command Doctrine
+19. Source-Routing and Wording Doctrine
+20. Phase 4 Combat Placement
+21. Phase 5 Exploration / Navigation Placement
+22. Phase 6 Trading / Mining / Colonization Placement
+23. Phase 7 Squadron / Social Placement
+24. Phase 8 Engineering / Materials Placement
+25. Phase 9 Powerplay 2.0 / BGS Placement
+26. Final Pre-v1.0 Polish / Integration Placement
+27. Cross-Route Link Requirements
+28. Dashboard Pin and Summary Rules
+29. Route and Feature Index
+30. Authority-Document Drift Items to Reconcile Later
+
+1. Executive Summary
+--------------------
+OmniCOVAS is a command deck, not a generic web dashboard. The final UI model is organized around precise route ownership:
+
+- Dashboard = what matters right now.
+- Intel = what is known.
+- Navigation = where / how to move.
+- Operations = what I am doing.
+- Activity Log = how we know / what happened.
+- Settings = how the app behaves.
+- About = what the project is.
+- Squadrons = group coordination, active Phase 7+.
+- Engineering = progression planning, active Phase 8+.
+- Carriers = fleet carrier command, reserved for FC Full Command Center.
+
+The biggest v1.0 correction is that future features must not be assigned vaguely to Operations. Operations owns active intent, goals, checklists, blockers, and next actions. It must link outward to Intel for known facts and Navigation for routes/movement. This prevents Operations from becoming a cluttered duplicate of every route.
+
+No primary route is created for Combat, Exploration, Exobiology, Trade, Mining, BGS, Powerplay, Passenger, Legal, Credits, SBOM, Polish, Security, Performance, KB, Explainability, or Release. These are contained through existing route families unless a future route-promotion test proves otherwise.
+
+2. Authority and Reconciliation Posture
+---------------------------------------
+UI Blueprint v1.0 is the finalized product/UI vision source. It supersedes older Master Blueprint wording where the older wording describes route ownership, Settings ownership, About/Legal/Credits structure, First-Run Setup language, Dashboard layout doctrine, Overlay role, Activity Log role, AI workflow UI behavior, native-first Voice direction, EDDI removal from current UI scope, VoiceAttack optional-adapter status, and feature-to-route reconciliation.
+
+It does not supersede project laws, privacy requirements, source-routing constraints, legal/compliance requirements, safe-rendering rules, or backend implementation requirements. Those must be reconciled later into the Master Blueprint and the planned Backend Blueprint.
+
+3. Current Implementation Baseline
+----------------------------------
+For feature reconciliation:
+- Phase 1: complete / integrated baseline.
+- Phase 2: complete / integrated baseline.
+- Phase 2.5: complete / integrated baseline.
+- Phase 3: complete / integrated baseline.
+- Phase 4: active roadmap / beginning implementation planning.
+
+Completed phases are not backlog. If an older document marks a completed-phase item as deferred, planned, missing, or future, the audit must check current implementation before creating a new UI feature. Items implemented under another name are marked covered / merged and become authority-document reconciliation notes.
+
+Important completed-baseline lock:
+- Shield Intelligence is implemented under the Hull/Shields safety model and must not be recreated as a separate Dashboard item, Combat feature, Settings category, or Phase 4 backlog item.
+
+4. Core Route Philosophy
+------------------------
+The final UI model is based on route separation:
+
+Dashboard
+  Live command surface. It shows what matters right now.
+
+Intel
+  Known information console. It owns facts, context, personal ledgers, source-backed values, and known state.
+
+Navigation
+  Route and movement console. It owns plotting, active routes, route libraries, bookmarks, waypoints, route sources, and route candidates.
+
+Operations
+  Session operations console. It owns active intent, goals, workflows, progress, blockers, next actions, and debrief summaries.
+
+Activity Log
+  Data audit console. It owns proof, source chains, external request records, AI/gate records, confirmations, blocked requests, unknowns, and unsupported facts.
+
+Settings
+  Configuration console. It owns behavior, privacy, source setup, AI, Voice, overlay profile, diagnostics, import/export, and session-focus defaults.
+
+About
+  Compact project/reference route. It owns product identity, links, acknowledgments, license/security/reporting references, and document pointers.
+
+5. Global Route Ownership Rule
+------------------------------
+A route may consume summaries from another route, but it must not duplicate that route’s full ownership surface.
+
+Non-owning routes may:
+- show compact linked summaries;
+- show status chips;
+- show blockers / unknowns;
+- link to the owning route;
+- pin a compact source-backed summary to Dashboard when commander-selected.
+
+Non-owning routes must not:
+- duplicate full fact views;
+- duplicate full route views;
+- duplicate full workflow workspaces;
+- duplicate audit trails;
+- duplicate settings controls;
+- create parallel source-of-truth panels.
+
+6. Feature Containment Doctrine
+-------------------------------
+A future feature is not represented just because it has a route home. Every feature must define:
+
+1. Primary surface — where the commander actively uses it.
+2. Secondary surfaces — where it may appear as a summary, chip, pin, alert, shortcut, or linked reference.
+3. Suppressed surfaces — where it must not appear to avoid clutter or duplicate ownership.
+4. Display pattern — card, row, drawer, tab, modal, timeline entry, wizard, pin, overlay banner, command result, or settings panel.
+5. Information density — glance, summary, detail, or audit.
+6. Alert behavior — silent record, passive status, glance notice, interruptive alert, or commander-confirmed action proposal.
+7. Source/provenance behavior — inline chip, source drawer, Why link, Activity Log reference, or unsupported fallback.
+8. Lifecycle — when it appears, collapses, archives, and becomes a notification.
+9. User control — pin, mute, collapse, filter, move, request lookup, or view proof.
+10. Non-duplication rule — what feature/route/source-of-truth it must not duplicate.
+
+7. Route Expansion and Promotion Doctrine
+-----------------------------------------
+Do not create primary routes casually. Future features should first be assigned to Dashboard, Intel, Operations, Navigation, Activity Log, Settings, About, or Overlay behavior.
+
+A future feature cluster may receive a reserved or active primary route only if it passes the Route Promotion Test:
+
+1. Large enough — many commander-facing workflows/states would overload an existing route.
+2. Persistent enough — ongoing commander context, not a temporary workflow/card/modal/source lookup.
+3. Distinct enough — clear identity not merely a sub-area of an existing route.
+4. Cross-cutting enough — coordinates operations, shared state, permissions, privacy, source health, audit trails, or user roles.
+5. Commander-facing enough — benefits from a dedicated workspace.
+6. Non-redundant — unique owner statement and no duplication of existing routes.
+7. Auditable and bounded — preserves Activity Log ownership of proof and Settings ownership of configuration.
+
+8. Active Primary Routes
+------------------------
+Early sidebar order:
+1. Dashboard
+2. Intel
+3. Operations
+4. Navigation
+5. Activity Log
+6. Settings
+7. About
+
+When future routes activate, the order may be extended, but these required routes must remain reachable. Route hiding is not allowed for Activity Log, Settings, or About.
+
+9. Reserved and Future Primary Routes
+-------------------------------------
+Reserved future primary routes:
+- Squadrons — active Phase 7+.
+- Engineering — active Phase 8+.
+- Carriers — reserved for FC Full Command Center scope.
+
+Not reserved as primary routes in v1.0:
+- Combat — Operations workspace with Overlay/Dashboard/Intel/Navigation support.
+- Exploration / Exobiology — Operations intent + Intel facts + Navigation routes.
+- Trade / Mining — Operations intent + Intel market facts + Navigation route loops.
+- Powerplay / BGS — Intel facts + Operations campaign + Navigation circuits + Squadrons coordination.
+- Passenger / Missions — Operations workflow + Navigation route + Intel facts.
+- Colonization — Operations / Carrier Logistics initially; may become Carriers subdomain if carrier-linked logistics grows.
+
+10. Dashboard Route Definition
+------------------------------
+Dashboard is the Live Command Surface. It provides the commander’s immediate ship/session picture, source-backed summaries, route/workflow/context shortcuts, and AI/command entry point.
+
+Dashboard structure:
+1. Fixed Top Core Internal Bar — Hull, Shields, Fuel, Heat, Pips.
+2. Optional Top Internal Slots — compact internal ship/session values.
+3. Left Internal Data Rail — five configurable internal data cards.
+4. Center Ship Display — original OmniCOVAS ship visual and registry plate.
+5. Right External Data Rail — five configurable external/contextual summary cards.
+6. Fixed Bottom Core External Bar — Location, Status, Local, Objective, Data.
+7. Dashboard Pins — source-backed compact summaries from owning routes.
+8. Bottom AI / Command Bar — natural-language input, deterministic slash commands, source/audit shortcuts.
+
+Dashboard owns:
+- live safety glance;
+- fixed top core ship telemetry;
+- fixed bottom session/context posture;
+- optional commander-selected internal summaries;
+- optional commander-selected external summaries;
+- source-backed pins;
+- compact links into Intel, Navigation, Operations, Activity Log, Settings, and About;
+- natural-language and slash-command entry.
+
+Dashboard does not own:
+- full known-information views;
+- route planning/tracking/bookmarks;
+- active workflow execution;
+- audit/source history;
+- settings/configuration;
+- project/legal/reference documentation.
+
+Dashboard must remain restrained. It must not become a freeform widget board, route planner, Intel encyclopedia, Operations board, Activity Log clone, or Settings panel.
+
+Fixed Top Core Internal Bar
+  Hull, Shields, Fuel, Heat, and Pips are always visible and non-customizable. They own live ship/session safety glance. They do not own detailed combat interpretation, long-term analytics, loadout planning, Engineering planning, or audit detail.
+
+Optional Top Internal Slots
+  Candidate values: Jump Range, Cargo, Modules, Hardpoints, Silent Running, Ship Computer, Repair/AFMU, SRV/Suit, Materials, Engineering State. They are summary portals, not mini-routes.
+
+Left Internal Data Rail
+  Internal summaries only: ship, cargo, modules, suit/SRV, utilities, repair, materials, internal state. Links cargo/material/loadout facts to Intel -> Ship / Personal. Links combat readiness to Operations -> Combat. Links engineering-related status to Engineering when active.
+
+Center Ship Display
+  Original OmniCOVAS wireframe/vectograph style only. No Frontier assets, traced ships, screenshots, or copied art. Visual overlays never replace text values.
+
+Right External Data Rail
+  External/contextual summaries only. Examples: Navigation, Operations, System Intel, Local Intel, Market/Trade, BGS, Squadron, External Sources, future route summaries. It does not duplicate full route/fact/workflow/source views.
+
+Fixed Bottom Core External Bar
+  Location links to Intel -> System/Local or Navigation -> Active Route if route-linked.
+  Status links to Activity Log, Operations, or Intel as relevant.
+  Local links to Intel -> Local.
+  Objective links to Operations and route-linked Navigation.
+  Data links to Settings -> Sources / Data Flow, Settings -> Privacy & Data, and Activity Log.
+
+Dashboard Pins
+  Pins require source, freshness, status, origin route, and Activity Log reference. Status values: Active, Stale, Unavailable, Disabled, Commander-entered, Coming Later. Pins must never pretend cached data is live.
+
+Bottom AI / Command Bar
+  Owns natural-language input, deterministic slash commands, command autocomplete, AI/provider shortcut, and source/audit shortcuts. It does not own facts, route execution, workflows without confirmation, direct API calls, or protected actions.
+
+11. Intel Route Definition
+--------------------------
+Intel is the Known Information Console. Intel owns source-backed known information. It does not own active workflow execution, route planning, settings, or audit history.
+
+Internal Intel locations:
+
+1. Galaxy
+  Galaxy-wide known information:
+  - Community Goals;
+  - galaxy POIs;
+  - GalNet/community links where source-backed;
+  - galaxy-scale exploration context;
+  - broad BGS/Powerplay context;
+  - community events/notices;
+  - Powerplay-wide context;
+  - BGS-wide/tick context if source-backed;
+  - broad source-backed galactic opportunities.
+
+2. System
+  System-wide known information:
+  - system identity, coordinates, permit, government, economy, security;
+  - controlling faction, population, allegiance;
+  - known bodies;
+  - known stations/carriers/settlements;
+  - system factions/BGS/Powerplay context;
+  - traffic/death risk;
+  - system-level exploration context;
+  - system-level POIs;
+  - route relevance as context only;
+  - operation relevance as context only.
+
+3. Local
+  Specific local-location known information:
+  - station/carrier/settlement facts;
+  - services;
+  - market/outfitting/shipyard known data;
+  - body/ring/site facts;
+  - landing context;
+  - biological/geological/local signals;
+  - settlement/surface/POI context;
+  - current local activity context.
+
+  Local context types:
+  - Station / Carrier / Settlement;
+  - Body / Planet / Moon;
+  - Ring / Belt / Resource Site;
+  - Surface Site / POI;
+  - Current local activity context.
+
+4. Ship / Personal
+  Commander-owned and personal known information:
+  - commander profile facts;
+  - credit balance where source-backed;
+  - ranks/reputation/status;
+  - current ship facts;
+  - cargo/loadout/material summaries;
+  - known active missions;
+  - unsold exploration data value;
+  - unsold exobiology data value;
+  - personal discovery/session ledger;
+  - authenticated CAPI/profile facts where enabled;
+  - current ship identity, ship type/name/identifier, and source-backed rebuy;
+  - owned carrier summary until/unless Carriers becomes active route;
+  - commander-entered facts where allowed.
+
+All Intel facts must show source, timestamp/freshness, truth class, caveat, and Activity Log link where relevant.
+
+Intel link targets:
+- intel:galaxy, intel:galaxy/community-goals, intel:galaxy/poi, intel:galaxy/powerplay, intel:galaxy/bgs-tick, intel:galaxy/events.
+- intel:system:<system_name>, /overview, /bodies, /stations, /factions, /bgs, /traffic-risk, /exploration.
+- intel:local:<system>/<station|body|ring|settlement|site>, /services, /market, /outfitting, /shipyard, /landing, /signals, /bio, /rings.
+- intel:personal, /commander, /ship, /cargo, /loadout, /materials, /ranks, /missions, /exploration-data, /exobiology-data, /credits, /fleet-carrier.
+
+12. Navigation Route Definition
+-------------------------------
+Navigation is the Route and Movement Console. It owns all route, plotting, waypoint, bookmark, route-library, movement-candidate, route-source, and active route tracking details.
+
+Internal Navigation locations:
+
+1. Active Route
+  Current route state and route tracking:
+  - current in-game route proof from NavRoute.json;
+  - active OmniCOVAS route candidate;
+  - destination;
+  - next jump / waypoint;
+  - route progress;
+  - route status;
+  - linked operation;
+  - linked Intel context;
+  - route source/freshness summary;
+  - user-triggered copy next jump / copy destination action.
+
+2. Planner
+  Route creation and candidate review:
+  - destination routes;
+  - exploration routes;
+  - exobiology routes;
+  - trade loops;
+  - mining runs;
+  - mission destination routes;
+  - engineer/material routes;
+  - carrier/logistics routes;
+  - BGS/system circuits;
+  - Spansh link-out / future route jobs;
+  - route candidate comparison.
+
+3. Route Library
+  Saved and reusable routes:
+  - saved routes;
+  - recent routes;
+  - imported routes;
+  - expedition routes;
+  - exobiology routes;
+  - trade/mining route sets;
+  - mission route sets;
+  - engineering/material routes;
+  - carrier routes;
+  - BGS/system circuits;
+  - route tags, collections, archive/delete/export actions, and route reuse.
+
+4. Bookmarks
+  Saved location references:
+  - systems;
+  - stations/carriers/settlements;
+  - bodies/rings/sites/POIs;
+  - bookmark folders/tags;
+  - commander notes;
+  - bookmark-to-planner actions;
+  - bookmark groups for expeditions, mining, engineering, BGS, squadron, carrier, exploration, and exobiology.
+
+5. Route Sources
+  Route proof, route provider state, and route-source limitations:
+  - NavRoute.json proof;
+  - Spansh link-out state;
+  - future Spansh API/dump readiness;
+  - route cache;
+  - route queue;
+  - source/freshness/provenance;
+  - unsupported route facts;
+  - Activity Log links;
+  - provider setup links to Settings -> Sources / Data Flow.
+
+Navigation does not own known information, operation workflows, privacy/source settings, or audit history. It links to Intel, Operations, Settings, and Activity Log.
+
+13. Operations Route Definition
+-------------------------------
+Operations is the Session Operations Console. It owns active commander intent, Session Focus, goals, workflows, progress, blockers, linked route summaries, linked Intel summaries, next actions, and operation debriefs.
+
+Operations does not own:
+- known facts, which belong to Intel;
+- route planning/tracking/bookmarks, which belong to Navigation;
+- audit/source history, which belongs to Activity Log;
+- configuration, which belongs to Settings;
+- compact live command display, which belongs to Dashboard.
+
+Internal Operations locations:
+1. Command Board — active operation overview, blockers, linked route, linked Intel, next action.
+2. Session Focus — live focus selector and impact preview.
+3. Missions — known mission objectives, progress, blockers, linked destinations.
+4. Combat — active combat workflows using the locked Combat package structure.
+5. Exploration / Exobiology — active exploration, scanning, sampling, survey, redemption objectives.
+6. Trade / Mining — active trade, hauling, mining, cargo, market, sell/buy objectives.
+7. Passenger — active passenger mission objectives and destination workflow.
+8. BGS / Powerplay — active campaign objectives; Intel owns facts, Operations owns campaign.
+9. Carrier / Logistics — carrier, tritium, supply, expedition, colonization objectives until/unless Carriers activates.
+10. Engineering — active engineering goals until Engineering route activates; after activation, thin handoff only.
+11. Squadron — active group-operation goals until Squadrons route activates; after activation, thin handoff only.
+12. Custom / Manual — commander-entered objectives and manual checklists.
+
+Operations link targets include operations:board, operations:focus, operations:missions, operations:combat, operations:exploration, operations:trade-mining, operations:passenger, operations:bgs-powerplay, operations:carrier-logistics, operations:engineering, operations:squadron, operations:custom.
+
+Operations must link outward for facts, routes, proof, settings, and pins. It must not recreate Intel panels, Navigation planners, route libraries, bookmark managers, source/audit tables, or settings controls.
+
+14. Activity Log Route Definition
+---------------------------------
+Activity Log is the Data Audit Console. It answers what happened, how OmniCOVAS knows, what source produced it, what changed, what consumed the data, what was external, what was AI, what was confirmed, what was blocked, what was exported/deleted, and what was stale/unknown/unsupported.
+
+Internal locations:
+- Timeline;
+- Audit Explorer;
+- Source Chains;
+- External Requests;
+- AI / Gates;
+- Exports;
+- Errors / Diagnostics.
+
+Views:
+1. Commander-Relevant — default.
+2. All Events — deep audit/debug.
+
+Other routes should show source chips, Why affordances, View Activity links, freshness labels, and compact source drawers. Activity Log holds the deep detail.
+
+15. Settings Route Definition
+-----------------------------
+Settings is the Configuration Console. It owns app behavior, preferences, permissions, source setup, privacy, diagnostics, import/export, and defaults. It does not own facts, routes, workflows, audit history, or project identity.
+
+Settings categories:
+1. General
+2. Appearance
+3. Dashboard
+4. Profiles
+5. Session Focus
+6. Overlay
+7. Game Controls
+8. AI
+9. Voice
+10. Privacy & Data
+11. Sources / Data Flow
+12. Diagnostics
+13. Import / Export
+
+Advanced Settings is removed. Settings includes global search, rail health badges, and recent changes drawer. Settings owns Session Focus defaults; Operations owns live Session Focus selection.
+
+16. About Route Definition
+--------------------------
+About is the compact Project / Reference route. It replaces Legal as the primary route name.
+
+About may link to or compactly expose:
+- README;
+- LICENSE / AGPL-3.0 summary;
+- CLA;
+- SECURITY;
+- CONTRIBUTING;
+- source/provider acknowledgments;
+- dependency acknowledgments;
+- SBOM location or generated SBOM file;
+- GitHub repository;
+- issue/discussion/reporting links;
+- Frontier trademark disclaimer;
+- privacy/source/settings/audit documentation links.
+
+About must not duplicate:
+- Privacy & Data controls;
+- Sources / Data Flow provider setup;
+- AI provider configuration;
+- Voice setup;
+- First-Run Setup acknowledgements;
+- Activity Log audit trails;
+- full legal document text;
+- diagnostics/export tools.
+
+Credits, acknowledgments, license, security, contributing, CLA, and SBOM are About-linked references or compact panels, not separate primary sidebar routes.
+
+17. Overlay Role Definition
+---------------------------
+Overlay is the in-game glance/interruption layer, not a second Dashboard.
+
+Overlay owns:
+- time-sensitive glance notices;
+- critical/interruption alerts;
+- compact command prompts when commander confirmation is required;
+- in-game readable summaries driven by owned route state.
+
+Overlay does not own:
+- full Dashboard state;
+- route details;
+- full operations workspaces;
+- Intel pages;
+- Settings controls;
+- Activity Log detail.
+
+Alert lanes:
+1. Silent Record — Activity Log only.
+2. Operations Status — badge/summary.
+3. Dashboard Optional Pin — commander-selected.
+4. Overlay Glance Notice — short non-blocking notice.
+5. Overlay Interruptive Alert — immediate danger or commander-confirmed action proposal only.
+
+18. AI / Voice / Slash Command Doctrine
+---------------------------------------
+AI is not a source of facts. AI may classify intent, explain, summarize, compare, and prepare WorkflowSourcePlans. OmniCOVAS source routing resolves allowed facts and ExternalRequestBundles.
+
+Native-first voice is the current UI direction. EDDI is cut from current UI scope and must not be reintroduced as an active dependency. VoiceAttack is optional adapter only, never required, never bundled, never a source of truth, and never a Confirmation Gate bypass.
+
+Slash commands are deterministic app shortcuts, not workflow engines. Complex requests are AI workflows, not slash-command workflows.
+
+Visible command help must use:
+/open dashboard|intel|operations|navigation|activity|settings|about
+
+The old /open legal form may remain as a legacy alias that opens About, but visible UI route naming must use About.
+
+19. Source-Routing and Wording Doctrine
+---------------------------------------
+If older feature names imply stronger source support than OmniCOVAS has, UI Blueprint v1.0 renames or qualifies the feature.
+
+Examples:
+- “PvP Gank Database” becomes “PvP Encounter Log & Risk Intel.”
+- “Best hotspot near me” is forbidden unless a complete verified source exists.
+- “Trade Loop Optimizer” becomes “Trade Loop Candidate Review” or equivalent if sources support candidates, not certainty.
+- “Known ganker” must not appear unless a verified source supports that exact claim.
+- “Nearest guaranteed module” must not appear when only service availability or stale station outfitting data exists.
+
+Preferred UI wording:
+- Local telemetry;
+- Known local state;
+- Known active missions;
+- Community-known data;
+- Source-backed candidate;
+- Commander-entered note;
+- Requires Authorization;
+- Disabled;
+- Stale;
+- Unsupported;
+- No Verified Source.
+
+20. Phase 4 Combat Placement
+----------------------------
+Phase 4 Combat does not create a Combat route. Combat lives in Operations as a contained package workspace.
+
+Operations -> Combat structure:
+- Combat Briefing Strip;
+- Overview;
+- Target & Threat;
+- Interdiction / Escape;
+- PvP;
+- Combat Zones / Missions;
+- Rewards / Rank;
+- Loadout / Munitions;
+- AX;
+- Odyssey Combat;
+- Debrief;
+- Shared Context Drawer;
+- Combat Footer.
+
+Combat must not show all features at once, must not add ungrouped cards by default, must not duplicate Dashboard safety truth, must not duplicate Activity Log detail, and must not use Overlay for non-critical noise.
+
+Phase 4 placement:
+- Target Intelligence -> Operations -> Combat -> Target & Threat; Intel only for contextual facts.
+- Interdiction Warning & Response -> Overlay live; Operations -> Combat -> Interdiction / Escape; Navigation for escape/wake route.
+- PvP Encounter Log & Risk Intel -> Operations -> Combat -> PvP for active workflow; Intel -> Ship / Personal for known encounter history/notes/profile facts; Intel -> System for traffic/death/system risk; Activity Log for proof.
+- Bounty & Combat Bond Tracking -> Intel -> Ship / Personal for personal reward ledger; Operations -> Combat -> Rewards / Rank for session summary/next action.
+- Combat Zone Intelligence -> Operations -> Combat -> Zones / Missions for active objective; Intel -> System for faction/BGS/system facts; Navigation for destination/circuit.
+- Hostility & Threat Warnings -> Operations -> Combat -> Target & Threat; Overlay only for critical/time-sensitive events.
+- Combat Rank Tracking -> Intel -> Ship / Personal for rank facts; Operations -> Combat -> Rewards / Rank for active/session display.
+- AX Operations -> Operations -> Combat -> AX; Intel only for source-backed external/system/AX context.
+- Massacre Mission Review -> Operations -> Combat -> Zones / Missions; Navigation for destination; Intel for target/system/faction facts.
+- Sub-Target / Module Focus -> Operations -> Combat -> Target & Threat; Intel -> Ship / Personal only for commander-owned ship/loadout facts.
+- Fighter Crew Support -> Operations -> Combat -> Loadout / Munitions or Crew Support section; no automation.
+- Basic On-Foot Combat Awareness -> Operations -> Combat -> Odyssey Combat; Dashboard optional Suit/SRV; Intel -> Local for settlement/site facts.
+- Frontline Solutions Tracking -> Operations -> Combat -> Odyssey Combat / Zones & Missions shared component; Intel -> Local/System for facts.
+- Settlement Raid Intel -> Operations -> Combat -> Odyssey Combat; Intel -> Local for settlement/site facts.
+- Post-Combat Debrief -> Operations -> Combat -> Debrief; Activity Log is source of record.
+- Hardpoint & Utility Management -> Operations -> Combat -> Loadout / Munitions; Intel -> Ship / Personal for known loadout; Engineering for future build planning.
+- Escape Planner -> Operations -> Combat -> Interdiction / Escape; Navigation owns route candidate.
+- Thermal Attack Intelligence -> Operations -> Combat -> Target & Threat interpretation; Dashboard Heat remains truth.
+- Wake Scanning Intelligence -> Operations -> Combat -> Interdiction / Escape; Navigation owns route/follow candidate.
+- Engagement Range Calculator -> Operations -> Combat -> Target & Threat detail/calculator; KB/source/confidence labeled.
+- PvP CMDR Intelligence -> merged into PvP Encounter Log & Risk Intel; Intel holds known facts.
+- Munitions Management -> Operations -> Combat -> Loadout / Munitions for readiness; Intel -> Ship / Personal for inventory/loadout facts.
+- Critical State Response -> Overlay proposal + Operations context + Activity Log + Confirmation Gate; future compliance-gated only.
+- Combat Difficulty Estimate -> Operations -> Combat -> Target & Threat; inferred/confidence-labeled only.
+
+21. Phase 5 Exploration / Navigation Placement
+----------------------------------------------
+Phase 5 does not create an Exploration route or Exobiology route. Phase 5 uses strict split:
+- Navigation owns routes, plotting, bookmarks, active route, route library, waypoint details, Spansh link-out/job state.
+- Intel owns known exploration, body, scan, exobiology, unsold value, service, POI, and opportunity facts.
+- Operations owns active exploration/exobiology objective, checklist, blockers, next action, and debrief.
+
+Phase 5 placement:
+- Route Plotting -> Navigation -> Planner.
+- System Intelligence on Arrival -> Intel -> System.
+- Scanning Intelligence -> Intel -> System/Bodies and Intel -> Ship / Personal for commander-observed scan/session ledger; Operations only scan checklist/progress.
+- Bookmark System -> Navigation -> Bookmarks.
+- Fuel & Jump Range -> Dashboard/Pillar 1 live values; Navigation route constraint; Operations readiness blocker only.
+- Fleet Carrier Navigation Basic -> Navigation -> Planner/Active Route/Route Library; Operations -> Carrier / Logistics objective; Intel -> Ship / Personal carrier facts; future Carriers route later.
+- EDSM Integration -> Settings -> Sources / Data Flow setup; Intel consumes facts; Activity Log proof.
+- Bio Insights Engine -> Intel -> Local/System/Ship-Personal depending fact; Operations active sampling objective; Navigation bio route.
+- Exobiology Sample Distance Tracker -> Operations active sample workflow; Intel -> Ship / Personal sample/session records; Navigation movement/site support.
+- Exobiology Value Estimation -> Intel -> Ship / Personal -> Exobiology Data; Operations value available/return-to-sell objective only.
+- Biome Genus Prediction -> Intel -> Local/Body/Exobiology; Operations next-action hint.
+- SRV Survey Operations -> Operations survey objective; Intel -> Local/Body/Site facts; Navigation surface/site route.
+- First Discovery Hunting -> Intel -> System/Bodies/Discoveries candidates; Navigation route; Operations hunt objective.
+- Outfitting & Shipyard Search -> Intel -> Local -> Services/Outfitting/Shipyard; Navigation route to station; Operations readiness blocker/objective only.
+- EDDiscovery / ED Observatory Integration -> Import / Export or Settings -> Sources / Data Flow; Intel consumes validated imported facts.
+- Expedition Planner -> Navigation -> Planner + Route Library; Operations expedition objective/progress.
+- High-Value Target ID -> Intel -> System/Bodies/Exploration Data; Navigation route; Operations objective.
+- Lost Commander Assistance -> Navigation -> Planner recovery route; Intel known current/past location facts; Operations recovery workflow.
+- Jumponium Management -> Intel -> Ship / Personal -> Materials; Navigation route constraints; Operations readiness blocker; future Engineering planning.
+- Codex Integration -> Intel -> Galaxy/System/Local/POIs; no Codex route.
+- Planetary Landing Intelligence -> Intel -> Local -> Body/Landing; Navigation site route; Operations objective/checklist.
+- Guardian/Thargoid Site Navigation -> Intel -> Local/POIs facts; Navigation route/bookmarks; Operations objective.
+- Biome-Specific Exobiology Intelligence -> Intel -> Local/Exobiology; Operations sample hint/checklist; Navigation route.
+- Earnings-Per-Hour Tracker -> Operations active session metric; Intel value ledger; Activity Log proof.
+- Exploration Build Validator -> Operations readiness checklist; Intel current ship/loadout facts; Navigation constraints; full build planning in Engineering.
+- Data Redemption Optimizer -> Intel -> Ship / Personal exploration/exobiology value; Intel -> Local services; Navigation turn-in route; Operations return-to-sell objective.
+- Pretty System Finder -> Intel -> Galaxy/System/POIs scenic candidates; Navigation route; Operations exploration objective.
+- Spansh Bulk Dump Import Pipeline -> Navigation -> Route Sources + Settings -> Sources / Data Flow; not Operations.
+- EDAstro Local Cache Layer -> Settings -> Sources / Data Flow; consumed by Intel; Navigation only when route-relevant.
+
+22. Phase 6 Trading / Mining / Colonization Placement
+-----------------------------------------------------
+Phase 6 does not create Trade or Mining primary routes. Primary workflow homes are Operations -> Trade / Mining and Operations -> Carrier / Logistics. Carriers is promoted from conditional candidate to reserved future primary route for FC Full Command Center scope.
+
+Ownership:
+- Intel owns trade, market, station, commodity, cargo, carrier, tritium, colonization, service, economy, source-backed value facts.
+- Navigation owns trade loops, mining routes, sell routes, rare routes, supply routes, carrier routes, smuggling routes, refueling routes, colonization routes.
+- Operations owns active trade/mining/carrier/colonization objectives, checklists, progress, blockers, next actions, debriefs.
+- Activity Log owns source proof, external request history, EDDN submission events, blocked requests, unsupported facts, confirmations.
+- Settings owns EDDN submission consent, CAPI auth, provider setup, privacy, diagnostics, source readiness.
+
+Operations -> Trade / Mining structure:
+- Objective;
+- Trade Candidate Workflow;
+- Mining Candidate Workflow;
+- Cargo / Sell Objective;
+- Linked Market Intel;
+- Linked Route;
+- Blockers / Unknowns;
+- Coaching / Readiness;
+- Efficiency Summary;
+- Future Illegal Ops package.
+
+Operations -> Carrier / Logistics structure:
+- Carrier Objective;
+- Tritium Objective;
+- Supply / Logistics Objective;
+- Colonization Objective;
+- Linked Carrier Intel;
+- Linked Route;
+- Blockers / Unknowns;
+- Next Action.
+
+Feature placement:
+- Commodity Price Intelligence -> Intel -> Local / Market / Commodity; Navigation route to station; Operations summary only.
+- Trade Loop Optimizer renamed Trade Loop Candidate Review -> Operations active review; Intel market facts; Navigation route candidate/library.
+- Mining Intelligence Core renamed Mining Candidate Workflow -> Operations objective/checklist; Intel body/ring/sell facts; Navigation mining/sell routes; no unsupported “best hotspot.”
+- Cargo Intelligence -> Intel -> Ship / Personal -> Cargo; Dashboard compact pin; Operations cargo objective only.
+- Trader Interdiction Awareness -> Operations -> Trade / Mining context + Operations -> Combat -> Interdiction / Escape if triggered; Overlay critical only; Navigation escape route; Intel system risk.
+- EDDN Market Data Submission -> Settings consent/setup + Activity Log proof; Operations status chip only.
+- Efficiency & Logistics Tracking -> Operations active-session summary; Intel personal/value ledger; Activity Log history.
+- Mining Coaching -> Operations low-noise coaching; Intel facts; Navigation routes; Activity Log Why/proof.
+- FC Navigation -> Navigation; Operations carrier movement objective; future Carriers persistent command.
+- Tritium Manager -> Operations refuel objective before Carriers; Intel tritium facts; Navigation route; Carriers -> Tritium after activation.
+- FC Market Basic -> Intel carrier market facts before Carriers; Operations objective; Carriers -> Market after activation.
+- FC Full Command Center -> activates Carriers route.
+- Colonization Operations -> Operations -> Carrier / Logistics -> Colonization; Intel facts; Navigation supply routes; may become Carriers -> Colonization Support if carrier-linked.
+- Profit Margin Check -> Intel market facts; Operations active validation.
+- Station Economy Intelligence -> Intel -> System / Local.
+- Rare Commodity Run Tracker -> Navigation route/library; Intel rare commodity facts; Operations objective.
+- Price History Analytics -> Intel market/commodity history; Activity Log/cache proof.
+- Passenger Mission Intelligence -> Operations -> Passenger, not Trade / Mining.
+- Ship Transfer Logistics -> Operations -> Carrier / Logistics or Custom; Intel ship facts; Navigation route/time-distance context; future Carriers if carrier-linked.
+- Trade Build Validator -> Operations readiness checklist; Intel current ship facts; Engineering future build planning.
+- Limpet Controller Optimization -> Operations readiness blocker; Intel loadout facts; Engineering future optimization.
+- Fleet Carrier Market Maker -> future Carriers -> Market; Intel facts; Operations active objective only.
+- Deep Space Refueling Network -> Navigation routes; Intel services/tritium facts; Operations objective; future Carriers persistent network if carrier-linked.
+- Mining Yield Optimization -> Operations active mining performance; Intel cargo/yield/session facts; Intel ring/body context; Activity Log proof.
+- Smuggling Intelligence Base -> future Illegal Ops package inside Operations; Intel legal/security facts; Navigation route; Settings enablement; Activity Log proof.
+- Community Goal Trade Optimization -> Intel -> Galaxy -> Community Goals; Operations active CG trade objective; Navigation supply route.
+
+23. Phase 7 Squadron / Social Placement
+---------------------------------------
+Phase 7 activates the Squadrons primary route. Squadrons is the Group Coordination and Secure Sharing Console.
+
+Squadrons internal locations:
+1. Overview
+2. Roster / Peers
+3. Invites
+4. Telemetry Sync
+5. Roles / Authority
+6. Shared Operations
+7. Shared Navigation
+8. Emergency / Security
+9. Squadron Log
+10. Integrations
+
+Squadrons owns group identity, peer state, secure telemetry sync state, roles/authority, shared coordination state, emergency/security operational state, and group-facing summaries.
+
+Squadrons links to:
+- Intel for facts about peer systems, local locations, markets, services, targets, BGS/Powerplay context, commander/profile state, source-backed group context.
+- Navigation for routing, route planning, active route tracking, route library, bookmarks, waypoints, route sources, movement tools.
+- Operations for active group objectives, mission workflows, combat workflows, mining/trade workflows, exploration workflows, BGS/Powerplay campaigns, carrier/logistics objectives, custom/manual group plans.
+- Dashboard only through compact commander-selected Squadron summary pins.
+- Settings for privacy, sharing, consent, source/provider setup, integrations, diagnostics.
+- Activity Log for peer, invite, sync, role, security, emergency, integration, source, and confirmation audit events.
+
+Feature placement:
+- ChaCha20-Poly1305 encryption -> Squadrons -> Emergency / Security + Telemetry Sync posture.
+- STUN-based P2P -> Squadrons -> Roster / Peers.
+- Basic invite codes -> Squadrons -> Invites.
+- Secure P2P Telemetry Sync -> Squadrons -> Telemetry Sync; Dashboard optional summary only.
+- Squadron Leader Authority -> Squadrons -> Roles / Authority.
+- Group Persistence -> Squadrons -> Overview + Invites.
+- Peer-Relay Fallback -> Squadrons -> Roster / Peers; Diagnostics for network detail.
+- Shared Sub-Module Target Painting -> Squadrons -> Shared Operations + Operations -> Combat -> Target & Threat.
+- Mission Synchronization -> Squadrons -> Shared Operations + Operations -> Missions; Navigation route; Intel facts.
+- Wing-Based Mining Coordination -> Squadrons -> Shared Operations + Operations -> Trade / Mining; Navigation routes; Intel market/ring facts.
+- Top Secret Mode -> Squadrons -> Emergency / Security; Settings privacy defaults; Activity Log subject to future security spec.
+- Burn Command -> Squadrons -> Emergency / Security; Confirmation Gate mandatory; Activity Log/security doctrine required.
+- Three-Tier Cross-Squadron Model -> Squadrons -> Roles / Authority, future.
+- Shared Bookmarks -> Squadrons -> Shared Navigation for sharing/permissions; Navigation owns bookmark objects.
+- Role Assignments -> Squadrons -> Roles / Authority.
+- Squadron Log -> Squadrons -> Squadron Log; Activity Log remains source of record.
+- Emergency Broadcast -> Squadrons -> Emergency / Security; Overlay optional urgent group alert.
+- Loot Coordination -> Squadrons -> Shared Operations, future.
+- Discord Integration -> Squadrons -> Integrations; Settings setup/auth; Activity Log outbound events.
+
+24. Phase 8 Engineering / Materials Placement
+---------------------------------------------
+Phase 8 activates the Engineering primary route. Engineering is the Progression Planning and Materials Console.
+
+Engineering internal locations:
+1. Overview
+2. Goals
+3. Materials
+4. Blueprints
+5. Engineers / Unlocks
+6. Guardian / Tech Brokers
+7. Suit Engineering
+8. Builds / Loadouts
+9. Acquisition Plan
+10. Sources / Imports
+11. Activity Footer
+
+Engineering owns planning and progression. Intel owns known facts. Navigation owns movement. Operations owns today’s goal.
+
+Feature category placement:
+- Materials -> Engineering -> Materials for gap analysis/shopping list; Intel -> Ship / Personal -> Materials for raw inventory; Navigation for acquisition routes.
+- Blueprints -> Engineering -> Blueprints; Intel current ship/loadout; Navigation engineer/service route.
+- Engineer Unlocks -> Engineering -> Engineers / Unlocks; Intel location/service facts; Navigation route; Operations active unlock session.
+- Guardian Tech -> Engineering -> Guardian / Tech Brokers; Intel Guardian/site facts; Navigation route; Operations active acquisition.
+- Tech Brokers -> Engineering -> Guardian / Tech Brokers; Intel tech broker service facts; Navigation route.
+- Suit Engineering -> Engineering -> Suit Engineering; Intel personal inventory/local facts; Operations active session.
+- Build Planning -> Engineering -> Builds / Loadouts; Intel current loadout; Settings Import / Export for build links; Navigation routes.
+- Acquisition Plan -> Engineering acquisition checklist; Navigation route; Intel location/service facts; Activity Log proof.
+
+Operations -> Engineering becomes a thin handoff: Active Goal, Progress, Linked Engineering Plan, Linked Intel Facts, Linked Navigation Route, Blockers, Next Action.
+
+Dashboard may show compact engineering summary pins only. It must not become material inventory, blueprint planner, build editor, or unlock tracker.
+
+25. Phase 9 Powerplay 2.0 / BGS Placement
+-----------------------------------------
+Phase 9 does not create a BGS route, Powerplay route, or combined BGS / Powerplay route.
+
+Ownership:
+- Intel owns BGS/Powerplay facts, faction state, influence/state/history, tick context, traffic/death, Community Goals, and campaign-context facts.
+- Operations -> BGS / Powerplay owns active campaign objectives, checklists, recommendations, blockers, next actions, debriefs.
+- Navigation owns BGS circuits, Powerplay routes, target-system routes, route libraries, bookmarks, route source state.
+- Squadrons owns shared group coordination for BGS/Powerplay operations.
+- Settings owns EliteBGS, BGS-Tally, CAPI, EDSM, source readiness, outbound consent, privacy, diagnostics.
+- Activity Log owns source proof, recommendations, external requests, BGS-Tally actions, blocked requests, audit trails.
+
+Intel Phase 9 panels:
+- Intel -> Galaxy -> Powerplay;
+- Intel -> Galaxy -> BGS Tick;
+- Intel -> Galaxy -> Community Goals;
+- Intel -> System -> BGS;
+- Intel -> System -> Powerplay;
+- Intel -> System -> Factions;
+- Intel -> System -> Influence / States;
+- Intel -> Local -> Faction / Station / Settlement relevance;
+- Intel -> Ship / Personal -> personal campaign notes and contribution state where source-backed.
+
+Operations -> BGS / Powerplay package:
+1. Objective
+2. Campaign Board
+3. Target System / Faction / Power
+4. Linked Intel
+5. Linked Route / Circuit
+6. Squadron Coordination
+7. Tally / Export Action
+8. Blockers / Unknowns
+9. Next Action
+10. Debrief
+
+No Phase 9 feature may duplicate Intel fact pages, Navigation route tools, Squadrons coordination state, Settings provider controls, Dashboard pins, or Activity Log audit detail.
+
+26. Final Pre-v1.0 Polish / Integration Placement
+-------------------------------------------------
+Final pre-v1.0 work does not create a primary route. It is a release-hardening layer across existing routes.
+
+Primary surfaces:
+- Settings -> Diagnostics for health, performance, security, defensive update, validation status.
+- Activity Log for proof, source chains, AI/gate evidence, external request records, audit trails.
+- About for user guide, FAQ, release notes, security/reporting links, license, SBOM, trust references.
+- Settings -> Privacy & Data, Sources / Data Flow, AI, Import / Export, Diagnostics for configuration/readiness.
+
+No primary routes are created for:
+- Polish;
+- Release;
+- Beta;
+- Security;
+- Performance;
+- Explainability;
+- KB;
+- Defensive Update;
+- Documentation;
+- Trust / Signing.
+
+Release validation must verify:
+- Operations links to Intel and Navigation instead of duplicating them;
+- Intel owns all known facts;
+- Navigation owns all routes/bookmarks/route sources;
+- Activity Log owns proof;
+- Settings owns behavior/configuration;
+- Dashboard stays restrained;
+- Overlay stays low-noise and interruption-gated;
+- About remains compact and reference-oriented.
+
+27. Cross-Route Link Requirements
+---------------------------------
+Dashboard:
+- Location -> Intel -> System or Local; route action -> Navigation -> Active Route/Planner.
+- Local -> Intel -> Local.
+- Objective -> Operations and, if route-linked, Navigation.
+- Data -> Settings -> Sources / Data Flow, Settings -> Privacy & Data, Activity Log.
+
+Intel:
+- Send to Navigation -> Navigation -> Planner.
+- Bookmark -> Navigation -> Bookmarks.
+- Create/attach Operation -> Operations.
+- View Activity -> Activity Log.
+- Queue source lookup -> Source Routing + Activity Log.
+
+Navigation:
+- Selected system -> Intel -> System.
+- Selected station/body/site -> Intel -> Local.
+- Linked operation -> Operations.
+- Route source issue -> Navigation -> Route Sources + Settings/Activity Log.
+
+Operations:
+- Linked facts -> Intel -> Galaxy/System/Local/Ship-Personal.
+- Linked route -> Navigation -> Active Route/Planner/Route Library/Bookmarks.
+- Source issue -> Settings -> Sources / Data Flow or Activity Log.
+- Audit trail -> Activity Log.
+- Behavior preference -> Settings.
+- Dashboard summary -> Dashboard pin only.
+
+Squadrons:
+- Peer system -> Intel -> System.
+- Route to peer -> Navigation -> Planner.
+- Shared route -> Navigation -> Active Route/Route Library.
+- Group objective -> Operations.
+- Telemetry sharing consent -> Settings -> Privacy & Data.
+- Sync proof -> Activity Log.
+
+Engineering:
+- Raw material inventory -> Intel -> Ship / Personal -> Materials.
+- Current loadout -> Intel -> Ship / Personal -> Loadout.
+- Route to engineer/material -> Navigation.
+- Active session -> Operations -> Engineering.
+- Source setup/import -> Settings.
+- Proof -> Activity Log.
+
+Carriers:
+- Owned carrier facts -> Intel -> Ship / Personal -> Fleet Carrier until Carriers activates.
+- Public carrier context -> Intel -> System / Local.
+- Carrier route -> Navigation.
+- Active carrier objective -> Operations -> Carrier / Logistics until Carriers activates.
+- CAPI authorization -> Settings -> Sources / Data Flow.
+- Proof -> Activity Log.
+
+28. Dashboard Pin and Summary Rules
+-----------------------------------
+Pins must always show origin, source, freshness, state, and route ownership.
+
+Examples:
+- Pinned route summary -> Navigation -> Active Route.
+- Pinned system fact -> Intel -> System.
+- Pinned unsold data value -> Intel -> Ship / Personal -> Exploration Data.
+- Pinned combat threat -> Operations -> Combat -> Target & Threat.
+- Pinned BGS objective -> Operations -> BGS / Powerplay.
+- Pinned squadron status -> Squadrons -> Overview.
+- Pinned engineering goal -> Engineering -> Goals.
+- Pinned carrier summary -> Carriers when active; otherwise Operations/Intel link split.
+
+29. Route and Feature Index
+---------------------------
+Route index:
+- Dashboard: live command surface.
+- Intel: known information console; Galaxy, System, Local, Ship / Personal.
+- Operations: session operations console; Command Board, Focus, Missions, Combat, Exploration/Exobiology, Trade/Mining, Passenger, BGS/Powerplay, Carrier/Logistics, Engineering, Squadron, Custom.
+- Navigation: route and movement console; Active Route, Planner, Route Library, Bookmarks, Route Sources.
+- Activity Log: data audit console.
+- Settings: configuration console.
+- About: project/reference route.
+- Squadrons: group coordination and secure sharing, Phase 7+.
+- Engineering: progression planning and materials console, Phase 8+.
+- Carriers: fleet carrier command, reserved for FC Full Command Center.
+
+Feature index highlights:
+- Combat: Operations -> Combat packages; facts link to Intel; routes link to Navigation.
+- Exploration: facts in Intel, routes in Navigation, objective in Operations.
+- Trade/Mining: market facts in Intel, loops/routes in Navigation, objective in Operations.
+- Squadron: route activates; group coordination owns shared state; links outward for facts/routes/workflows.
+- Engineering: route activates; planning owns goals/gaps; Intel owns raw facts; Navigation owns acquisition routes.
+- BGS/Powerplay: no route; Intel facts, Operations campaign, Navigation circuits, Squadrons coordination.
+
+30. Authority-Document Drift Items to Reconcile Later
+-----------------------------------------------------
+The Master Blueprint, README, roadmap, and supporting docs should be updated after UI v1.0 and Backend Blueprint finalization to reflect:
+- Phase 1, 2, 2.5, and 3 complete / integrated.
+- Phase 4 active roadmap / beginning implementation.
+- UI Blueprint v1.0 route ownership model.
+- Native-first voice direction.
+- EDDI cut from current UI scope.
+- VoiceAttack optional adapter only.
+- About replacing Legal and compactly linking Credits/SBOM/security/license docs.
+- Completed/merged Phase 2.5 items, especially Shield Intelligence under Hull/Shields.
+- Phase 4 Combat normalized and contained under Operations -> Combat.
+- Phase 5 strict Intel/Navigation/Operations split.
+- Carriers promoted to reserved future primary route.
+- Squadrons and Engineering activation in Phases 7 and 8.
+- Source Capability Routing Reference title/version mismatch if still present.
+
+End of Human Reference
+----------------------

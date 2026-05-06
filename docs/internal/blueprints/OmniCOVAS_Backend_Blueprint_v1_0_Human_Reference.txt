@@ -1,0 +1,1825 @@
+OmniCOVAS Backend Blueprint v1.0 — Human Reference
+==================================================
+
+Status
+------
+Final backend authority for the current OmniCOVAS vision.
+Companion to: OmniCOVAS_UI_Blueprint_v1_0_Human_Reference.txt
+              OmniCOVAS_UI_Blueprint_v1_0_AI_Reference.txt
+              OmniCOVAS_Source_Capability_Routing_Reference_v1.txt
+Date: 2026-05-06
+Version: 1.0
+Audience: human architects, maintainers, reviewers, future playbook authors.
+
+Authority posture
+-----------------
+This document is authoritative for backend service boundaries, state ownership,
+source routing execution, event models, workflow systems, API/bridge contracts,
+cache and queue behavior, provenance, privacy enforcement at the service layer,
+and backend implementation ownership.
+
+It does not override:
+- the Master Blueprint (laws, principles, pillars, phases, framework);
+- the Compliance Matrix (legal, ToS, privacy, license, attribution, external);
+- the UI Blueprint v1.0 (route ownership and user-surface design);
+- the Source Capability Routing Reference (provider capability, request budgets,
+  unsupported facts, fallback wording).
+
+This document does override prior implicit backend assumptions in older planning
+notes where those assumptions disagree with the locked UI Blueprint v1.0 route
+ownership model or with the Source Capability Routing Reference v1 contract.
+
+How to use this document
+------------------------
+Use this document when deciding:
+- which backend service owns a piece of state, event, workflow, or API contract;
+- whether a feature requires a new service or extends an existing one;
+- which route consumes which backend output;
+- which source is allowed to feed a given fact;
+- what privacy, consent, authentication, cache, queue, budget, and Activity Log
+  behavior must accompany a workflow.
+
+If a question is about user-facing layout, route order, or which sidebar route a
+feature lives under, use the UI Blueprint instead. If a question is about which
+provider may answer a given fact and at what budget, use the Source Capability
+Routing Reference instead. If a question is about laws, pillars, phases, or
+constitutional scope, use the Master Blueprint instead.
+
+Table of contents
+-----------------
+1.  Title and authority
+2.  Executive summary
+3.  Backend philosophy
+4.  Authority model
+5.  Completed baseline summary
+6.  Backend layer stack
+7.  Route-to-backend ownership model (overview)
+8.  Dashboard backend
+9.  Intel backend
+10. Navigation backend
+11. Operations backend
+12. Activity Log backend
+13. Settings backend
+14. About backend
+15. Source routing backend
+16. Provenance and truth model
+17. Workflow engine backend
+18. AI backend boundaries
+19. Confirmation Gate backend
+20. Privacy and security backend
+21. Bridge / API contracts
+22. Event streaming contracts
+23. Phase backend mapping
+24. Future-route backend activation
+25. Diagnostics and release hardening
+26. Backend glossary
+27. Open reconciliation items
+
+================================================================================
+1. TITLE AND AUTHORITY
+================================================================================
+
+Name:        OmniCOVAS Backend Blueprint
+Version:     1.0
+Status:      FINAL_BACKEND_REFERENCE
+Date:        2026-05-06
+Companion:   UI Blueprint v1.0; Source Capability Routing Reference v1.
+Supersedes:  no prior backend blueprint existed; this is the first.
+
+The Backend Blueprint is one of three companion authority documents along with
+the UI Blueprint and the Source Capability Routing Reference. Together they
+implement the architecture defined by the Master Blueprint and constrained by
+the Compliance Matrix.
+
+================================================================================
+2. EXECUTIVE SUMMARY
+================================================================================
+
+OmniCOVAS is event-driven, async-first, local-first, source-backed, auditable,
+privacy-protective, AI-provider-agnostic, performance-first, and bound by
+Confirmation Gate doctrine. The backend exists to make that posture real.
+
+The backend owns:
+- live local telemetry ingestion (journal watcher, Status.json reader, companion
+  JSON readers);
+- event dispatch and broadcast;
+- canonical state (StateManager and its typed extensions);
+- domain handlers and domain services (per pillar / per route family);
+- the Knowledge Base and KB metadata;
+- the source registry, source router, request queue, cache, and provenance
+  registry (forward-looking surfaces);
+- the workflow engine that turns commander intent into source plans, request
+  bundles, recommendations, blockers, and next actions;
+- the AI provider abstraction (NullProvider must always work);
+- the Confirmation Gate;
+- the Activity Log (canonical proof layer);
+- the FastAPI bridge and the WebSocket event stream that feed the Tauri UI;
+- the resource monitor, latency budget enforcement, and diagnostics surfaces;
+- the DPAPI-backed secret vault and redaction processor.
+
+The backend does not own:
+- which sidebar routes exist (UI Blueprint owns route layout);
+- which provider may answer which fact, at what budget, with which fallback
+  wording (Source Capability Routing Reference owns this);
+- legal, ToS, license, attribution, external relationship rules (Compliance
+  Matrix owns these);
+- pillars, phases, laws, principles (Master Blueprint owns these).
+
+How this document connects to the others:
+- UI Blueprint v1.0 defines what the commander sees. The Backend Blueprint
+  defines what feeds it. Every UI route in the UI Blueprint has a backend
+  ownership entry in Section 7 of this document.
+- Master Blueprint defines the constitution. Every backend service in this
+  document is bound by the Ten Laws (Master §2), Ten Architectural Principles
+  (Master §3), and the Tier 1/2/3 AI doctrine (Master §7).
+- Compliance Matrix defines the legal envelope. Every external workflow
+  documented here cites the relevant Compliance Matrix section.
+- Source Capability Routing Reference defines provider boundaries. Every
+  ExternalRequestBundle in this document references the Source Capability
+  Routing Reference Section 4 capability cards and the Section 6 budget
+  recommendations rather than re-deriving them.
+- Activity Log is the proof layer. Every backend service that mutates state,
+  performs an external request, or runs through the Confirmation Gate writes
+  to it.
+
+================================================================================
+3. BACKEND PHILOSOPHY
+================================================================================
+
+3.1 Local-first
+The local Journal, Status.json, companion JSON files (Cargo.json, Market.json,
+Outfitting.json, Shipyard.json, ModulesInfo.json, NavRoute.json), and the
+OmniCOVAS state/cache are the primary truth path. External sources are
+secondary. Missing telemetry stays missing. Inferred values must be labeled.
+
+3.2 Event-driven
+State changes arrive as events. The dispatcher routes events to typed handlers.
+Handlers update StateManager and publish typed broadcasts. Subscribers consume
+broadcasts asynchronously. There is one event taxonomy and one StateManager.
+
+3.3 Async-first
+No blocking I/O on the core event loop. External calls run on bounded async
+workers. Slow or crashing subscribers are isolated by the broadcaster. Every
+core path has a documented latency budget; CI enforces budgets where the active
+phase guide requires it (Master §14).
+
+3.4 Source-backed
+Every fact carries source, timestamp, freshness, truth class, caveat, and an
+Activity Log reference. AI never injects facts. Unknown remains unknown. There
+is no synthesis of facts that no source supports.
+
+3.5 Auditable
+Every state mutation, every external request, every gate decision, every export,
+every settings change, and every AI/voice/slash/route-activation decision lands
+in the Activity Log with a stable event ID. The Activity Log is canon.
+
+3.6 Privacy-protective
+Outbound data defaults off. Secrets are encrypted at rest via DPAPI bound to the
+commander's Windows account. Logs are redacted before write. No telemetry is
+ever sent to project maintainers. Every outbound flow is consent-gated, opt-in,
+and visible in the Data Flow / Sources surface in Settings.
+
+3.7 AI-provider agnostic
+The AIProvider interface abstracts every provider. NullProvider must always
+work, and the core feature set must function with AI off. AI is never a source
+of facts. AI cannot call APIs directly. AI cannot bypass the source router or
+the Confirmation Gate.
+
+3.8 Confirmation Gate
+Any action that could affect the commander, the game, the local environment,
+external services, or shared state passes the Confirmation Gate before it is
+performed. The gate cannot be bypassed by AI, voice, slash command, route
+activation, or workflow recommendation.
+
+3.9 Performance-first
+Resource Budget Framework (Master §11) and Latency Budget Framework (Master §14)
+are constraints, not suggestions. The backend measures itself and surfaces its
+own health through diagnostics rather than burying performance regressions.
+
+================================================================================
+4. AUTHORITY MODEL
+================================================================================
+
+Layer responsibilities:
+- Master Blueprint v4.2 — laws, principles, pillars, phases, dependencies,
+  release strategy.
+- Compliance Matrix v4.1 — legal, ToS, privacy, licenses, external services,
+  attributions, red flags.
+- UI Blueprint v1.0 — frontend route ownership, route layout, user-surface
+  containment, dashboard pin rules, alert lanes, slash command surface.
+- Backend Blueprint v1.0 (this document) — backend services, state,
+  source-routing execution, event models, workflows, API and bridge contracts,
+  cache, queue, provenance, privacy enforcement at the service layer.
+- Source Capability Routing Reference v1 — provider capability cards, allowed
+  call types per workflow, request budgets, fallback wording, unsupported
+  facts.
+- Active phase guide / release notes — task detail and current shipped state.
+
+Conflict handling:
+- Master beats Backend Blueprint on laws, scope, phase, priority, doctrine.
+- Compliance Matrix beats Backend Blueprint on legal, privacy, license, and
+  external service rules. If a backend service appears to require a behavior the
+  Compliance Matrix forbids, the service must be redesigned, blocked, or
+  deferred.
+- UI Blueprint beats Backend Blueprint on which routes exist and what each
+  route owns at the surface. The Backend Blueprint may not invent a primary
+  route, may not remove a route, and may not redesign route layout.
+- Source Capability Routing Reference beats Backend Blueprint on which provider
+  may answer which fact, at what budget, and with what fallback wording.
+- Backend Blueprint beats lower-priority documents (CLAUDE.md, CLAUDE_CODE.md,
+  Soldier.md, individual playbooks) on backend service ownership, but is bound
+  by all higher-priority documents above.
+
+If a real conflict exists between two authorities, the conflict must be reported
+and the higher authority obeyed until the constitution is updated.
+
+================================================================================
+5. COMPLETED BASELINE SUMMARY
+================================================================================
+
+Phases 1, 2, 2.5, and 3 are complete and integrated. They are baseline. They are
+not backlog. The backend behaviors below already exist; this section documents
+them so that future work does not duplicate them.
+
+5.1 Phase 1 backend baseline (Master §26, Phase 1 Dev Guide)
+- Project skeleton, Tauri shell skeleton, Python 3.11, uv, pre-commit, ruff,
+  mypy, pytest, GitHub Actions CI.
+- Journal watcher with catch-up parse and rotation handling.
+- Status.json reader.
+- Event dispatcher and central event taxonomy in core/event_types.
+- StateManager with typed snapshot extensions.
+- AsyncIO broadcaster that isolates failing subscribers.
+- AIProvider interface plus NullProvider; provider factory.
+- Knowledge Base loader with metadata, source/version/confidence/justification
+  fields, and validation gates.
+- Confirmation Gate middleware (cannot be bypassed).
+- FastAPI bridge with dynamic port discovery; the UI consumes the bridge URL,
+  not a hard-coded localhost port.
+- DPAPI vault for secrets bound to the commander's Windows account.
+- structlog plus secret redaction processor on every log record.
+- Resource Monitor and resource budget framework (Master §11).
+- Activity Log infrastructure with stable event IDs.
+- SQLAlchemy ORM, aiosqlite, Alembic migrations, event recorder.
+
+5.2 Phase 2 backend baseline (Master §19, §27, Phase 2 Dev Guide)
+- Pillar 1 Ship Telemetry features: ship_state, fuel, hull_triggers, loadout,
+  module_health, cargo, power_distribution, heat_management, rebuy,
+  extended_events, integration.
+- Latency budget enforcement formalized for Pillar 1.
+- KB entries for ship classes and Pillar 1 mechanics with source/version
+  metadata.
+- All Pillar 1 features broadcast typed events; UI cards subscribe.
+
+5.3 Phase 2.5 backend baseline (Master §28)
+- Deferred Pillar 1 items reconciled. Shield intelligence is implemented under
+  the existing Hull/Shields safety model, not as a separate service or feature.
+- Repair/rearm, predictive target alerts, tactical threat, multi-ship state are
+  reconciled into the existing Phase 2 architecture rather than recreated.
+
+5.4 Phase 3 backend / UI bridge baseline (Master §29, Phase 3 Dev Guide)
+- Tauri shell shipped; FastAPI bridge serves a JSON state snapshot endpoint and
+  a WebSocket event stream consumed by the UI.
+- Overlay window with critical alert lane (interdiction, hull critical) wired
+  through the same broadcaster.
+- First-Run Setup, Privacy page, Settings, Activity Log views, and Dashboard
+  shell delivered.
+- Output mode router covers UI text, voice draft, and overlay banner from a
+  shared source.
+- ADR 0003 locks the UI safe-rendering pattern (Tier 1 createElement and
+  textContent preferred; Tier 2 escapeHtml + innerHTML allowed; Tier 3
+  forbidden). Activity Log and overlay both follow the rule. Phase 3 closed at
+  292 tests green.
+
+5.5 Collision audit (forbidden duplications)
+The following baseline systems already exist. Do not create a second one.
+- Do not create a second StateManager, dispatcher, broadcaster, or event bus.
+- Do not create a parallel cache layer for state already owned by StateManager.
+- Do not create a second DPAPI vault.
+- Do not create a second FastAPI bridge or a second WebSocket event stream.
+- Do not create a second Activity Log or a second Confirmation Gate.
+- Do not duplicate the AIProvider abstraction. New providers register into the
+  existing factory.
+- Do not create a parallel KB loader or KB validation pipeline.
+- Do not create a "CombatStateManager" or any pillar-named StateManager. Combat,
+  exploration, trade, mining, BGS, etc. extend the existing StateManager.
+
+================================================================================
+6. BACKEND LAYER STACK
+================================================================================
+
+The backend pipeline, top-to-bottom in event flow:
+
+a. Local file watchers
+   - Journal watcher: tails the latest Journal.*.log; handles rotation, mid-file
+     restart, line buffering, encoding. Emits raw journal events.
+   - Status.json reader: polls or watches Status.json safely; emits Status.json
+     snapshots.
+   - Companion JSON readers: read Cargo.json, Market.json, Outfitting.json,
+     Shipyard.json, ModulesInfo.json, NavRoute.json on file change. Filter
+     ModulesInfo.json against the current ship loadout slot set before mutating
+     ship state to avoid SRV/on-foot context contamination.
+
+b. Parser
+   - Normalizes raw events into typed event records with timestamps and source
+     classifications (journal vs Status.json vs companion JSON).
+
+c. Dispatcher
+   - Routes parsed events to typed domain handlers. Single source of truth for
+     event-to-handler mapping. Lives in core; do not fork.
+
+d. StateManager
+   - Single canonical state object. Typed snapshots. Source priority rule:
+     journal > Status.json > CAPI > EDDN > inferred. Domain handlers extend the
+     snapshot through declared, typed fields, never through an ad-hoc dict.
+
+e. Domain event handlers
+   - Pillar-specific or route-family-specific handlers (Pillar 1 ship telemetry,
+     combat target intelligence, interdiction, rewards, etc.). Each handler is
+     small, named by responsibility, and registered with the dispatcher. The
+     handler does not own state — it asks StateManager to mutate.
+
+f. Domain services
+   - Stable typed services that read StateManager and KB to answer route-driven
+     questions (e.g., escape option generation, threat label lookup, market
+     candidate review). Services are deterministic; AI may consume them.
+
+g. SourceRegistry
+   - Catalog of providers, their capability cards (per Source Capability
+     Routing Reference Section 4), their current health, their auth state,
+     their consent state, their rate-limit budget, their cache TTL defaults.
+     The registry is the single point that translates "provider id" into
+     "what may I do with it right now."
+
+h. SourceRouter
+   - Given a workflow and the set of facts it needs, the SourceRouter consults
+     the SourceRegistry, the local-first sequence, and the Source Capability
+     Routing Reference to produce a WorkflowSourcePlan. The router does not
+     execute requests; it plans them.
+
+i. WorkflowSourcePlan
+   - Declarative plan stating, per fact: allowed sources, preferred order,
+     cache key strategy, cache TTL, batch plan, rate-limit bucket, consent
+     requirements, fallback behavior, unsupported fields, and the wording rules
+     to use when a fact comes back missing or stale.
+
+j. ExternalRequestBundle
+   - One executable unit per provider per workflow run. Holds: workflow id,
+     provider id, call type, endpoint family, fields requested, cache status,
+     consent status, auth status, batch plan, queue policy, freshness
+     requirement, fallback behavior, unsupported fields, status, and Activity
+     Log references.
+
+k. ExternalRequestQueue
+   - Per-provider queue with bucket-aware scheduling, jittered backoff, hard
+     caps, and graceful degradation when a provider returns 429 or is otherwise
+     blocked.
+
+l. Cache / freshness layer
+   - Stores responses by cache key. Records source, endpoint, timestamp,
+     freshness, TTL, source confidence, and stale behavior. Stale entries are
+     served labeled, not silently. Cache hits and misses are auditable.
+
+m. Provenance registry
+   - Resolves "what is the source of this field right now" for any field shown
+     in the UI. Required because facts may be a mix of live local telemetry,
+     local snapshot, cached external, authenticated snapshot, community known,
+     commander-entered, inferred, or AI draft.
+
+n. Activity Log
+   - Canonical proof layer. Receives events from every layer above and below.
+     Stores commander-relevant view and full audit view. Every entry has a
+     stable id; UI affordances such as Why and View Activity link by id.
+
+o. Confirmation Gate
+   - Wraps protected actions, including AI-suggested ones. Owns the proposal,
+     confirmation, audit-id, and final state. Cannot be bypassed.
+
+p. AI workflow planner
+   - Translates commander intent into a draft WorkflowSourcePlan and a set of
+     proposed steps. The planner does not produce facts. The planner output is
+     advisory and labeled.
+
+q. Workflow engine
+   - Executes a plan: resolve cache, queue ExternalRequestBundles, gather
+     responses, compute blockers, propose recommendations, surface next actions,
+     hand protected actions to the Confirmation Gate, write to Activity Log.
+
+r. FastAPI bridge
+   - Serves snapshot endpoints to the Tauri UI and exposes the WebSocket event
+     stream. Provides dynamic bridge/port discovery. Endpoint families are
+     route-shaped (intel/*, navigation/*, operations/*, activity/*, settings/*,
+     sources/*, diagnostics/*, about).
+
+s. WebSocket event stream
+   - Pushes typed events to the UI. Categories include telemetry, state
+     updates, critical alerts, source events, workflow events, route events,
+     audit events, overlay events, and (future) squadron events. Payloads carry
+     source/freshness/truth/caveat fields where applicable.
+
+t. Tauri UI contracts
+   - The UI consumes the bridge URL discovered at startup; it does not embed a
+     hard-coded localhost port. UI components apply the safe-rendering pattern
+     (ADR 0003) and do not trust untrusted strings into innerHTML.
+
+u. Diagnostics and Resource Monitor
+   - Self-reports CPU, memory, latency budgets, source health, bridge health,
+     cache health, queue health, KB health, and defensive update validation
+     status. Surfaces through Settings → Diagnostics and through Activity Log
+     errors/diagnostics.
+
+================================================================================
+7. ROUTE-TO-BACKEND OWNERSHIP MODEL (overview)
+================================================================================
+
+For each UI route in the UI Blueprint v1.0, there is one or more owning backend
+service group. The route consumes summaries, snapshots, and event streams from
+the owners. A route may consume from many services, but it does not own state
+or workflow logic that another route owns. Sections 8–14 give the per-route
+detail. Sections 23–24 give phase activation.
+
+Mapping (one line per route):
+
+- Dashboard backend: dashboard projection of StateManager snapshots, fixed-bar
+  values, optional slot summaries, pin assembly, source/freshness chips, AI
+  command bar status. Phase 1–3 baseline; extended per phase.
+- Intel backend: known-information registry per Galaxy/System/Local/Ship-Personal
+  scopes; field-level provenance; freshness; entity links; source lookup
+  planning. Forward-looking new service group; Phase 5 begins it.
+- Navigation backend: NavRoute.json proof, active route state, route candidates,
+  planner jobs, route library, bookmarks, route source status. Forward-looking
+  new service group; Phase 5 owns its scaffold; some bookmark/route concepts
+  inherit from Phase 1–3.
+- Operations backend: session focus, command board, active objectives, workflow
+  state machines, recommendations, blockers, next actions, debriefs. Forward-
+  looking new service group; Phase 4 introduces the first concrete operation
+  packages (Combat).
+- Activity Log backend: existing baseline (Phase 1+); extended by every later
+  phase with new event families.
+- Settings backend: existing baseline (Phase 1+, expanded in Phase 3); extended
+  by every later phase with new categories such as Sources/Data Flow.
+- About backend: existing baseline (Phase 3); extended only with new SBOM,
+  attribution, and reporting-link content.
+- Squadrons backend: forward-looking; activates in Phase 7.
+- Engineering backend: forward-looking; activates in Phase 8.
+- Carriers backend: forward-looking; reserved; activates when Fleet Carrier
+  Full Command Center scope begins.
+
+================================================================================
+8. DASHBOARD BACKEND
+================================================================================
+
+Purpose
+The Dashboard is the Live Command Surface. The Dashboard backend assembles a
+compact projection from owning services so the UI can show what matters right
+now without becoming a second source of truth.
+
+Owns
+- the fixed top core internal bar projection: Hull, Shields, Fuel, Heat, Pips
+  (always present, always source-backed by live local telemetry from
+  StateManager);
+- the fixed bottom core external bar projection: Location, Status, Local,
+  Objective, Data;
+- the optional top internal slots projection (commander-selected from a
+  candidate list);
+- the left internal data rail projection: five commander-selectable summary
+  cards drawn from internal-state services (cargo, modules, hardpoints,
+  utilities, repair, materials, internal state, suit/SRV);
+- the right external data rail projection: five commander-selectable summary
+  cards drawn from external/contextual services (System Intel, Local Intel,
+  Navigation, Operations, Trade/Market, BGS, Squadron, External Sources, future
+  domain summaries);
+- pin assembly for source-backed summary pins. Each pin record carries name,
+  type, source, freshness, dashboard location, status (Active, Stale,
+  Unavailable, Disabled, Commander-entered, Coming Later), origin route, and
+  Activity Log reference;
+- AI / command bar status and slash-command resolution for /open targets;
+- output-mode routing of summary text for UI, overlay glance lane, and voice
+  draft (where enabled), via the existing output-mode router.
+
+Does not own
+- known facts (Intel owns those);
+- routes, planning, libraries, bookmarks, route sources (Navigation owns those);
+- active workflow execution, workflow state, debriefs (Operations owns those);
+- audit trails, source chains, external request records (Activity Log owns
+  those);
+- preferences, source setup, privacy controls (Settings owns those);
+- license, security, contributing, CLA, SBOM (About owns those).
+
+State models consumed (read-only)
+- StateManager snapshot (typed).
+- DashboardLayoutState (Settings owns persistence).
+- Pin records (each owned by its origin service; Dashboard backend assembles).
+- Source health summary (SourceRegistry).
+
+Event families consumed
+- state.* (live updates);
+- intel.* (compact summaries only);
+- operation.* (active objective summary only);
+- route.* (active route summary only);
+- source.* (data bar source health summary);
+- gate.* (Confirmation Gate banners and pending decisions).
+
+Endpoints (conceptual)
+- GET dashboard state snapshot (full projection on demand).
+- WebSocket subscription to typed events relevant to dashboard projections.
+
+Privacy gates
+- Dashboard never displays a value whose origin requires consent that has not
+  been granted; the value is replaced with the appropriate fallback wording per
+  Section 16.
+
+Activity Log requirements
+- Pin add/remove, layout change, optional slot change, AI command bar use, and
+  slash command invocation are recorded.
+
+Implementation phase
+- Phase 1–3 baseline; per-phase extensions add new pin types and rail card
+  candidates as new services activate.
+
+Constraint: the Dashboard backend may never become a workflow board, route
+planner, encyclopedia, audit console, or settings panel.
+
+================================================================================
+9. INTEL BACKEND
+================================================================================
+
+Purpose
+Intel is the Known Information Console. The Intel backend is the canonical
+service group for source-backed known information across Galaxy, System, Local,
+and Ship/Personal scopes. Every fact carries source, timestamp, freshness,
+truth class, caveat, and an Activity Log reference.
+
+Owns
+- Known Information Registry (KIR) — the catalog of known facts indexed by
+  entity (galaxy/system/body/ring/station/carrier/settlement/site/POI/commander/
+  ship/cargo/material/mission/discovery);
+- field-level provenance for every fact;
+- entity linking (e.g., a station belongs to a system; a body belongs to a
+  system; a faction operates in systems and stations);
+- source lookup planning hooks that hand off to the SourceRouter;
+- caveat and truth-class labeling;
+- "Send to Navigation," "Bookmark," "Attach to Operation," "View Activity,"
+  "Queue source lookup" affordances backed by service calls;
+- per-scope view assembly: Galaxy, System, Local, Ship/Personal.
+
+Does not own
+- routes or movement (Navigation owns those);
+- workflow execution (Operations owns those);
+- audit detail (Activity Log owns the deep view; Intel only carries activity
+  references);
+- settings or source configuration (Settings owns those).
+
+State models (architectural contracts)
+- KnownFact:
+  - id, entity_ref, field_name, value_or_null, truth_class, source_id,
+    source_endpoint_family, observed_at, ingested_at, freshness_state,
+    cache_key, caveat, activity_log_ref, schema_version.
+- EntityRef:
+  - kind (galaxy / system / body / ring / station / carrier / settlement / site
+    / poi / commander / ship / cargo / material / mission / discovery / fleet
+    carrier), id, name (where available), parent_ref (where applicable),
+    canonical_source.
+- FieldProvenance:
+  - source_id, endpoint_family, request_bundle_id (if external), cache_record_id
+    (if cached), recorded_by ("local_journal" | "status_json" | "companion_json"
+    | "capi" | "edsm" | "ardent" | "edastro" | "elitebgs" | "spansh" | "inara" |
+    "eddn_listener" | "commander_entered" | "ai_draft" | "inferred"),
+    recorded_at, expires_at_or_null, signature_or_null.
+- FreshnessState:
+  - one of {LIVE, FRESH, STALE, EXPIRED, UNKNOWN, NOT_LOADED}.
+- TruthClass:
+  - one of the values defined in Section 16.
+- SourceCaveat:
+  - one of {NONE, INCOMPLETE_COVERAGE, RATE_LIMITED, REQUIRES_AUTH,
+    REQUIRES_CONSENT, COMMUNITY_OBSERVED, INFERRED, AI_DRAFT, UNSUPPORTED,
+    NO_VERIFIED_SOURCE}; plus a free-text note where useful.
+- IntelSnapshot:
+  - scope (galaxy/system/local/ship-personal), entity_ref, facts_by_field,
+    source_summary, last_updated, queued_lookups.
+
+Event families
+- intel.fact_recorded
+- intel.fact_updated
+- intel.fact_invalidated
+- intel.lookup_queued
+- intel.lookup_completed
+- intel.lookup_blocked
+- intel.scope_view_assembled
+Each event payload carries source, freshness, and Activity Log reference.
+
+Endpoints (conceptual)
+- GET intel galaxy snapshot
+- GET intel system <id>
+- GET intel local <id>
+- GET intel personal
+- POST intel queue source lookup (creates a WorkflowSourcePlan via SourceRouter)
+- GET intel fact <id> source chain (delegates to Activity Log)
+
+Privacy gates
+- Authenticated facts (CAPI) require consent and DPAPI-vaulted token.
+- Inara-derived facts require whitelist plus consent.
+- Commander-entered facts are local-only by default; no outbound.
+
+Activity Log requirements
+- Every fact_recorded / fact_updated event has a corresponding Activity Log
+  entry. Source lookup requests, blocked attempts, and rate-limited responses
+  are all logged.
+
+Implementation phase
+- Phase 5 stands up the first cross-cutting Intel service group; earlier phases
+  already produce many of these facts under Pillar 1 / Phase 2 ship telemetry,
+  but they are not yet exposed under a unified Intel surface. Phase 5 is the
+  point at which the unified Intel scope assembly is required.
+
+Constraint: Intel never produces an unsourced AI fact. Intel never claims a
+fact it cannot defend with field-level provenance.
+
+================================================================================
+10. NAVIGATION BACKEND
+================================================================================
+
+Purpose
+Navigation is the Route and Movement Console. The Navigation backend owns
+everything related to where and how to move: NavRoute.json proof, active route
+state, route candidates, planner jobs, route library, bookmarks, and route
+source status.
+
+Owns
+- NavRoute.json ingestion (companion JSON reader);
+- active route state (current destination, next jump, progress, route source);
+- route candidate generation hooks (Spansh link-out today; future Spansh API/
+  dump integration after terms verification; future internal candidate routers
+  for trade loops, mining sweeps, BGS circuits);
+- planner jobs (route intent, parameters, queue, status);
+- route library (saved, recent, imported, expedition, exobiology, trade/mining,
+  mission, engineering/material, carrier, BGS/system circuits, tags,
+  collections, archive, export);
+- bookmarks (systems, stations, carriers, settlements, bodies, rings, sites,
+  POIs, folders, tags, commander notes, bookmark-to-planner actions);
+- route sources status (NavRoute.json proof, Spansh link-out state, future
+  Spansh API/dump readiness, route cache, route queue, freshness, provenance,
+  unsupported route facts, source setup links to Settings, Activity Log links).
+
+Does not own
+- known facts about systems, stations, factions, markets, bodies (Intel owns
+  those);
+- session goals, objectives, workflows, blockers, debriefs (Operations owns
+  those);
+- privacy or source configuration (Settings owns those);
+- audit detail (Activity Log owns it; Navigation carries Activity Log
+  references).
+
+State models (architectural contracts)
+- ActiveRouteState:
+  - source ("navroute_json" | "omnicovas_candidate" | "spansh_linkout" |
+    "spansh_api_future" | "internal_router_future"),
+    destination_ref, next_jump_ref, progress, status, linked_operation_ref,
+    linked_intel_refs, source_freshness, started_at, updated_at.
+- RouteCandidate:
+  - id, intent_ref, type (destination/exploration/exobiology/trade_loop/
+    mining_run/mission/engineering/carrier/bgs_circuit/colonization),
+    waypoints, total_jumps, total_distance_ly, ship_constraints, source,
+    freshness, caveat.
+- RouteIntent:
+  - id, commander_intent, parameters, ship_constraints, allowed_sources,
+    preferred_order, created_at.
+- RouteJob:
+  - id, intent_id, provider_id, status (queued / running / complete /
+    rate_limited / blocked / cancelled), submitted_at, completed_at,
+    activity_log_ref, result_candidate_id_or_null, fallback_behavior.
+- SavedRoute:
+  - id, name, type, source, freshness, tags, owner ("local" | "imported" |
+    "shared_future"), waypoints, created_at, updated_at.
+- Bookmark:
+  - id, entity_ref, folder, tags, commander_note, created_at, last_used_at.
+- RouteSourceStatus:
+  - per source: enabled, healthy, last_success_at, last_failure_at,
+    rate_limit_state, queue_depth, blocker (if any), notes.
+
+Event families
+- route.active_changed
+- route.next_jump_advanced
+- route.candidate_proposed
+- route.candidate_accepted
+- route.candidate_rejected
+- route.job_queued
+- route.job_completed
+- route.job_blocked
+- route.bookmark_created / updated / removed
+- route.library_imported / exported
+- route.source_status_changed
+
+Endpoints (conceptual)
+- GET navigation active route
+- GET navigation candidates (current intent or job id)
+- POST navigation plan (creates a RouteIntent and queues a RouteJob)
+- GET navigation library / bookmarks
+- POST navigation bookmark
+- GET navigation sources status
+- POST navigation copy-next-jump (commander-triggered side effect; passes
+  through Confirmation Gate where required)
+
+Privacy gates
+- Spansh link-out is local; Spansh API requires endpoint/rate/terms verification
+  before any backend integration.
+- No outbound route submission to anyone without explicit opt-in.
+
+Activity Log requirements
+- Every route source request, response, blocked attempt, and rate-limited
+  response is logged. Active route transitions are logged.
+
+Implementation phase
+- Phase 5 is the principal Navigation backend phase. Earlier phases already
+  consume NavRoute.json indirectly; Phase 5 stands up the unified Navigation
+  service group.
+
+Constraint: Navigation may not own facts. Navigation may not auto-activate a
+route in-game. Activation always requires commander action (see Master Law 1
+and Section 19 here).
+
+================================================================================
+11. OPERATIONS BACKEND
+================================================================================
+
+Purpose
+Operations is the Session Operations Console. The Operations backend owns
+session intent, active goals, workflow state machines, blockers, next actions,
+debriefs, and AI workflow drafts. Operations is where the commander runs
+Combat, Exploration/Exobiology, Trade/Mining, Passenger, BGS/Powerplay,
+Carrier/Logistics (until Carriers activates), and Custom workflows.
+
+Owns
+- Session Focus selection and impact preview (live; Settings owns the default);
+- Command Board: an overview of the active operation, blockers, linked route
+  summary, linked Intel summary, and next action;
+- per-package workflow state machines (Operations → Combat, Operations →
+  Exploration/Exobiology, Operations → Trade/Mining, Operations → Passenger,
+  Operations → BGS/Powerplay, Operations → Carrier/Logistics, Operations →
+  Engineering pre-activation, Operations → Squadron pre-activation, Operations
+  → Custom);
+- workflow recommendations (advisory output, source-backed or labeled);
+- workflow next actions;
+- workflow blockers and unknowns surface;
+- debrief summaries at end of operation;
+- AI workflow drafts (planner output; advisory only).
+
+Does not own
+- known facts (Intel);
+- routes, planner, libraries, bookmarks, route sources (Navigation);
+- audit detail (Activity Log; Operations carries Activity Log references);
+- source/provider configuration (Settings → Sources/Data Flow);
+- live ship safety glance (Dashboard).
+
+State models (architectural contracts)
+- Operation:
+  - id, package, name, status (proposed / active / paused / complete /
+    aborted), started_at, ended_at, owner (commander), session_focus_ref,
+    linked_intel_refs, linked_route_refs, recommendations, next_actions,
+    blockers, debrief_summary_or_null.
+- OperationObjective:
+  - id, operation_id, description, success_criteria, progress, status,
+    linked_intel_refs, linked_route_refs, blockers.
+- SessionFocus:
+  - active_focus, candidate_list, applied_at, defaults_ref (Settings).
+- WorkflowState:
+  - operation_id, step_index, current_step, history, parameters,
+    pending_confirmations.
+- WorkflowStep:
+  - id, kind (gather_facts / queue_source_request / confirm_action /
+    propose_recommendation / wait_for_telemetry / record_outcome / branch /
+    end), inputs, outputs, source_plan_ref_or_null, confirmation_required.
+- WorkflowBlocker:
+  - id, kind (missing_fact / source_disabled / source_blocked / consent_missing
+    / auth_missing / rate_limited / unsupported / commander_input_required /
+    confirmation_pending), reason, fallback_action.
+- WorkflowRecommendation:
+  - id, operation_id, draft_or_final, grounding_refs, confidence,
+    requires_confirmation, ai_draft_flag.
+- WorkflowNextAction:
+  - id, operation_id, label, target (intel_ref / route_ref / settings_ref /
+    activity_log_ref / commander_input), confirmation_required.
+- LinkedIntelRef:
+  - operation_id, entity_ref, field_name_or_null, snapshot_id, last_resolved_at.
+- LinkedRouteRef:
+  - operation_id, route_state_ref_or_candidate_ref_or_saved_route_ref.
+
+Event families
+- operation.created / started / paused / completed / aborted
+- operation.objective_updated
+- workflow.step_started / step_completed / step_blocked
+- workflow.recommendation_proposed / accepted / rejected
+- workflow.next_action_proposed / triggered
+- workflow.debrief_finalized
+
+Endpoints (conceptual)
+- GET operations command-board snapshot
+- GET operations <id>
+- POST operations create
+- POST operations focus
+- POST operations <id> step (commander-triggered)
+- POST operations <id> recommendation (accept / reject)
+- POST operations <id> debrief
+
+Privacy gates
+- Workflows that need external facts produce a WorkflowSourcePlan first
+  (Section 15). The plan governs consent/auth/budget. Workflows do not call
+  providers directly.
+
+Activity Log requirements
+- Every operation lifecycle event, every workflow step transition, every
+  recommendation accept/reject, every next-action trigger, every debrief lands
+  in the Activity Log.
+
+Implementation phase
+- Phase 4 introduces the first concrete Operations packages (Combat). Later
+  phases extend Operations with Exploration/Exobiology (Phase 5),
+  Trade/Mining/Carrier-Logistics (Phase 6), Squadron pre-activation packages
+  (Phase 7 transition), Engineering pre-activation packages (Phase 8
+  transition), and BGS/Powerplay (Phase 9).
+
+Constraint: Operations may not own Intel facts and may not own Navigation
+routes. Operations links outward.
+
+================================================================================
+12. ACTIVITY LOG BACKEND
+================================================================================
+
+Purpose
+Activity Log is the Data Audit Console. The Activity Log backend owns the
+canonical proof layer: what happened, how OmniCOVAS knows, what source produced
+it, what changed, what consumed the data, what was external, what was AI, what
+was confirmed, what was blocked, what was exported or deleted, and what was
+stale, unknown, or unsupported.
+
+Owns
+- the event log store (commander-relevant view + full audit view);
+- source chain reconstruction for a given fact;
+- external request records (with auth/consent state and provider id);
+- AI / Confirmation Gate decision records;
+- export and delete records;
+- error and diagnostic records;
+- redaction policy at write time (secrets never reach the store);
+- raw payload drawer access where allowed by policy and privacy.
+
+Does not own
+- workflow execution (Operations);
+- known facts (Intel);
+- routes (Navigation);
+- settings (Settings);
+- project metadata (About).
+
+Canonical event families
+The following are reserved at the family level. Each event has a family-prefixed
+type; the union of types is namespaced and stable.
+
+- state.*           — StateManager mutations (state.snapshot_updated, state.field_changed)
+- source.*          — SourceRegistry, SourceRouter, queue, cache, provenance
+                      (source.health_changed, source.lookup_planned,
+                      source.request_queued, source.response_received,
+                      source.cache_hit, source.cache_miss, source.rate_limited,
+                      source.blocked, source.unsupported)
+- workflow.*        — workflow engine lifecycle (workflow.step_*, workflow.recommendation_*)
+- route.*           — Navigation lifecycle
+- intel.*           — Intel lifecycle
+- operation.*       — Operations lifecycle
+- ai.*              — AI provider invocations (ai.draft_proposed, ai.draft_accepted,
+                      ai.draft_rejected, ai.disabled, ai.fallback_engaged)
+- gate.*            — Confirmation Gate decisions (gate.proposed, gate.confirmed,
+                      gate.canceled, gate.blocked)
+- privacy.*         — privacy/consent state changes (privacy.consent_granted,
+                      privacy.consent_revoked, privacy.export_started,
+                      privacy.export_completed, privacy.delete_started,
+                      privacy.delete_completed)
+- settings.*        — settings mutations (settings.changed, settings.profile_loaded,
+                      settings.reset)
+- diagnostic.*      — diagnostics surface (diagnostic.budget_breach,
+                      diagnostic.health_warning, diagnostic.update_validated,
+                      diagnostic.kb_validated)
+- combat.*          — Phase 4 combat events
+- exploration.*     — Phase 5 exploration events
+- trade.*           — Phase 6 trade events
+- mining.*          — Phase 6 mining events
+- carrier.*         — Phase 6+ carrier events (logistics now; full Carriers later)
+- squadron.*        — Phase 7 squadron events
+- engineering.*     — Phase 8 engineering events
+- bgs.*             — Phase 9 BGS events
+- powerplay.*       — Phase 9 Powerplay events
+
+Each event payload carries:
+- id, family, type, occurred_at, recorded_at, source ("internal" | provider id
+  | "commander_entered" | "ai_draft"), entity_refs, field_changes (where
+  applicable), old_value_or_null, new_value_or_null, redacted_fields, links
+  (workflow / route / operation / source request / cache record / gate
+  decision), commander_visible (bool), severity (info / notice / warning /
+  error / critical).
+
+Endpoints (conceptual)
+- GET activity timeline (filtered)
+- GET activity event <id>
+- GET activity source-chain for fact <id>
+- GET activity external-requests (filtered)
+- GET activity ai-gates
+- POST activity export (commander-triggered, Confirmation Gate)
+- POST activity clear (commander-triggered, Confirmation Gate)
+
+Privacy gates
+- Secret redaction is enforced at write time (per Master §12 and Compliance §5).
+- Raw payloads from privacy-sensitive sources are stored only when policy
+  allows and only at the redacted level. Inara, CAPI, and commander-PII content
+  follow the strictest rules.
+
+Implementation phase
+- Phase 1 baseline; every later phase extends families and types. No phase may
+  remove a family.
+
+Constraint: the Activity Log is never the place for live UI workflows; it is
+the audit canon. UI surfaces show short Why and View Activity links that
+resolve to log entries.
+
+================================================================================
+13. SETTINGS BACKEND
+================================================================================
+
+Purpose
+Settings is the Configuration Console. The Settings backend owns app behavior,
+preferences, permissions, source setup, privacy controls, AI/voice/overlay
+configuration, diagnostics, import/export, and DPAPI-backed secrets.
+
+Owns
+- preferences and profiles;
+- session focus defaults (Operations owns the live selection);
+- dashboard layout state (rail card slots, optional top slots, pin defaults);
+- overlay behavior profile;
+- game controls readiness configuration;
+- AI provider configuration (provider id, model id where applicable, AI on/off,
+  grounding policy);
+- voice configuration (native-first; VoiceAttack adapter optional; EDDI not
+  supported as active dependency);
+- privacy and data controls;
+- sources and data-flow setup (per provider: enabled, consent, auth state,
+  budget posture, attribution acknowledgment);
+- diagnostics surface (read-only views of bridge, cache, queue, KB, defensive
+  update validation, performance budgets);
+- import/export controls (data exports, build link import, EDDiscovery/
+  ED Observatory imports where verified);
+- recent changes drawer and global Settings search;
+- safe reset and recovery (profile defaults, factory reset for non-vault state,
+  vault rotation);
+- DPAPI vault for secrets (token, OAuth, API keys);
+- secret redaction policy used by the logging stack and Activity Log.
+
+Does not own
+- live state (StateManager via Dashboard projection);
+- facts (Intel);
+- workflows (Operations);
+- audit history (Activity Log; Settings shows changes via its recent-changes
+  drawer but the canon is the log);
+- project identity (About).
+
+State models (architectural contracts)
+- ProfileState (profile selection, presets, granular toggles).
+- DashboardLayoutState (slot bindings).
+- OverlayProfileState.
+- AIProviderState.
+- VoiceState.
+- PrivacyDataState.
+- SourcesDataFlowState (per provider).
+- DiagnosticsView (read-only projection).
+- ImportExportJob (queued/running/complete/failed).
+- VaultState (presence indicators, never key material).
+
+Event families
+- settings.changed
+- settings.profile_loaded
+- settings.reset
+- privacy.* (cross-published with Activity Log)
+- diagnostic.* (cross-published with Activity Log)
+
+Endpoints (conceptual)
+- GET settings <category>
+- POST settings <category> change
+- POST settings reset (Confirmation Gate)
+- GET diagnostics health
+- POST settings sources <provider> enable / disable / consent / auth
+- POST settings export (Confirmation Gate)
+- POST settings import (Confirmation Gate)
+
+Privacy and security
+- All secret material is encrypted at rest via DPAPI bound to the commander's
+  Windows account.
+- Vault rotation is supported and logged (without disclosing key material).
+- Logs are redacted before write; the redaction processor is owned by Settings'
+  configuration, applied in core logging.
+
+Implementation phase
+- Phase 1 baseline; expanded substantially in Phase 3; later phases register
+  new categories and toggles only.
+
+Constraint: Advanced Settings is removed (UI Blueprint v1.0). All reachable
+settings are categorized and discoverable via search.
+
+================================================================================
+14. ABOUT BACKEND
+================================================================================
+
+Purpose
+About is the compact Project / Reference route. The About backend owns project
+metadata, build information, and links to license/security/contributing/CLA/
+SBOM/repo/docs/reporting.
+
+Owns
+- project metadata (name, version, build hash, build timestamp, signed status
+  if applicable);
+- license summary (AGPL-3.0 reference; CLA reference);
+- security policy reference (link to SECURITY.md and reporting URL);
+- contributing reference (link to CONTRIBUTING.md);
+- CLA reference (link to CLA.md);
+- SBOM reference or compact panel pointer;
+- attributions and acknowledgments index (third-party services, providers,
+  contributors);
+- repository, issue tracker, and documentation links;
+- Frontier trademark disclaimer text.
+
+Does not own
+- privacy controls (Settings → Privacy & Data);
+- source/provider setup (Settings → Sources/Data Flow);
+- AI configuration (Settings → AI);
+- voice setup (Settings → Voice);
+- onboarding acknowledgments (Settings/First-Run Setup);
+- audit detail (Activity Log);
+- full legal document text rendering inside the panel — About links to canonical
+  files;
+- diagnostics or export/import (Settings → Diagnostics / Import-Export).
+
+State models (architectural contracts)
+- AboutMetadata (name, version, build hash, build timestamp, signing status,
+  license, license_url, security_url, contributing_url, cla_url, sbom_url,
+  repo_url, docs_url, attributions[]).
+
+Event families
+- (consumes diagnostic.update_validated for build/signing status surface).
+
+Endpoints (conceptual)
+- GET about metadata.
+
+Implementation phase
+- Phase 3 baseline; later phases add SBOM/attribution entries only.
+
+Constraint: About may not duplicate Privacy/Source/AI/Voice/Diagnostics surfaces.
+
+================================================================================
+15. SOURCE ROUTING BACKEND
+================================================================================
+
+Purpose
+The source routing backend ensures that every workflow needing external facts
+asks the right provider, at the right budget, with the right consent and auth,
+and falls back honestly when a fact is not available. It binds backend
+implementation to the Source Capability Routing Reference v1.
+
+Components
+- SourceRegistry: catalog of providers and their capability cards (mirrors
+  Source Capability Routing Reference Section 4). Tracks per-provider state:
+  enabled/disabled, consent, auth, current bucket usage, last failure,
+  attribution acknowledgment.
+- ProviderCapability: typed record of which call types a provider supports,
+  which fields each call returns, which call types it does NOT support, and
+  which call types are forbidden.
+- WorkflowSourcePlan: the plan-level contract; see Source Capability Routing
+  Reference Section 6 and reproduce the field set:
+  workflow_type, commander_intent, required_facts, optional_facts,
+  allowed_sources_per_fact, preferred_source_order, cache_key_strategy,
+  cache_ttl, request_bundle_plan, rate_limit_bucket, consent_requirements,
+  fallback_behavior, unsupported_fields, output_wording_rules.
+- ExternalRequestBundle: the executable unit; see Source Capability Routing
+  Reference Section 6 and reproduce the field set:
+  workflow_id, workflow_type, provider_id, call_type, endpoint_family,
+  required_facts, optional_facts, fields_requested, cache_key, cache_status,
+  source_priority, consent_status, auth_status, documented_provider_limit,
+  documented_provider_guidance, omnicovas_bucket, batch_plan, max_batch_size,
+  queue_policy, freshness_requirement, fallback_behavior, unsupported_fields,
+  status, activity_log_ids.
+- SourceRequest / SourceResponse: per-call records; HTTP details normalized;
+  no secrets; status codes and rate-limit signals captured.
+- CacheRecord: cache_key, provider_id, endpoint_family, response_summary
+  (redacted), recorded_at, ttl, source_confidence, stale_behavior.
+- RequestBudget: per-provider bucket implementing the recommendations in Source
+  Capability Routing Reference Section 6; includes default/min/hard limits,
+  current consumption, reset window, backoff state.
+- SourceBlocker: typed blocker emitted to workflows when a request cannot
+  proceed (kind = consent_missing / auth_missing / rate_limited /
+  source_disabled / unsupported / needs_verification).
+- UnsupportedFact: typed declaration that a fact is not supported by any
+  enabled source; carries the recommended fallback wording.
+- FieldProvenance: the provenance object attached to every fact (Section 9).
+- ExternalRequestQueue: per-provider queue with bucket-aware scheduling,
+  jittered backoff on 429, hard caps, graceful degradation.
+
+Local-first sequence
+For every workflow, the SourceRouter checks in this order:
+1. Local Journal.
+2. Local companion JSON files (Status.json, Cargo.json, Market.json,
+   Outfitting.json, Shipyard.json, ModulesInfo.json, NavRoute.json).
+3. OmniCOVAS state/cache.
+4. Authenticated CAPI snapshot, if relevant and consent/auth granted.
+5. Verified external sources per the Source Capability Routing Reference Section
+   2 call-type router.
+6. Link-only/manual sources or unsupported declaration if no verified source
+   exists for a fact.
+
+Source gates
+- Consent: outbound calls default off; commander explicit opt-in required.
+- Auth: tokens stored in DPAPI vault; never logged; required scope verified
+  before send.
+- Privacy: facts that risk exposing commander identity/location externally
+  default off and are visible in the Data Flow surface.
+- Attribution: provider-required attributions surfaced in About and on
+  consuming surfaces.
+
+Provider-specific boundaries (delegated)
+- Per the Source Capability Routing Reference Section 2 call-type router,
+  Section 3 provider priority map, Section 4 capability cards, and Section 6
+  budget recommendations. The Backend Blueprint does not re-derive numbers; it
+  binds the SourceRegistry to those values.
+
+Implementation phase
+- Phase 5 begins the SourceRegistry/SourceRouter scaffold (Intel + Navigation
+  workflows). Phase 6 extends with Trade/Mining and Carrier needs. Phases 7–9
+  add Squadrons, Engineering, and BGS/Powerplay needs.
+
+Constraint: AI never bypasses the SourceRouter. All external calls flow through
+the SourceRegistry → WorkflowSourcePlan → ExternalRequestBundle → queue path.
+
+================================================================================
+16. PROVENANCE AND TRUTH MODEL
+================================================================================
+
+Every field shown to the commander carries a TruthClass plus the field-level
+provenance defined in Section 9. The TruthClass values are authoritative and
+must not be substituted with alternate vocabulary.
+
+TruthClass values
+- LIVE_LOCAL_TELEMETRY — the value comes from the live Journal or Status.json
+  reading.
+- LOCAL_SNAPSHOT — the value comes from a companion JSON snapshot written by
+  Elite Dangerous (Cargo.json, Market.json, Outfitting.json, Shipyard.json,
+  ModulesInfo.json, NavRoute.json) or from a recorded local OmniCOVAS state.
+- CACHED_EXTERNAL — the value comes from a previously fetched external response
+  still within freshness; provenance includes provider, endpoint, recorded-at,
+  and ttl.
+- AUTHENTICATED_SNAPSHOT — the value comes from a CAPI authenticated endpoint;
+  may not be live.
+- COMMUNITY_KNOWN — the value comes from a community-sourced provider (EDSM,
+  EDAstro, Ardent, EliteBGS, EDDN listener cache). Coverage is community-
+  observed, not guaranteed.
+- COMMANDER_ENTERED — the value was entered by the commander; treated as
+  authoritative for the commander's local context but never as external truth.
+- INFERRED — the value is derived from telemetry plus rules; must be labeled and
+  confidence-scored; cannot override LIVE_LOCAL_TELEMETRY or LOCAL_SNAPSHOT.
+- AI_DRAFT — the value is an AI-produced draft; cannot stand alone as a fact;
+  must be accompanied by grounding refs or labeled clearly as a draft.
+- UNKNOWN — no source has produced this value yet.
+- NOT_LOADED — the source for this value exists but has not yet been read.
+- DISABLED — the source is configured off.
+- STALE — the cached value is past its freshness window; may be shown labeled.
+- REQUIRES_AUTHORIZATION — the source needs commander authentication or
+  consent that has not been granted.
+- UNSUPPORTED — no enabled source supports this fact in this configuration.
+- NO_VERIFIED_SOURCE — no source has verified support for this workflow yet
+  (e.g., mining hotspot/ring candidate workflow today).
+
+Field record contract
+Every field record carries: source, source_endpoint_family, observed_at,
+ingested_at, freshness_state, truth_class, caveat, activity_log_ref,
+schema_version. The UI is required (per UI Blueprint v1.0 Section 19) to
+display source/freshness chips, Why links, View Activity links, and the
+fallback wording in Section 19 of this document.
+
+================================================================================
+17. WORKFLOW ENGINE BACKEND
+================================================================================
+
+Purpose
+The workflow engine turns commander intent into a series of source-bounded,
+gated, audited steps. It is the only place where commander intent becomes
+external requests, and it never produces facts that no source supports.
+
+End-to-end flow
+1. Intent interpretation
+   - Commander enters intent (typed in command bar, slash command, voice draft,
+     or workflow start). The AI workflow planner may classify intent. Output is
+     a candidate WorkflowSpec.
+2. Source planning
+   - SourceRouter produces a WorkflowSourcePlan per Section 15. Each required
+     fact is mapped to an allowed source list and preferred order.
+3. Source routing
+   - The engine resolves cache first. For uncached facts, ExternalRequestBundles
+     are queued. The provider queue enforces budgets and consent/auth gates.
+4. Blocker detection
+   - Consent missing, auth missing, rate-limited, source disabled, unsupported,
+     and commander-input-required produce typed blockers visible to Operations.
+5. Recommendation generation
+   - Domain services compute recommendations grounded in StateManager and
+     resolved facts. The AI workflow planner may produce drafts; drafts are
+     labeled and tagged with grounding refs.
+6. Confirmation requirements
+   - Any protected action (route activation hint, settings change,
+     export/delete, outbound submission, AI-suggested action with side
+     effects) passes the Confirmation Gate (Section 19).
+7. Next actions
+   - The engine surfaces concrete next actions (commander_input,
+     review_recommendation, copy_next_jump, open_intel, open_navigation,
+     open_settings_source, etc.).
+8. Activity Log linkage
+   - Every transition writes to the Activity Log with a stable id; UI affordances
+     resolve to those ids.
+
+Constraints
+- AI cannot create facts.
+- AI cannot call APIs directly; AI proposes plans, the engine routes through
+  the SourceRouter.
+- AI cannot bypass the Confirmation Gate.
+- The engine cannot perform a game action; in-game effects always require a
+  commander action.
+
+Phase mapping
+- Phase 4 introduces the engine in narrow form (Combat operations).
+- Phase 5 generalizes for Intel/Navigation/Exploration.
+- Phase 6+ broadens scope by package.
+
+================================================================================
+18. AI BACKEND BOUNDARIES
+================================================================================
+
+Interface
+- AIProvider interface; NullProvider must always work.
+- Provider factory selects the active provider based on Settings → AI.
+
+Allowed AI behavior
+- Classify commander intent.
+- Summarize source-backed facts (label clearly).
+- Explain a recommendation grounded in source-backed facts.
+- Compare options when each option's facts are source-backed.
+- Draft WorkflowSourcePlans for the SourceRouter to validate.
+- Draft text for UI surfaces, with explicit AI_DRAFT labeling.
+
+Forbidden AI behavior
+- Producing facts.
+- Calling external APIs directly.
+- Bypassing the SourceRouter.
+- Bypassing the Confirmation Gate.
+- Performing game actions.
+- Hidden background work without Activity Log entries.
+- Generating recommendations against unsourced or unsupported claims.
+
+Grounding and labeling
+- Every AI output that is not pure UI assistance must carry grounding_refs and
+  a confidence indicator. AI_DRAFT class is used wherever the output is not
+  promoted to a recorded fact.
+
+AI-off contract
+- With AI off, the core feature set must function. Tier 1 deterministic
+  telemetry features and Tier 2 KB-grounded rules must not require LLM access.
+- Settings → AI shows the impact of disabling AI explicitly.
+
+================================================================================
+19. CONFIRMATION GATE BACKEND
+================================================================================
+
+Purpose
+The Confirmation Gate is the project-level guarantee that AI suggests and the
+commander confirms. Every protected action passes through the gate.
+
+Protected actions
+- Settings changes that materially affect privacy, source enablement, voice,
+  AI, or game controls.
+- Outbound submissions (EDDN, BGS-Tally if enabled, Frontier-facing
+  submissions, future shared squadron data).
+- Exports and deletes of commander data.
+- Route activation hints that translate into commander-initiated copy/paste of
+  next-jump or destination data.
+- AI-proposed actions with side effects.
+- Future input assist (voice command apply, copy/paste actions).
+
+States
+- PROPOSED: the gate has a candidate action awaiting commander review.
+- CONFIRMED: commander confirmed; the action is performed; an audit_id is
+  emitted.
+- CANCELED: commander declined; the action is not performed; audit_id is
+  emitted.
+- BLOCKED: a higher rule (privacy, compliance, source unavailability) prevents
+  even prompting; the gate emits a BLOCKED record explaining why.
+
+Action proposal model
+- proposal_id, kind, target (settings_ref / source_ref / route_ref / intel_ref
+  / operation_ref / export_ref / delete_ref), payload_summary, justification,
+  source_refs, ai_draft_flag, severity, deadline_or_null.
+
+Cross-surface relationships
+- AI: every AI side-effect proposal is wrapped.
+- Voice: voice apply requires an explicit command; the gate is still in front.
+- Slash commands: deterministic shortcuts may not bypass protected actions.
+- Route activation: copy/paste of next-jump is a commander action; the gate
+  records the proposal and the commander's decision.
+- External requests: high-impact submissions pass the gate even if a generic
+  source toggle is on.
+- Exports/deletes: always pass the gate; export and delete records are
+  privacy-class events.
+- Settings changes: high-impact toggles pass the gate; trivial preferences may
+  not require it but are still logged.
+
+Constraint: the Confirmation Gate cannot be disabled. AI, voice, and slash
+commands cannot bypass it.
+
+================================================================================
+20. PRIVACY AND SECURITY BACKEND
+================================================================================
+
+Posture
+- Local-first by default.
+- Outbound off by default.
+- Secrets at rest encrypted via DPAPI bound to the commander's Windows account.
+- Logs redacted at write time.
+- No telemetry to project maintainers.
+
+Privacy gates
+- Per-source consent toggles.
+- Per-action consent for outbound submissions.
+- Sensitive Intel facts (commander encounter notes, PvP records) default to
+  local-only; export requires Confirmation Gate.
+
+Auth gates
+- Tokens, OAuth, and API keys stored in vault. Scope checks before every send.
+- Vault rotation supported and logged.
+
+Source consent
+- Provider toggles in Settings → Sources/Data Flow govern enablement.
+- Attribution acknowledgments required before enabling certain sources.
+
+Export and delete
+- Commander can export their data and delete OmniCOVAS-held data via
+  Settings → Privacy & Data. Confirmation Gate enforced. Activity Log records
+  the operation; raw deleted data is not retained after a delete operation
+  except for the audit metadata that proves it happened.
+
+Squadron sharing privacy (Phase 7+)
+- All shared telemetry is consent-gated and visible in the Data Flow surface.
+- Top Secret Mode and Burn Command require future security doctrine before
+  implementation; the backend documents them as RESERVED and gated.
+- No shared route or shared bookmark synchronization happens without explicit
+  share scope and Activity Log records.
+
+Security reporting
+- About → Security links to SECURITY.md and the project's vulnerability
+  reporting URL. The backend itself never silently sends crash reports or
+  diagnostics outbound; diagnostics surfaces are local.
+
+================================================================================
+21. BRIDGE / API CONTRACTS
+================================================================================
+
+The FastAPI bridge serves the Tauri UI. The bridge URL is discovered
+dynamically at startup; the UI does not hard-code a localhost port. Endpoint
+names below are conceptual unless the Phase 1–3 baseline has already named
+them. New names appear only when the implementing phase activates.
+
+Conceptual endpoint families
+- Dashboard: GET dashboard state (full projection).
+- Events: WebSocket subscription for typed events (telemetry, state, alerts,
+  source, workflow, route, audit, overlay, future squadron).
+- Intel: GET intel/<scope>, GET intel/fact/<id>, POST intel/queue-source-lookup.
+- Navigation: GET navigation/active, GET navigation/candidates,
+  POST navigation/plan, GET navigation/library, GET navigation/bookmarks,
+  POST navigation/bookmark, GET navigation/sources, POST navigation/copy-next-jump.
+- Operations: GET operations/command-board, GET operations/<id>,
+  POST operations, POST operations/<id>/step, POST operations/<id>/recommendation,
+  POST operations/<id>/debrief.
+- Activity Log: GET activity/timeline, GET activity/event/<id>,
+  GET activity/source-chain/<fact_id>, GET activity/external-requests,
+  GET activity/ai-gates, POST activity/export, POST activity/clear.
+- Settings: GET settings/<category>, POST settings/<category>,
+  POST settings/reset, POST settings/sources/<provider>,
+  POST settings/export, POST settings/import.
+- Sources / queue: GET sources/registry, GET sources/queue,
+  POST sources/<provider>/consent, POST sources/<provider>/auth.
+- Diagnostics: GET diagnostics/health, GET diagnostics/budgets,
+  GET diagnostics/cache, GET diagnostics/queue.
+- About: GET about/metadata.
+
+Endpoint discipline
+- Bridge URL is dynamic; UI clients consume a discovered URL at runtime.
+- All endpoints use typed payloads with explicit source/freshness/truth/caveat
+  fields where applicable.
+- All endpoints write to the Activity Log when they mutate state.
+- POSTs that perform protected actions go through the Confirmation Gate.
+
+================================================================================
+22. EVENT STREAMING CONTRACTS
+================================================================================
+
+Event categories on the WebSocket stream:
+- Telemetry events — raw and parsed live state changes.
+- State updates — typed StateManager mutations.
+- Critical alerts — overlay-eligible interrupting events (interdiction, hull
+  critical, hostile contact); also routed to the overlay alert lane.
+- Source events — registry health, queue/cache events, blocked or rate-limited
+  responses, unsupported declarations.
+- Workflow events — Operations/workflow engine lifecycle.
+- Route events — Navigation lifecycle.
+- Audit events — Activity Log mirror events the UI may show as toasts or in
+  Why drawers.
+- Overlay events — overlay banner lifecycle (glance and interruptive).
+- Future squadron events — peer state, telemetry sync, role/authority,
+  emergency/security, integrations (Phase 7+).
+
+Payload principles
+- Every event carries id, family, type, occurred_at, recorded_at, severity.
+- Source-bearing events carry source, freshness, truth_class, caveat.
+- AI-bearing events carry ai_draft_flag and grounding_refs.
+- Gate-bearing events carry proposal_id and decision_state.
+- Privacy-sensitive payloads are redacted; sensitive raw payloads stay in the
+  Activity Log raw drawer (where allowed) and are not pushed over WebSocket.
+
+================================================================================
+23. PHASE BACKEND MAPPING
+================================================================================
+
+23.1 Phase 1–3 (complete baseline)
+- Backend baseline is locked (Section 5). New work in later phases extends, it
+  does not replace.
+- Backend caution: do not duplicate baseline systems. New features register
+  into the existing dispatcher, StateManager, broadcaster, FastAPI bridge,
+  Activity Log, Confirmation Gate, AI factory, vault, and resource monitor.
+
+23.2 Phase 4 — Combat backend (Master §20, §30; Phase 4 Dev Guide)
+- Service work: target intelligence, interdiction, escape planner, PvP
+  encounter local memory, hostility/threat, rewards, combat rank, munitions,
+  combat zone, pirate hunting context, threat scoring, AX partial, on-foot
+  awareness.
+- Source requirements: local Journal-first; PvP external lookup gated and
+  default off; AX/on-foot grounded by telemetry only.
+- Privacy requirements: PvP local memory persists; external lookups pass
+  consent/auth/budget gates; sensitive Intel labels avoid unverifiable terms
+  ("known ganker" forbidden without source).
+- Activity Log: combat.* family; gate.*, ai.*, source.* as relevant.
+- UI route consumers: Operations → Combat package (UI Blueprint Section 20),
+  Overlay (interdiction and critical hostility), Intel (Ship/Personal for
+  encounters), Activity Log.
+- Implementation caution: do not create combat-specific StateManager or
+  combat-specific event bus.
+
+23.3 Phase 5 — Intel/Navigation/Exploration backend (Master §21, §31)
+- Service work: stand up SourceRegistry, SourceRouter, ExternalRequestQueue,
+  cache layer, provenance registry; Intel scope assemblies; Navigation active
+  route + planner + library + bookmarks + sources; Exploration/Exobiology
+  workflows.
+- Source requirements: EDSM and EDAstro for context (per Source Capability
+  Routing Reference Sections 4.5, 4.7); Ardent for adjacency (Section 4.4);
+  Spansh link-out (Section 4.9); EDDN listener candidate (Section 4.11).
+- Privacy: source consent and attribution surfaces in Settings; CAPI off by
+  default.
+- Activity Log: intel.*, route.*, source.*, exploration.*.
+- UI route consumers: Intel, Navigation, Operations → Exploration/Exobiology,
+  Dashboard external rail, Activity Log.
+- Implementation caution: respect respectful budgets, never the provider hard
+  limit; verify every Spansh API endpoint and term before any backend integration.
+
+23.4 Phase 6 — Trade/Mining/Carrier/Colonization backend (Master §23, §32)
+- Service work: market candidate review (Trade Loop Candidate Review), mining
+  candidate workflow, cargo intel, efficiency tracking, EDDN market submission
+  (consent-gated), tritium and FC market basics until Carriers route activates,
+  colonization operations under Operations → Carrier/Logistics.
+- Source requirements: Ardent (Sections 4.4, 2.4–2.10), EDSM market context,
+  CAPI for last-docked snapshot when consented, EDDN as listener/submitter
+  per consent.
+- Privacy: EDDN submission consent gating; CAPI auth gating; commander cargo
+  facts local by default.
+- Activity Log: trade.*, mining.*, carrier.*, source.*, gate.*, privacy.*.
+- UI route consumers: Operations → Trade/Mining and Carrier/Logistics; Intel;
+  Navigation; Dashboard external rail; Activity Log.
+- Implementation caution: do not claim "best in galaxy" or "guaranteed best
+  hotspot near me"; surface fallback wording per Section 19. Do not promote
+  any candidate provider to active dependency without verification.
+
+23.5 Phase 7 — Squadrons backend (Master §25, §33)
+- Activates Squadrons as a primary route (UI Blueprint Section 23).
+- Service work: peer state, encrypted telemetry sync, invite codes, role/
+  authority, shared operations, shared navigation links to Navigation,
+  emergency/security state, squadron log.
+- Privacy: ChaCha20-Poly1305 telemetry encryption, P2P with peer-relay
+  fallback, Top Secret Mode and Burn Command reserved with future security
+  doctrine.
+- Activity Log: squadron.*, gate.*, privacy.*, source.* for integrations.
+- UI route consumers: Squadrons, Operations (group operations), Navigation
+  (shared routes), Intel (peer system context), Activity Log, Settings.
+- Implementation caution: every peer interaction is consent-gated; no shared
+  data without explicit share scope.
+
+23.6 Phase 8 — Engineering backend (Master §24, §34)
+- Activates Engineering as a primary route (UI Blueprint Section 24).
+- Service work: progression goals, raw material gap analysis, blueprints,
+  engineers and unlocks, Guardian and tech brokers, suit engineering, build
+  planning (link-out via EDSY/Coriolis formats), acquisition plans.
+- Source requirements: Intel-owned material/loadout facts; Navigation routes;
+  Settings → Sources/Data Flow for any future verified provider.
+- Activity Log: engineering.*, source.*.
+- UI route consumers: Engineering, Operations (active sessions), Intel,
+  Navigation, Settings, Activity Log.
+- Implementation caution: EDSY/Coriolis are link/format integrations only,
+  not telemetry truth.
+
+23.7 Phase 9 — BGS/Powerplay backend (Master §22, §35)
+- Service work: BGS facts via EliteBGS and EDSM context (Sections 4.5, 4.8 of
+  Source Capability Routing Reference), Powerplay context per provider
+  evidence, BGS-Tally export action when consented, faction influence/state/
+  history.
+- Source requirements: EliteBGS budget per Source Capability Routing Reference
+  Section 6 (default 2/min, hard 60/hour); EDSM for system/faction context.
+- Privacy: any outbound submission consent-gated.
+- Activity Log: bgs.*, powerplay.*, source.*, gate.*.
+- UI route consumers: Intel (facts), Operations → BGS/Powerplay (campaign),
+  Navigation (circuits), Squadrons (group coordination), Settings, Activity Log.
+- Implementation caution: do not represent community-source BGS as official or
+  final truth.
+
+23.8 Final polish / hardening backend (Master §36)
+- Diagnostics expansion: cache health, queue health, KB validation, defensive
+  update validation, performance budgets, source health summary.
+- Security audit and hallucination guard stress test.
+- Beta release preparation: signing status surface in About; release notes via
+  Activity Log mirrors.
+- No new primary routes.
+
+================================================================================
+24. FUTURE-ROUTE BACKEND ACTIVATION
+================================================================================
+
+Squadrons (Phase 7)
+- Pre-activation: Operations owns the Squadron package; group coordination is
+  thin and limited to commander-entered notes plus future-flagged surfaces.
+- Activation: Squadrons becomes a primary route with peer state, telemetry
+  sync, invites, roles, shared operations, shared navigation, emergency/
+  security, integrations. Operations → Squadron becomes a thin handoff.
+
+Engineering (Phase 8)
+- Pre-activation: Operations owns the Engineering package; planning is light;
+  Intel owns raw materials and current loadout.
+- Activation: Engineering becomes a primary route with goals, materials,
+  blueprints, engineers/unlocks, Guardian/tech brokers, suit engineering,
+  builds/loadouts, acquisition plan, sources/imports. Operations → Engineering
+  becomes a thin handoff.
+
+Carriers (reserved)
+- Trigger: Fleet Carrier Full Command Center scope begins, or carrier-state
+  load (ownership, tritium, market, storage, jump logistics, services,
+  colonization support) overloads Operations → Carrier/Logistics.
+- Pre-activation: Operations owns Carrier/Logistics objectives; Intel owns the
+  owned-carrier summary and public carrier context; Navigation owns carrier
+  routes; Settings owns CAPI consent for fleet carrier endpoints.
+- Activation: Carriers becomes a primary route with persistent FC command
+  state. Ownership transfers from Operations → Carrier/Logistics into Carriers,
+  while Navigation and Intel retain their owned facts/routes and Carriers
+  links to them.
+
+Activation discipline
+- Activation is a deliberate phase event, not an emergent feature. Each
+  activation creates an explicit reconciliation entry in the Index and an
+  explicit ownership-transfer note in the affected Operations package.
+
+================================================================================
+25. DIAGNOSTICS AND RELEASE HARDENING
+================================================================================
+
+Performance profiling
+- ResourceMonitor reports CPU, memory, async queue depth, broadcaster latency,
+  bridge latency.
+- Latency budgets enforced where the active phase guide requires (Master §14).
+  CI fails on regressions where budgets are registered.
+
+Source health
+- SourceRegistry surfaces per-provider health: enabled, healthy, last success,
+  last failure, current bucket usage, attribution acknowledged.
+
+Bridge health
+- FastAPI bridge surfaces uptime, error rates, current subscribers, dynamic
+  port discovery state.
+
+Cache health
+- Cache layer reports hit/miss, stale serve rate, average TTL utilization,
+  oldest entry, redaction state.
+
+Queue health
+- ExternalRequestQueue reports per-provider queue depth, in-flight requests,
+  rate-limit status, average backoff.
+
+Defensive update validation
+- Master §15 — KB and rule schema versions validated at boot; update bundles
+  validated before activation; failures surface as diagnostics.
+
+KB / rule health
+- KB metadata loader reports stale entries, missing sources, low confidence,
+  needs-review counts.
+
+Accessibility / support hooks
+- Diagnostics expose accessibility state (screen reader hooks, contrast theme
+  state, font scaling state) for support and bug-report payload assembly.
+
+Security self-audit
+- SECURITY.md commitments self-tested where possible: log-redaction smoke
+  test; vault presence test; outbound-default-off test; Confirmation Gate
+  presence test.
+
+Beta readiness
+- Release-readiness surface combines all of the above into a single readiness
+  view; About → metadata reflects build state; Activity Log carries
+  diagnostic.update_validated entries.
+
+================================================================================
+26. BACKEND GLOSSARY
+================================================================================
+
+Activity Log — canonical proof layer for backend events; UI affordances Why and
+View Activity resolve to log entries.
+
+ActiveRouteState — backend state object describing the current active route
+sourced from NavRoute.json or an OmniCOVAS candidate.
+
+AI Draft — TruthClass for AI-produced content that has not been promoted to a
+recorded fact. AI Drafts are labeled.
+
+AIProvider — backend interface that abstracts every LLM provider. NullProvider
+must always work.
+
+Backend Blueprint — this document; authoritative for backend service ownership.
+
+Bookmark — saved location reference; owned by Navigation.
+
+Broadcaster — async fan-out of typed events; isolates failing subscribers.
+
+Bridge — FastAPI HTTP and WebSocket surface that feeds the Tauri UI.
+
+CacheRecord — backend record of a previously fetched external response; carries
+provider, endpoint, recorded-at, ttl, source confidence, and stale behavior.
+
+Commander — the user; backend records actions taken on behalf of the commander
+and never on the commander's behalf without consent.
+
+Confirmation Gate — middleware that turns AI/voice/slash/route/external/
+settings actions into commander-confirmed events.
+
+Dashboard backend — backend assembly of compact projections feeding the
+Dashboard UI.
+
+Dispatcher — single typed event router from parsed events to handlers.
+
+DPAPI vault — Windows-DPAPI-encrypted secret vault bound to the commander's
+Windows account.
+
+EntityRef — backend reference object for any in-game or in-OmniCOVAS entity.
+
+Event family — top-level namespace of an event type (e.g., source.*, intel.*).
+
+ExternalRequestBundle — executable per-provider request unit; owned by the
+SourceRouter and queued by the ExternalRequestQueue.
+
+ExternalRequestQueue — per-provider scheduler with bucket awareness and
+backoff.
+
+FieldProvenance — provenance object attached to every fact.
+
+FreshnessState — TruthClass adjacent value indicating the freshness of a fact.
+
+Intel backend — backend service group owning known information surfaces.
+
+KnownFact — typed record of a single known fact with source, timestamp,
+freshness, truth class, caveat, and Activity Log reference.
+
+Local-first — design rule that local sources are checked before any external
+provider.
+
+Master Blueprint — constitutional source of truth for laws, principles,
+pillars, phases, and high-level architecture.
+
+NavRoute.json — Elite Dangerous companion file providing the in-game route;
+treated as proof.
+
+Navigation backend — backend service group owning routes and movement.
+
+NullProvider — AIProvider implementation that performs no LLM calls.
+
+Operations backend — backend service group owning session goals and workflow
+execution.
+
+Pin — Dashboard summary pin record; carries source, freshness, status, origin
+route, Activity Log reference.
+
+ProviderCapability — typed capability card per provider; mirrors Source
+Capability Routing Reference Section 4.
+
+Provenance registry — backend service that resolves field-level provenance for
+the UI.
+
+Resource Monitor — backend self-reporting of CPU, memory, latency, and async
+queue depth.
+
+RouteCandidate — typed proposed route; not yet active.
+
+RouteIntent — typed commander intent for a route.
+
+RouteJob — typed unit of work in the route source pipeline.
+
+RouteSourceStatus — health record per route source.
+
+SavedRoute — typed library entry.
+
+Session Focus — Operations-owned active focus selector.
+
+Source Capability Routing Reference — companion document; authoritative for
+provider capability and budgets.
+
+SourceRegistry — backend catalog of providers and their state.
+
+SourceRouter — backend planner that turns a workflow into a WorkflowSourcePlan.
+
+Spansh link-out — current Navigation pattern delegating route plotting to
+Spansh in the browser.
+
+StateManager — backend canonical state object.
+
+Status.json — Elite Dangerous companion file with live ship/commander state.
+
+Top Secret Mode — Squadrons reserved feature; gated by future security
+doctrine.
+
+Truth Class — categorical label of a fact's source posture; values defined in
+Section 16.
+
+UI Blueprint v1.0 — companion document; authoritative for frontend route
+ownership.
+
+WorkflowSourcePlan — backend plan-level contract for source-bound workflows;
+required before any external request.
+
+================================================================================
+27. OPEN RECONCILIATION ITEMS
+================================================================================
+
+The following drift items are recorded for future reconciliation. They are not
+fixed by this document.
+
+a. Index needs Backend Blueprint entries.
+   `OmniCOVAS_Index.md` v2.2 does not yet list this Backend Blueprint. New
+   entries belong under Index Section 2.2 (internal authority docs) and Index
+   Section 3 (section maps).
+
+b. Source Capability Routing Reference filename/title drift.
+   The companion file is named `OmniCOVAS_Source_Capability_Routing_Reference_v1.txt`
+   but its first lines read "v0.6 Candidate". This Backend Blueprint cites the
+   filename version. Index Section 30 already noted this as a drift item.
+
+c. Phase 4 Development Guide pre-dates UI Blueprint v1.0.
+   Phase 4 Dev Guide language refers to "combat dashboard cards" and to
+   "PvP Gank Database." Under UI Blueprint v1.0 these belong under Operations →
+   Combat package and the rename to "PvP Encounter Log & Risk Intel" is locked.
+   The Backend Blueprint mirrors the new placement; the Dev Guide itself needs
+   a future revision.
+
+d. ADR 0003 collision.
+   `docs/decisions/0003-ui-safe-rendering.md` already exists. Phase 4 Dev Guide
+   Week 15 Part A asks for a new `0003-phase4-combat-scope.md`. Phase 4 scope
+   ADR must not reuse 0003.
+
+e. Master Blueprint phase-status drift.
+   Master v4.2 Status Dashboard predates Phase 3 close-out and Phase 4 start.
+   UI Blueprint v1.0 already flagged this; Backend Blueprint repeats for
+   visibility.
+
+f. Master §13 Rate Limit Registry vs Source Capability Routing Reference Section 6.
+   Two places define rate posture. Recommendation: Master §13 declares the
+   law-level requirement that buckets exist; Source Capability Routing Reference
+   Section 6 is the source of bucket numbers. Backend Blueprint binds the
+   SourceRegistry to those numbers; future Master rewrite should point to the
+   Source Routing Reference for the table of values.
+
+g. AI provider operational state vs NullProvider law.
+   The current code defaults to GeminiProvider while Master Law 4 and §7
+   require NullProvider to keep the core working. Backend Blueprint documents
+   the AI-off contract (Section 18). No code change in this document.
+
+h. EDDI / VoiceAttack drift.
+   Master §8 and CONTRIBUTING.md still mention EDDI as an integration. UI
+   Blueprint v1.0 cuts EDDI from current UI scope and treats VoiceAttack as
+   optional adapter only. Backend Blueprint reflects the UI Blueprint posture;
+   future Master rewrite should reconcile.
+
+i. CONTRIBUTING.md and other root docs reference legacy paths.
+   `CONTRIBUTING.md` references `OmniCOVAS_Master_Blueprint_v4_0.txt` and
+   `CLAUDE.MD` (legacy uppercase). Master is now v4.2. CLAUDE.md authoritative
+   path is `docs/internal/ai-workflow/CLAUDE.md`. Root docs need a sweep.
+
+j. Phase count normalization.
+   Some older docs use the pre-revision phase order (Pillar 4 vs Pillar 7
+   sequencing). v4.2 adopted the revised order; ensure new authority docs
+   continue to use it.
+
+End of Human Reference.

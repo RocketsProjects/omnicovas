@@ -1,0 +1,1183 @@
+OmniCOVAS Source Capability Routing Reference v0.6 Candidate
+================================================================
+
+Status: Candidate project artifact for review
+Created: 2026-05-05
+Purpose: Provide a concise, implementation-ready, AI-readable source routing reference for OmniCOVAS.
+Supersedes: OmniCOVAS_Source_Call_Routing_Matrix_v0_5_candidate.txt as the working rewrite.
+
+Authority Context
+-----------------
+This document supports the OmniCOVAS Master Blueprint and Source Capability Registry. It does not replace project laws, privacy rules, compliance review, or provider terms.
+
+Use this document to decide:
+  1. Which source should answer a specific fact or workflow.
+  2. Which sources must not be used for that fact.
+  3. Whether consent, authentication, cache, queueing, or fallback wording is required.
+  4. Whether a workflow is unsupported until a verified source exists.
+
+Sorting Principle
+-----------------
+The document is sorted by practical usefulness for AI and implementation work:
+  1. Highest-priority routing rules.
+  2. Exact call-type router.
+  3. Provider priority map.
+  4. Provider capability cards.
+  5. Unsupported claims and required UI wording.
+  6. External request design contract.
+  7. Contact and relationship routes.
+  8. Source anchors.
+  9. Quick reference summary.
+
+================================================================================
+SECTION 1 — HIGHEST-PRIORITY ROUTING RULES
+================================================================================
+
+1. AI is not a source of facts.
+   AI may classify commander intent and prepare a source request plan. AI must not invent telemetry, prices, station inventory, BGS state, route quality, hotspot quality, or API facts.
+
+2. Local-first is mandatory.
+   Local Journal, Status.json, local companion JSON files, and OmniCOVAS state/cache are checked before any external provider.
+
+3. External sources are not interchangeable.
+   A provider may only answer facts its documentation supports. A provider useful for one workflow must not be stretched into another workflow.
+
+4. Unknown remains unknown.
+   If no verified source supports a fact, the UI must say Unknown, Not Supported, No Verified Source, Not Loaded, Disabled, Stale, or Requires Authorization. Do not guess.
+
+5. Field-level provenance is mandatory.
+   Each displayed fact must retain source, timestamp, freshness, truth class, and caveat. Bundled requests are allowed, but bundled fields still need individual provenance.
+
+6. Cache and batch before calling.
+   Do not call one provider once per field, once per card, or once per AI sentence. Use cached facts and provider-supported batch endpoints wherever possible.
+
+7. Respectful budgets are project policy.
+   Provider-published hard limits are not usage targets. OmniCOVAS should use relaxed but respectful budgets, queue work, and back off immediately on provider rate-limit signals.
+
+8. Consent and authentication are source gates.
+   CAPI, Inara, commander profile lookups, outbound submissions, and any privacy-sensitive source require explicit commander control and Activity Log visibility.
+
+9. No scraping by default.
+   Websites without documented API permission are Link-Only or Format-Interop only. Do not design workflows around scraping.
+
+10. Route activation and game actions require commander action.
+    External route planning may produce a candidate. It must not automatically manipulate the game or bypass the Confirmation Gate.
+
+================================================================================
+SECTION 2 — EXACT CALL-TYPE ROUTER
+================================================================================
+
+Use this section first. It is the primary source selection table.
+
+2.1 Live Commander / Ship State
+-------------------------------
+Use:
+  1. Local Journal
+  2. Status.json
+  3. OmniCOVAS StateManager/cache
+Fallback:
+  - CAPI /profile only as an authenticated snapshot if local state is missing and CAPI is enabled.
+Do not use:
+  - EDSM, EDAstro, EDDN relay, Inara, Spansh, EliteBGS, Ardent.
+UI wording:
+  - “Live local telemetry” for local facts.
+  - “Authenticated CAPI snapshot” for CAPI facts.
+
+2.2 Hull, Shields, Pips, Fuel, Heat
+-----------------------------------
+Use:
+  - Local Journal + Status.json + StateManager.
+Fallback:
+  - None for live truth.
+Do not use:
+  - External APIs for live values.
+UI wording:
+  - “Live local telemetry” or Unknown.
+
+2.3 Current Cargo
+-----------------
+Use:
+  1. Cargo.json
+  2. Journal cargo events
+  3. StateManager
+Fallback:
+  - CAPI snapshot if enabled and relevant.
+Do not use:
+  - EDDN relay, EDSM, Inara, Spansh, Ardent global data.
+UI wording:
+  - “Known local cargo.”
+
+2.4 Current / Visited Station Market Snapshot
+---------------------------------------------
+Use:
+  1. Local Market.json if Elite generated it.
+  2. CAPI /market if enabled for last-docked station.
+  3. EDSM or Ardent only as external community-known station/market context.
+Do not use:
+  - Inara API, EDDN relay directly.
+UI wording:
+  - “Local station snapshot” versus “community-known market data.”
+
+2.5 Known Station Market by MarketID or Station Context
+-------------------------------------------------------
+Use:
+  1. EDSM station market endpoint when marketId or exact station context is known.
+  2. Ardent market/commodity endpoint for commodity-specific known-market facts.
+Fallback:
+  - Ardent system commodity endpoints.
+Do not use:
+  - Inara API, EDDN relay, EDAstro.
+UI wording:
+  - “Known station market data, freshness-labeled.”
+
+2.6 Global Commodity Buy / Sell Candidates
+------------------------------------------
+Use:
+  1. Ardent commodity imports/exports endpoints.
+  2. Future OmniCOVAS EDDN-backed local cache.
+Fallback:
+  - Link-only/manual tools if no API source is enabled.
+Do not use:
+  - EDSM as a broad search engine.
+  - Inara API.
+  - CAPI.
+  - EDDN relay directly.
+  - EDAstro.
+UI wording:
+  - “Best known from enabled sources,” not “best in galaxy.”
+
+2.7 Nearby Commodity Buy / Sell From Current System
+---------------------------------------------------
+Use:
+  1. Ardent nearby imports/exports endpoints.
+  2. Future OmniCOVAS EDDN-backed local cache.
+Do not use:
+  - Inara API, EDSM as direct broad search, EDDN relay directly.
+UI wording:
+  - “Nearby observed market candidates.”
+
+2.8 Station Service Nearest Lookup
+----------------------------------
+Examples: refuel, repair, shipyard, outfitting, material trader, technology broker, black market, universal cartographics.
+Use:
+  1. Ardent nearest service endpoint.
+  2. EDSM station context only when candidate systems/stations are already known and service facts are sufficient.
+Important limitation:
+  - Service availability is not exact module or ship inventory.
+Do not use:
+  - Inara API, EDAstro, EDDN relay directly.
+UI wording:
+  - “Nearest known station with service X.”
+
+2.9 Exact Module Availability / Outfitting Inventory
+----------------------------------------------------
+Use:
+  1. Local Outfitting.json for the current/visited station.
+  2. CAPI /shipyard for last-docked station if enabled.
+  3. EDSM known-station outfitting if exact station context is known.
+Fallback:
+  - Link-only/manual tools until a verified broad module inventory API exists.
+Do not use:
+  - Ardent nearest outfitting as exact module inventory.
+  - Inara broad lookup.
+UI wording:
+  - “Known outfitting at selected station,” not “nearest guaranteed module.”
+
+2.10 Shipyard / Ship Availability
+---------------------------------
+Use:
+  1. Local Shipyard.json.
+  2. CAPI /shipyard if enabled.
+  3. EDSM known-station shipyard if exact station context is known.
+Fallback:
+  - Ardent nearest shipyard only for service presence.
+Do not use:
+  - Inara broad lookup unless future docs prove support.
+UI wording:
+  - “Known shipyard data.”
+
+2.11 Public System Information
+------------------------------
+Examples: coordinates, permit, government, allegiance, economy, population, controlling faction, security, primary star.
+Use:
+  1. EDSM system endpoints.
+  2. Ardent system lookup as fallback.
+  3. Spansh dumps/local index if implemented and verified.
+Do not use:
+  - Inara API, CAPI for public lookup, EDDN relay directly.
+UI wording:
+  - “Known public system data.”
+
+2.12 Nearby Systems / Spatial Candidate Systems
+-----------------------------------------------
+Use:
+  1. EDSM sphere or cube endpoints.
+  2. Ardent nearby systems.
+  3. Spansh dumps/local index if implemented.
+Known request-shape limits:
+  - EDSM sphere radius: max 100 ly.
+  - EDSM cube size: max 200 ly.
+  - Ardent nearby maxDistance: max 500 ly; returns up to 1000 systems.
+UI wording:
+  - “Nearby known systems.”
+
+2.13 System Bodies / Exploration Scan Context
+---------------------------------------------
+Use:
+  1. Local Journal scan events for commander-observed facts.
+  2. EDSM bodies / estimated value.
+  3. EDAstro starsystem endpoint.
+Fallback:
+  - Spansh dumps/local index if verified.
+Do not use:
+  - Ardent trade endpoints, Inara API, EliteBGS.
+UI wording:
+  - “Commander-observed scan” for local data.
+  - “Known body data” for external data.
+
+2.14 Exploration POI / Galactic Exploration Catalog
+---------------------------------------------------
+Use:
+  1. EDAstro GEC endpoints.
+Fallback:
+  - EDSM/Spansh POI or dump source only after verification.
+Do not use:
+  - Ardent, CAPI, Inara API, EDDN relay.
+UI wording:
+  - “Community POI.”
+
+2.15 Route Planning / Neutron Route / Road to Riches
+----------------------------------------------------
+Use:
+  1. Local NavRoute.json for current in-game route proof.
+  2. Spansh link-out for immediate integration.
+  3. Spansh API only after endpoint/rate/terms confirmation.
+  4. Future local Spansh dump/router if implemented.
+Support sources:
+  - EDSM, Ardent, and EDAstro may enrich route stops; they are not route engines unless OmniCOVAS builds routing logic.
+Do not use:
+  - Inara API, EDDN relay, CAPI.
+UI wording:
+  - “Route candidate.”
+
+2.16 BGS Faction / Influence / State / History / Tick
+-----------------------------------------------------
+Use:
+  1. EliteBGS.
+  2. EDSM factions for secondary known-system context.
+  3. Local Journal for commander-observed mission/faction effects.
+Fallback:
+  - Commander-entered objective notes.
+Do not use:
+  - Inara API for minor faction influences.
+  - Ardent trade endpoints.
+  - EDAstro or Spansh.
+UI wording:
+  - “Known BGS data from source X,” not official or final truth.
+
+2.17 BGS Operation Recommendation
+---------------------------------
+Use:
+  - Local objective + EliteBGS/EDSM BGS facts + KB/rules.
+AI role:
+  - AI may synthesize a plan. It must preserve sourced facts and label recommendations.
+Do not use:
+  - Unsourced hidden mechanics as fact.
+UI wording:
+  - “Suggested based on known data.”
+
+2.18 Community Goals
+--------------------
+Use:
+  1. CAPI /communitygoals if commander contribution state matters and CAPI is enabled.
+  2. Inara getCommunityGoalsRecent for Inara-recorded ongoing/recent CGs.
+  3. Official/manual links if implemented.
+Do not use:
+  - EDSM, EDAstro, EDDN relay, Ardent.
+UI wording:
+  - “CAPI active CG and your contribution” or “Inara-recorded recent CG.”
+
+2.19 Commander Profile / Ranks / Squadron
+-----------------------------------------
+Use:
+  1. Local StateManager for in-session identity.
+  2. CAPI /profile for authenticated commander state.
+  3. Inara getCommanderProfile if enabled and whitelisted.
+  4. EDSM commander APIs only when the commander/API key workflow is explicitly implemented.
+Do not use:
+  - Ardent, EDAstro, EDDN, Spansh.
+UI wording:
+  - “Authenticated profile snapshot” or “Inara profile data.”
+
+2.20 Fleet Carrier Owner Data
+-----------------------------
+Use:
+  1. CAPI /fleetcarrier for the authenticated owner.
+Fallback:
+  - Ardent/EDSM only for public observed carrier/station/market context if the exact endpoint supports the displayed fact.
+Do not use:
+  - Inara unless exact documented support exists.
+UI wording:
+  - “Your fleet carrier from CAPI” versus “community-observed carrier market.”
+
+2.21 Mining Hotspot / Ring Candidate
+------------------------------------
+Use:
+  - No complete verified direct source yet.
+Candidate source facts:
+  - EDSM/EDAstro body/ring fields may support candidate context if verified for the exact field.
+  - Spansh dumps may support body/ring data after schema verification.
+  - Ardent can support sell-station/market side after commodity/candidate selection.
+  - Local Journal scans can support commander-observed body facts.
+Do not use:
+  - Inara API, EDDN relay directly, unsupported “best hotspot” claims.
+UI wording:
+  - “No verified mining-candidate source enabled” or “candidate based on known body/ring data.”
+
+2.22 Engineering / Material Inventory
+-------------------------------------
+Use:
+  1. Local Journal where material/engineering events are exposed.
+  2. CAPI profile if material fields are present, enabled, and verified.
+  3. Commander-entered goals.
+Fallback:
+  - EDSY/Coriolis links for build planning, not inventory truth.
+Do not use:
+  - Inara API unless exact documented endpoint supports the fact.
+UI wording:
+  - “Known local material inventory” or “manual build link.”
+
+2.23 Ship Build Planning
+------------------------
+Use:
+  - EDSY/Coriolis link/export/import formats after format verification.
+Source of truth:
+  - Local Loadout/ModulesInfo for actual ship.
+  - EDSY/Coriolis for planned build only.
+Do not use:
+  - Build tools as telemetry.
+UI wording:
+  - “Planned build” versus “current loadout.”
+
+2.24 Traffic / Death Risk in a System
+-------------------------------------
+Use:
+  - EDSM traffic/deaths.
+Fallback:
+  - Local commander history/cache.
+Do not use:
+  - Ardent trade volume as risk proxy unless clearly labeled as inferred.
+UI wording:
+  - “EDSM-reported traffic/deaths.”
+
+================================================================================
+SECTION 3 — PROVIDER PRIORITY MAP
+================================================================================
+
+P0 — Primary Local Truth
+------------------------
+1. Local Journal
+2. Local companion JSON files
+3. OmniCOVAS state/cache
+
+Primary role:
+  - Live commander reality, session telemetry, local snapshots, persisted source-backed state.
+
+P1 — Highest-Utility External Query Sources
+-------------------------------------------
+1. Ardent
+   - Best current candidate for EDDN-backed trade/market candidate search and station service lookup.
+2. EDSM
+   - Best current source for known-system, nearby-system, known-station, station market/shipyard/outfitting context.
+3. Frontier CAPI
+   - Best source for authenticated commander profile, last-docked market/shipyard, CG contribution, fleet carrier, visited stars.
+
+P2 — Specialized Domain Sources
+-------------------------------
+1. EDAstro
+   - Exploration, cartographic, known system contents, POI/GEC.
+2. EliteBGS
+   - BGS/faction/tick workflow candidate.
+3. Spansh
+   - Route planning link-out now; API/data-dump candidate after terms/rate verification.
+
+P3 — Limited / Relay / Relationship-Dependent Sources
+-----------------------------------------------------
+1. Inara API
+   - Useful only for supported Inara events, commander profile, and community goals. Not a universal lookup API.
+2. EDDN
+   - Strategic relay for future local cache and optional outbound submission. Not directly queryable.
+
+P4 — Optional Interop / Link-Only / Retired
+-------------------------------------------
+1. EDMC, EDDiscovery, EDDI
+   - Optional interop/reference; not required for core operation.
+2. EDSY, Coriolis, Roguey, mEDI, EDTools, Miners Tool-style sites
+   - Link-only or format-interop until API/terms are verified.
+3. EDDB
+   - Retired; do not plan active dependency.
+
+================================================================================
+SECTION 4 — PROVIDER CAPABILITY CARDS
+================================================================================
+
+4.1 Local Journal
+-----------------
+Source type:
+  PRIMARY_LOCAL local file source.
+
+Use for:
+  - Current commander session events.
+  - FSDJump, Docked, Undocked, LoadGame, Loadout, mission events, cargo events, combat events where exposed.
+  - Activity Log source-chain roots.
+
+Cannot provide:
+  - Global market/outfitting/shipyard search.
+  - Unobserved facts.
+  - Complete mission board state.
+  - Continuous values for every in-game UI state.
+
+Request design:
+  - File watch plus catch-up parse.
+  - No external budget.
+  - Performance bounded by local resource budget.
+
+Implementation posture:
+  - ACTIVE / CORE.
+
+4.2 Local Companion JSON Files
+------------------------------
+Source type:
+  PRIMARY_LOCAL local snapshot files.
+
+Files:
+  - Status.json
+  - Cargo.json
+  - Market.json
+  - Outfitting.json
+  - Shipyard.json
+  - ModulesInfo.json
+  - NavRoute.json
+
+Use for:
+  - Live ship status where reliable.
+  - Local current/visited station market, outfitting, shipyard snapshots.
+  - Cargo inventory.
+  - Current in-game route if NavRoute.json exists.
+
+Cannot provide:
+  - Galaxy-wide lookup.
+  - Facts before Elite writes the file.
+  - Proof that missing file means the thing does not exist.
+
+Request design:
+  - File watch or safe polling.
+  - Missing file = Not Loaded.
+
+Implementation posture:
+  - ACTIVE / CORE.
+
+4.3 OmniCOVAS State / Cache
+---------------------------
+Source type:
+  PRIMARY_LOCAL persisted state and cache.
+
+Use for:
+  - Current state assembled from source-backed facts.
+  - Cached external responses.
+  - Commander goals/notes.
+  - Activity Log and provenance.
+
+Cannot provide:
+  - Live truth after data becomes stale.
+  - Missing facts.
+  - Higher authority than source telemetry.
+
+Request design:
+  - Every cached fact must retain provider, endpoint family, timestamp, TTL/freshness, source confidence, and stale behavior.
+
+Implementation posture:
+  - ACTIVE / CORE.
+
+4.4 Ardent
+----------
+Source type:
+  Public anonymous EDDN-backed REST API and data-dump/self-host candidate.
+
+Best use:
+  - Global and nearby commodity candidate searches.
+  - Station service discovery.
+  - EDDN-backed observed market data.
+
+Verified can provide:
+  - Commodity summaries.
+  - Commodity importers/exporters globally.
+  - Nearby imports/exports from a known system.
+  - System lookup.
+  - Nearby systems.
+  - Nearest station by service.
+  - System commodity data.
+  - Market commodity data by marketId.
+  - Database dumps / self-host option.
+
+Cannot provide:
+  - Official Frontier truth.
+  - Private commander profile.
+  - Live ship telemetry.
+  - Route planning.
+  - BGS influence/history unless a specific endpoint proves support.
+  - Exact module inventory unless item-level outfitting endpoints are verified.
+  - Guaranteed complete market coverage.
+
+Request design:
+  - Use maxDaysAgo, minVolume, minPrice/maxPrice, fleetCarriers intentionally.
+  - Prefer nearby endpoints when origin is known.
+  - Use local self-host/dumps for heavy workflows.
+
+Operating budget:
+  - Provider enforced limit: none currently identified.
+  - Provider guidance: respectful use.
+  - OmniCOVAS default: 6 requests/minute.
+  - OmniCOVAS hard cap: 240/hour.
+
+Contact route:
+  - GitHub repository / maintainer issue route.
+
+Implementation posture:
+  - CANDIDATE / HIGH VALUE for Phase 6 trade and mining sell-side workflows.
+
+4.5 EDSM
+--------
+Source type:
+  Public API; authenticated commander endpoints for commander-specific features.
+
+Best use:
+  - Known system/station context.
+  - Nearby systems.
+  - Known station market/shipyard/outfitting checks.
+  - Public exploration/body context.
+  - Traffic/deaths and secondary BGS context.
+
+Verified can provide:
+  - System lookup by name.
+  - Multi-system lookup.
+  - Sphere systems, max radius 100 ly.
+  - Cube systems, max size 200 ly.
+  - Bodies and estimated values.
+  - Stations.
+  - Known station market, shipyard, outfitting.
+  - Factions, traffic, deaths.
+  - Authenticated commander logs endpoint with documented 360/hour limit for that endpoint only.
+
+Cannot provide:
+  - Live commander telemetry.
+  - Global best market search.
+  - Broad nearest exact-module search.
+  - Route plotting.
+  - Guaranteed current prices.
+  - Complete mining hotspot workflow.
+  - Official BGS strategy.
+
+Request design:
+  - Use batch/multi-system form where possible.
+  - Use sphere/cube only for spatial workflows.
+  - Use marketId when known.
+  - Never call once per field.
+
+Operating budget:
+  - OmniCOVAS default public bucket: 2 requests/minute.
+  - OmniCOVAS public hard cap: 120/hour.
+  - Treat 429 as hard backoff.
+  - Do not treat the logs endpoint 360/hour limit as universal permission for all EDSM endpoints.
+
+Contact route:
+  - EDSM footer routes: GitHub Issues, Discord, Frontier forum, social/contact channels.
+
+Implementation posture:
+  - CANDIDATE / HIGH VALUE for Phase 5+ system/station context.
+
+4.6 Frontier Companion API / CAPI
+---------------------------------
+Source type:
+  Authenticated official companion API; privacy-gated.
+
+Best use:
+  - Commander-authenticated profile and last-docked station data.
+
+Verified can provide:
+  - /profile commander snapshot.
+  - /market last docked station/fleet carrier/settlement market.
+  - /shipyard last docked shipyard and outfitting data.
+  - /communitygoals active CGs and commander contributions.
+  - /journal authenticated commander journal data, not real-time.
+  - /fleetcarrier authenticated carrier owner data.
+  - /visitedstars visited stars archive generation/download flow.
+
+Cannot provide:
+  - Public galaxy lookup.
+  - Broad market search.
+  - Route plotting.
+  - Real-time journal stream.
+  - Unauthenticated profile lookup.
+  - Background polling without consent.
+
+Request design:
+  - Consent-gated.
+  - Tokens stored in DPAPI vault and never logged.
+  - Low frequency.
+  - /journal is session-end/backfill, not live gameplay.
+
+Operating budget:
+  - Provider guidance: generally no more than 1 request/minute.
+  - OmniCOVAS default: 1 request/minute.
+  - OmniCOVAS daily default: 60/day until project relationship is established.
+
+Contact route:
+  - Frontier developer application / CAPI approval route.
+
+Implementation posture:
+  - FUTURE / PRIVACY-GATED / HIGH VALUE after approval.
+
+4.7 EDAstro
+-----------
+Source type:
+  Public exploration/cartographic/POI API.
+
+Best use:
+  - Exploration Intel, known system contents, GEC/POI context.
+
+Verified can provide:
+  - Star system lookup by name or id64.
+  - Batched star system lookup, max 10 systems/request.
+  - GEC/POI aggregate and single-item endpoints.
+  - Nearest POI context.
+
+Cannot provide:
+  - Market search.
+  - Outfitting or shipyard search.
+  - Live commander profile.
+  - BGS operations.
+  - Trade loops.
+  - Guaranteed undiscovered/exobiology truth.
+
+Request design:
+  - Batch up to 10 systems.
+  - Cache GEC/POI aggregate endpoints heavily.
+
+Operating budget:
+  - Provider documented limit: 100 requests/15 minutes.
+  - OmniCOVAS default: 40 requests/15 minutes.
+  - OmniCOVAS hard cap: 75 requests/15 minutes.
+
+Contact route:
+  - EDAstro site/community contact routes.
+
+Implementation posture:
+  - CANDIDATE / HIGH VALUE for Phase 5 exploration.
+
+4.8 EliteBGS
+------------
+Source type:
+  Public BGS API candidate.
+
+Best use:
+  - Faction, influence, history, station, and tick workflows.
+
+Verified can provide:
+  - Public API docs exist.
+  - Factions endpoint.
+  - Stations endpoint.
+  - Ticks endpoint.
+  - BGS/faction tracking focus.
+
+Cannot provide:
+  - Commodity market search.
+  - Outfitting search.
+  - Route planning.
+  - Live telemetry.
+  - Commander-authenticated profile.
+  - Official/guaranteed BGS truth.
+
+Request design:
+  - Use exact faction/system filters.
+  - Cache around BGS tick cadence.
+  - Avoid polling during UI refresh.
+
+Operating budget:
+  - Exact provider rate limit: UNKNOWN.
+  - OmniCOVAS default: 2 requests/minute.
+  - OmniCOVAS hard cap: 60/hour.
+  - Contact maintainer before heavier use.
+
+Contact route:
+  - EliteBGS documentation/community/GitHub maintainer routes.
+
+Implementation posture:
+  - CANDIDATE / P2 SPECIALIZED.
+
+4.9 Spansh
+----------
+Source type:
+  Route/data-dump candidate; direct API requires verification.
+
+Best use:
+  - Route planning link-out now.
+  - Route API candidate after terms/rate confirmation.
+  - Bulk data import candidate.
+
+Verified / public-facing capabilities:
+  - Route plotting tools.
+  - Data dumps.
+  - OpenAPI docs site exists.
+
+Cannot provide until verified:
+  - Unattended high-volume API calls.
+  - Direct route API integration without endpoint/rate/terms confirmation.
+  - Market/current station truth.
+  - Automatic in-game route activation.
+
+Request design:
+  - Prefer link-out/manual integration now.
+  - Prefer dumps/local index for heavy repeated workflows.
+  - If API approved: user-initiated queued route jobs; cache by origin/destination/ship constraints.
+
+Operating budget:
+  - Exact API terms/rates: NEEDS VERIFICATION.
+  - Current posture: no automatic background calls.
+  - Candidate if approved: 2 route jobs / 5 minutes, 30/day.
+
+Contact route:
+  - plotter@spansh.co.uk and EDCD/community routes where available.
+
+Implementation posture:
+  - LINK-OUT NOW / API CANDIDATE AFTER VERIFICATION.
+
+4.10 Inara API
+--------------
+Source type:
+  Whitelisted event-based API; limited lookup scope.
+
+Best use:
+  - Supported Inara event flows.
+  - Commander profile if configured.
+  - Recent/ongoing Community Goals as recorded by Inara.
+  - External “Open in Inara” links.
+
+Verified can provide:
+  - getCommanderProfile.
+  - getCommunityGoalsRecent.
+  - Event/update flows for documented Inara-supported events.
+  - Batching is expected.
+
+Explicitly cannot provide:
+  - Markets.
+  - Minor faction influences.
+  - Star systems.
+  - Stations.
+  - Broad market/station/outfitting search.
+  - Generic galaxy database lookup.
+
+Request design:
+  - Whitelist before integration.
+  - Batch events.
+  - Cache results.
+  - Send Live game version data only.
+  - Do not submit unchanged data repeatedly.
+
+Operating budget:
+  - OmniCOVAS default: 1 request/minute.
+  - OmniCOVAS hard cap: 2 requests/minute unless Inara grants more.
+
+Contact route:
+  - Inara developer guide/application/contact route.
+
+Implementation posture:
+  - API_LIMITED / RELATIONSHIP-GATED.
+
+4.11 EDDN
+---------
+Source type:
+  Relay / live data stream; not a query database.
+
+Best use:
+  - Future OmniCOVAS local listener/cache.
+  - Optional outbound contribution after explicit consent.
+
+Verified can provide:
+  - Live message relay.
+  - Message schemas.
+  - Submission pathway for tools.
+
+Cannot provide:
+  - Current-state query.
+  - Historical query directly against EDDN.
+  - Market search query.
+  - Latest price request.
+  - Station lookup query.
+
+Request design:
+  - If consuming: listener -> schema validation -> local index -> query OmniCOVAS cache.
+  - If submitting: consent-gated, schema-validated, Activity Log audited.
+
+Operating budget:
+  - Query budget: not applicable.
+  - Submission/listener budgets are local project policy.
+
+Contact route:
+  - EDCD GitHub / Discord #eddn / schema issue route.
+
+Implementation posture:
+  - STRATEGIC FUTURE SOURCE / RELAY_NOT_DATABASE.
+
+4.12 EDMC / EDDiscovery / EDDI
+------------------------------
+Source type:
+  Optional local interop/reference tools.
+
+Use for:
+  - Optional imports/exports.
+  - Workflow pattern reference.
+  - Future voice/interoperability design.
+
+Cannot provide:
+  - Required core OmniCOVAS operation.
+  - Hidden outbound submissions.
+  - Source truth unless user explicitly provides exported/local data.
+
+Implementation posture:
+  - OPTIONAL_INTEROP / REFERENCE.
+
+4.13 EDSY / Coriolis / Other Link-Only Tools
+--------------------------------------------
+Source type:
+  Link-only or format-interop until documented API and automation terms are verified.
+
+Use for:
+  - Manual external pages.
+  - Build planning links.
+  - Import/export formats after verification.
+
+Cannot provide:
+  - Telemetry.
+  - Provider-backed facts without documented API.
+  - Hidden automation or scraping.
+
+Implementation posture:
+  - LINK_ONLY / FORMAT_INTEROP_CANDIDATE.
+
+4.14 EDDB
+---------
+Source type:
+  Retired provider.
+
+Use for:
+  - Historical references only.
+
+Cannot provide:
+  - Active dependency.
+  - Current API.
+  - Current market/station data.
+
+Implementation posture:
+  - RETIRED / BLOCKED.
+
+================================================================================
+SECTION 5 — UNSUPPORTED OR NOT-YET-VERIFIED FACTS
+================================================================================
+
+These facts must not be presented as supported until a verified source is added.
+
+Unsupported facts/workflows:
+  - Best mining hotspot near me.
+  - Best ring candidate as a complete workflow.
+  - Guaranteed best sell station in the galaxy.
+  - Nearest station selling exact module X as a broad workflow.
+  - Global mission board search.
+  - Complete current mission list if OmniCOVAS did not observe/persist it.
+  - All station inventories everywhere.
+  - Official BGS strategy.
+  - Real-time CAPI journal.
+  - Query EDDN for latest market.
+  - Inara market/faction/system/station API lookup.
+  - Guaranteed all exobiology opportunities.
+  - Automatic route activation in-game.
+  - Website scraping as a backend.
+
+Required UI wording:
+  - Unsupported: “No verified source supports this yet.”
+  - Disabled source: “Source disabled.”
+  - Auth missing: “Requires commander authorization.”
+  - Stale cache: “Cached from {source}, last updated {timestamp}.”
+  - Partial coverage: “Partial result from enabled sources.”
+  - Community-observed coverage: “Known/observed, not guaranteed complete.”
+
+================================================================================
+SECTION 6 — EXTERNAL REQUEST DESIGN CONTRACT
+================================================================================
+
+Every AI workflow that needs external facts must produce a WorkflowSourcePlan before a request is executed.
+
+WorkflowSourcePlan fields:
+  - workflow_type
+  - commander_intent
+  - required_facts
+  - optional_facts
+  - allowed_sources_per_fact
+  - preferred_source_order
+  - cache_key_strategy
+  - cache_ttl
+  - request_bundle_plan
+  - rate_limit_bucket
+  - consent_requirements
+  - fallback_behavior
+  - unsupported_fields
+  - output_wording_rules
+
+ExternalRequestBundle fields:
+  - workflow_id
+  - workflow_type
+  - provider_id
+  - call_type
+  - endpoint_family
+  - required_facts
+  - optional_facts
+  - fields_requested
+  - cache_key
+  - cache_status
+  - source_priority
+  - consent_status
+  - auth_status
+  - documented_provider_limit
+  - documented_provider_guidance
+  - omnicovas_bucket
+  - batch_plan
+  - max_batch_size
+  - queue_policy
+  - freshness_requirement
+  - fallback_behavior
+  - unsupported_fields
+  - status
+  - activity_log_ids
+
+Allowed bundle statuses:
+  - not_needed
+  - satisfied_by_cache
+  - partially_satisfied_by_cache
+  - queued
+  - running
+  - complete
+  - complete_with_missing_fields
+  - failed
+  - rate_limited
+  - blocked_by_privacy
+  - source_unsupported
+  - needs_verification
+
+Provider bucket recommendations:
+  edsm_public:
+    default: 2/min
+    hard: 120/hour
+    rule: bundle known systems; no one-call-per-field
+
+  edsm_commander:
+    default: 1/min
+    hard: endpoint-specific; get-logs documents 360/hour but use less
+
+  edastro:
+    default: 40/15min
+    hard: 75/15min
+    provider max: 100/15min
+
+  capi:
+    default: 1/min
+    hard: 60/day until approved relationship
+    rule: privacy-gated; no background polling
+
+  inara:
+    default: 1/min
+    hard: 2/min unless granted more
+    rule: batch events
+
+  elitebgs:
+    default: 2/min
+    hard: 60/hour
+    provider rate: UNKNOWN
+
+  spansh:
+    default: link-out/manual
+    candidate API: 2 route jobs / 5 min, 30/day pending approval
+
+  ardent:
+    default: 6/min
+    hard: 240/hour
+    provider: no enforced limit currently identified; respectful use requested
+
+  eddn_listener:
+    default: local listener budget, not request bucket
+
+  eddn_submitter:
+    default: event-driven, consent-gated, schema-validated
+
+================================================================================
+SECTION 7 — IMPLEMENTATION GUARDRAILS
+================================================================================
+
+1. Add source capability checks before every external request.
+2. Make unsupported facts testable.
+3. Add unit tests for disabled, stale, missing, unsupported, rate-limited, and auth-required states.
+4. Log every external request and cache hit to the Activity Log.
+5. Expose source/freshness in the UI.
+6. Add Data Flow / Sources settings before enabling external workflows.
+7. Treat maintainer feedback as higher authority than project defaults.
+8. Prefer local indexes and dumps for heavy repeated workflows.
+9. Separate “current local truth” from “community-known external data.”
+10. Never promote a candidate provider to active dependency until terms, endpoint payloads, attribution, limits, and fallback behavior are verified.
+
+================================================================================
+SECTION 8 — CONTACT AND RELATIONSHIP ROUTES
+================================================================================
+
+Purpose:
+  Establish respectful maintainer relationships before high-volume or user-facing integrations.
+
+EDSM:
+  Route: EDSM footer routes, GitHub Issues, Discord, Frontier forum/social routes.
+  Ask: acceptable sustained request rate for public APIs; attribution; whether 120/hour cache-backed use is acceptable; treatment of authenticated commander endpoints.
+
+EDAstro:
+  Route: EDAstro site/community routes.
+  Ask: accepted use of starsystem/GEC endpoints; attribution for GEC/GMP data; confirmation that 75/15min hard cap is respectful.
+
+EDDN / EDCD:
+  Route: EDCD GitHub, Discord #eddn, schema issue route.
+  Ask: listener expectations, submission etiquette, app identification, schema proposal process, archive/dump recommendations.
+
+Frontier CAPI:
+  Route: Frontier developer approval package.
+  Ask: CAPI approval, OAuth expectations, rate posture, attribution/disclaimer, acceptable docking bundle behavior.
+
+Inara:
+  Route: Inara developer guide/application/contact route.
+  Ask: whitelist approval, exact intended events, allowed rate, caching expectations.
+  Do not ask Inara to serve as a market/faction/system/station API unless its docs change.
+
+Spansh:
+  Route: plotter@spansh.co.uk and EDCD/community route if available.
+  Ask: API automation terms, route job limits, dump license/attribution, preferred integration mode, cache expectations.
+
+EliteBGS:
+  Route: EliteBGS documentation/community/GitHub maintainer routes.
+  Ask: rate limits, attribution, freshness semantics, acceptable tick-adjacent polling, whether 2/min and 60/hour is acceptable.
+
+Ardent:
+  Route: GitHub issues/repository maintainer route.
+  Ask: expected public API usage, whether 6/min and 240/hour is acceptable, attribution requirements, preferred self-host/dump strategy.
+
+EDMC / EDDiscovery / EDDI:
+  Route: project GitHub/community routes.
+  Ask: interop permission and preferred import/export compatibility patterns before implementing integrations.
+
+================================================================================
+SECTION 9 — SOURCE ANCHORS
+================================================================================
+
+Project anchors:
+  - OmniCOVAS_Master_Blueprint_v4_2.txt
+  - OmniCOVAS_Source_Capability_Registry_v0_1.txt
+  - OmniCOVAS_Source_Call_Routing_Matrix_v0_5_candidate.txt
+  - Pasted Source Capability Architect prompt
+  - README.md
+  - CLAUDE.MD
+
+Provider anchors:
+  EDSM:
+    - https://www.edsm.net/en/api-v1
+    - https://www.edsm.net/en/api-system-v1
+    - https://www.edsm.net/en/api-logs-v1
+
+  EDAstro:
+    - https://edastro.com/api-details.html
+    - https://edastro.com/api-info.html
+
+  Inara:
+    - https://inara.cz/elite/inara-api-devguide/
+    - https://inara.cz/elite/inara-api-docs/
+
+  EDDN:
+    - https://github.com/EDCD/EDDN
+
+  Frontier CAPI:
+    - https://github.com/EDCD/FDevIDs/blob/master/Frontier%20API/FrontierDevelopments-CAPI-endpoints.md
+
+  Ardent:
+    - https://github.com/iaincollins/ardent-api
+    - https://github.com/iaincollins/ardent-collector
+
+  EliteBGS:
+    - https://elitebgs.app/ebgs/docs/
+
+  Spansh:
+    - https://docs.spansh.co.uk/
+    - https://spansh.co.uk/dumps
+    - https://spansh.co.uk/
+
+  EDMC / EDDiscovery / EDDI:
+    - https://github.com/EDCD/EDMarketConnector/wiki
+    - https://github.com/EDDiscovery/EDDiscovery/wiki
+    - https://github.com/edcd/eddi
+
+================================================================================
+SECTION 10 — QUICK REFERENCE SUMMARY
+================================================================================
+
+Use local sources for:
+  - Live commander state, ship telemetry, cargo, current station snapshots, route proof, mission history.
+
+Use Ardent for:
+  - EDDN-backed trade/market candidate searches, nearby commodity buy/sell, station services, market commodity facts.
+
+Use EDSM for:
+  - Known system/station context, nearby systems, station market/shipyard/outfitting by known station, bodies, factions, traffic, deaths.
+
+Use CAPI for:
+  - Authenticated commander profile, last-docked market/shipyard, community goal contribution, fleet carrier, visited stars.
+
+Use EDAstro for:
+  - Exploration system contents, cartographic enrichment, GEC/POI workflows.
+
+Use EliteBGS for:
+  - BGS/faction/influence/history/tick workflows.
+
+Use Spansh for:
+  - Route planning link-out now; API/dump integration only after terms/rates are verified.
+
+Use Inara API for:
+  - Supported Inara events, commander profile, recent community goals, whitelisted/batched flows.
+
+Use EDDN for:
+  - Future listener/cache or opt-in submission. Do not query EDDN directly.
+
+Use link-only tools for:
+  - Manual user navigation, build planning links, import/export formats after verification.
+
+Never claim:
+  - Best in galaxy.
+  - Guaranteed current.
+  - Complete coverage.
+  - Exact module availability from a service-only endpoint.
+  - Mining hotspot recommendations without a verified source.
+  - EDDN query results.
+  - Inara market/faction/system/station API support.
+
+Default truthful wording:
+  - “known”
+  - “observed”
+  - “source-backed”
+  - “cached”
+  - “fresh/stale”
+  - “from enabled sources”
+  - “nearest known”
+  - “best known”
+  - “No verified source supports this yet”
+
+End of document.

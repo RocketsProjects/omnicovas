@@ -1,0 +1,1149 @@
+OmniCOVAS UI Blueprint v1.0 — AI Reference
+==========================================
+
+STATUS: FINAL_UI_PRODUCT_REFERENCE
+DATE: 2026-05-06
+AUDIENCE: AI architect assistants, playbook authors, executor-planning models, implementation auditors.
+COMPANION: OmniCOVAS_UI_Blueprint_v1_0_Human_Reference.txt
+
+PURPOSE
+-------
+Provide a structured, AI-readable contract for OmniCOVAS UI route ownership, feature containment, cross-route linking, phase reconciliation, source/provenance behavior, and future route activation.
+
+DO_NOT_USE_THIS_DOCUMENT_TO:
+- override project laws;
+- override privacy/compliance/source-routing constraints;
+- invent Elite Dangerous facts or provider capabilities;
+- create implementation playbooks without the Backend Blueprint and current phase authority;
+- treat AI as a fact source;
+- restore EDDI as a current UI dependency.
+
+INDEX
+-----
+A. Core Constants
+B. Authority and Baseline
+C. Route Ownership Table
+D. Route Definitions
+E. Future Route Activation
+F. Global Containment Rules
+G. Cross-Route Linking Contract
+H. Source / Wording Contract
+I. Phase 4 Combat Placement
+J. Phase 5 Exploration Placement
+K. Phase 6 Trade / Mining / Colonization Placement
+L. Phase 7 Squadrons Placement
+M. Phase 8 Engineering Placement
+N. Phase 9 BGS / Powerplay Placement
+O. Final Pre-v1.0 Polish Placement
+P. Settings Categories
+Q. Slash Commands
+R. Drift Items
+S. Feature Decision Schema
+
+A. CORE CONSTANTS
+-----------------
+ROUTE_MEANING:
+  dashboard: what_matters_right_now
+  intel: what_is_known
+  navigation: where_how_to_move
+  operations: what_i_am_doing
+  activity_log: how_we_know_what_happened
+  settings: how_app_behaves
+  about: what_project_is
+  squadrons: group_coordination_secure_sharing_phase_7_plus
+  engineering: progression_planning_materials_phase_8_plus
+  carriers: fleet_carrier_command_reserved_for_fc_full_command_center
+
+PRIMARY_ROUTE_ORDER_EARLY:
+  - dashboard
+  - intel
+  - operations
+  - navigation
+  - activity_log
+  - settings
+  - about
+
+CURRENT_PHASE_BASELINE:
+  phase_1: complete_integrated
+  phase_2: complete_integrated
+  phase_2_5: complete_integrated
+  phase_3: complete_integrated
+  phase_4: active_roadmap_beginning_implementation_planning
+
+LOCKED_UI_DECISIONS:
+  advanced_settings: removed
+  legal_route: renamed_to_about
+  first_run_user_term: First-Run Setup / OmniCOVAS Setup Wizard
+  dashboard_core_top: [hull, shields, fuel, heat, pips]
+  dashboard_core_bottom: [location, status, local, objective, data]
+  activity_log_role: Data Audit Console
+  native_voice: current_ui_direction
+  eddi_current_ui_scope: cut
+  voiceattack_status: optional_adapter_only
+  ai_fact_source: false
+  slash_commands_are_workflows: false
+  operations_owns_session_focus_live: true
+  settings_owns_session_focus_defaults: true
+
+B. AUTHORITY AND BASELINE
+-------------------------
+AUTHORITY_POSITION:
+  ui_blueprint_v1_0:
+    supersedes_master_for:
+      - ui_routes
+      - route_ownership
+      - settings_ownership
+      - dashboard_doctrine
+      - overlay_role
+      - activity_log_role
+      - about_legal_credits_route_structure
+      - first_run_setup_language
+      - native_first_voice_direction
+      - eddi_removal_from_current_ui_scope
+      - voiceattack_optional_adapter_status
+      - feature_to_route_reconciliation
+    does_not_supersede:
+      - project_laws
+      - privacy_requirements
+      - legal_compliance
+      - source_routing_constraints
+      - safe_rendering_rules
+      - backend_architecture_requirements
+
+COMPLETED_PHASE_COLLISION_LOCK:
+  completed_phases: [phase_1, phase_2, phase_2_5, phase_3]
+  rule: do_not_treat_completed_phases_as_backlog
+  phase_2_5_known_reconciliation:
+    shield_intelligence: implemented_under_hull_shields_safety_model
+    action: do_not_recreate_as_card_route_setting_or_phase4_feature
+
+C. ROUTE OWNERSHIP TABLE
+------------------------
+ROUTE: dashboard
+  identity: Live Command Surface
+  owns:
+    - live_safety_glance
+    - fixed_top_core_ship_telemetry
+    - fixed_bottom_session_context_posture
+    - optional_commander_selected_internal_summaries
+    - optional_commander_selected_external_summaries
+    - source_backed_pins
+    - compact_links_to_owning_routes
+    - natural_language_and_slash_command_entry
+  does_not_own:
+    - known_information_views
+    - route_planning_tracking_bookmarks
+    - active_workflow_execution
+    - audit_source_history
+    - settings_configuration
+    - project_legal_reference_docs
+
+ROUTE: intel
+  identity: Known Information Console
+  owns:
+    - source_backed_known_facts
+    - galaxy_context
+    - system_context
+    - local_context
+    - ship_personal_context
+    - personal_ledgers
+    - source_backed_values
+  does_not_own:
+    - workflow_execution
+    - route_planning
+    - settings
+    - audit_history
+
+ROUTE: navigation
+  identity: Route and Movement Console
+  owns:
+    - active_route_tracking
+    - route_planning
+    - route_candidates
+    - waypoints
+    - route_library
+    - bookmarks
+    - movement_tools
+    - route_sources
+  does_not_own:
+    - known_information
+    - operation_workflows
+    - privacy_source_settings
+    - audit_history
+
+ROUTE: operations
+  identity: Session Operations Console
+  owns:
+    - session_intent
+    - live_session_focus
+    - active_goals
+    - workflow_progress
+    - blockers_unknowns
+    - linked_route_summaries
+    - linked_intel_summaries
+    - next_actions
+    - operation_debriefs
+  does_not_own:
+    - known_facts
+    - route_details
+    - bookmark_management
+    - audit_source_history
+    - settings_controls
+    - live_dashboard_surface
+
+ROUTE: activity_log
+  identity: Data Audit Console
+  owns:
+    - proof
+    - source_chains
+    - external_requests
+    - ai_gate_records
+    - confirmations
+    - blocked_requests
+    - exports_deletes
+    - stale_unknown_unsupported_records
+    - event_history
+  does_not_own:
+    - route_planning
+    - workflow_execution
+    - settings_behavior
+
+ROUTE: settings
+  identity: Configuration Console
+  owns:
+    - preferences
+    - permissions
+    - privacy_controls
+    - source_provider_setup
+    - ai_settings
+    - voice_settings
+    - overlay_profile
+    - game_controls_readiness
+    - diagnostics
+    - import_export
+    - session_focus_defaults
+  does_not_own:
+    - facts
+    - routes
+    - workflows
+    - audit_history
+    - project_identity
+
+ROUTE: about
+  identity: Project / Reference Route
+  owns:
+    - project_identity
+    - compact_reference_links
+    - license_security_contributing_cla_links
+    - source_provider_acknowledgments
+    - sbom_link_or_compact_panel
+    - reporting_links
+  does_not_own:
+    - privacy_controls
+    - source_setup
+    - ai_configuration
+    - voice_setup
+    - onboarding_acknowledgements
+    - activity_log
+    - full_legal_documents
+    - diagnostics_exports
+
+D. ROUTE DEFINITIONS
+--------------------
+DASHBOARD_STRUCTURE:
+  fixed_top_core_internal_bar: [hull, shields, fuel, heat, pips]
+  optional_top_internal_slots_candidates: [jump_range, cargo, modules, hardpoints, silent_running, ship_computer, repair_afmu, srv_suit, materials, engineering_state]
+  left_internal_data_rail:
+    slot_count: 5
+    allowed_domain: internal_ship_session_summaries
+  center_ship_display:
+    rule: original_omnicovas_art_only_no_frontier_assets
+    visual_overlays_replace_text: false
+  right_external_data_rail:
+    slot_count: 5
+    allowed_domain: external_contextual_summaries
+  fixed_bottom_core_external_bar: [location, status, local, objective, data]
+  pins:
+    required_fields: [name, type, source, freshness, dashboard_location, status, origin_route, activity_log_reference]
+    statuses: [active, stale, unavailable, disabled, commander_entered, coming_later]
+  ai_command_bar:
+    owns: [natural_language_input, deterministic_slash_commands, command_autocomplete, source_audit_shortcuts]
+
+INTEL_LOCATIONS:
+  galaxy:
+    owns:
+      - community_goals
+      - galaxy_pois
+      - galnet_community_links_source_backed
+      - galaxy_scale_exploration_context
+      - broad_bgs_powerplay_context
+      - community_events_notices
+      - powerplay_wide_context
+      - bgs_wide_tick_context_source_backed
+      - broad_source_backed_galactic_opportunities
+    link_examples: [intel:galaxy, intel:galaxy/community-goals, intel:galaxy/poi, intel:galaxy/powerplay, intel:galaxy/bgs-tick, intel:galaxy/events]
+  system:
+    owns:
+      - system_identity_coordinates_permit_government_economy_security
+      - controlling_faction_population_allegiance
+      - known_bodies
+      - known_stations_carriers_settlements
+      - system_factions_bgs_powerplay_context
+      - traffic_death_risk
+      - system_level_exploration_context
+      - system_level_pois
+      - route_relevance_context_only
+      - operation_relevance_context_only
+    link_examples: [intel:system:<system_name>, intel:system:<system_name>/bodies, intel:system:<system_name>/bgs, intel:system:<system_name>/traffic-risk]
+  local:
+    context_types: [station, carrier, settlement, body, planet, moon, ring, belt, resource_site, surface_site, poi, current_local_activity_context]
+    owns:
+      - station_carrier_settlement_facts
+      - services
+      - market_outfitting_shipyard_known_data
+      - body_ring_site_facts
+      - landing_context
+      - biological_geological_local_signals
+      - settlement_surface_poi_context
+    link_examples: [intel:local:<system>/<station_name>, intel:local:<id>/services, intel:local:<id>/market, intel:local:<id>/bio]
+  ship_personal:
+    owns:
+      - commander_profile_facts
+      - credit_balance_source_backed
+      - ranks_reputation_status
+      - current_ship_facts
+      - cargo_loadout_material_summaries
+      - known_active_missions
+      - unsold_exploration_data_value
+      - unsold_exobiology_data_value
+      - personal_discovery_session_ledger
+      - authenticated_capi_profile_facts
+      - owned_carrier_summary_until_carriers_active
+      - commander_entered_facts_allowed
+    link_examples: [intel:personal, intel:personal/ship, intel:personal/materials, intel:personal/exploration-data, intel:personal/fleet-carrier]
+
+NAVIGATION_LOCATIONS:
+  active_route:
+    owns: [navroute_json_proof, active_route_candidate, destination, next_jump_waypoint, route_progress, route_status, linked_operation, linked_intel, route_source_freshness_summary, user_triggered_copy_next_jump]
+    link_examples: [navigation:active, navigation:active/next, navigation:active/progress, navigation:active/source]
+  planner:
+    owns: [destination_routes, exploration_routes, exobiology_routes, trade_loops, mining_runs, mission_routes, engineer_material_routes, carrier_logistics_routes, bgs_system_circuits, spansh_linkout_jobs, route_candidate_comparison]
+    link_examples: [navigation:planner, navigation:planner/exobiology, navigation:planner/trade-loop, navigation:planner/bgs-circuit]
+  route_library:
+    owns: [saved_routes, recent_routes, imported_routes, expedition_routes, exobiology_routes, trade_mining_route_sets, mission_route_sets, engineering_material_routes, carrier_routes, bgs_system_circuits, route_tags_collections_archive_export]
+    link_examples: [navigation:library, navigation:library/expeditions, navigation:library/carrier]
+  bookmarks:
+    owns: [systems, stations_carriers_settlements, bodies_rings_sites_pois, bookmark_folders_tags, commander_notes, bookmark_to_planner_actions]
+    link_examples: [navigation:bookmarks, navigation:bookmarks/systems, navigation:bookmarks/<bookmark_id>]
+  route_sources:
+    owns: [navroute_json_proof, spansh_linkout_state, future_spansh_api_dump_readiness, route_cache, route_queue, source_freshness_provenance, unsupported_route_facts, activity_log_links, settings_source_links]
+    link_examples: [navigation:sources, navigation:sources/spansh, navigation:sources/cache, navigation:sources/unsupported]
+
+OPERATIONS_LOCATIONS:
+  command_board: [active_operation_overview, blockers, linked_route, linked_intel, next_action]
+  session_focus: [live_selector, impact_preview, apply_cancel, link_to_settings_defaults]
+  missions: [known_mission_objectives, progress, blockers, linked_destinations]
+  combat: active_combat_workflows
+  exploration_exobiology: active_exploration_scanning_sampling_survey_redemption_objectives
+  trade_mining: active_trade_hauling_mining_cargo_market_sell_buy_objectives
+  passenger: active_passenger_mission_objectives_and_destination_workflow
+  bgs_powerplay: active_campaign_objectives
+  carrier_logistics: carrier_tritium_supply_expedition_colonization_objectives_until_carriers_active
+  engineering: active_engineering_goal_handoff_until_engineering_active_route
+  squadron: active_group_operation_goal_handoff_until_squadrons_active_route
+  custom_manual: commander_entered_objectives_and_manual_checklists
+
+E. FUTURE ROUTE ACTIVATION
+--------------------------
+RESERVED_ROUTES:
+  squadrons:
+    activation_phase: phase_7
+    activation_status: active_primary_route_when_phase_7_begins
+    primary_purpose: group_coordination_secure_sharing_peer_state_roles_emergency_security
+  engineering:
+    activation_phase: phase_8
+    activation_status: active_primary_route_when_phase_8_begins
+    primary_purpose: progression_planning_materials_blueprints_unlocks_build_readiness
+  carriers:
+    activation_trigger:
+      - fc_full_command_center_scope_begins
+      - carrier_ownership_tritium_market_storage_jump_logistics_services_colonization_support_overloads_operations
+    activation_status: reserved_future_primary_route
+    primary_purpose: persistent_fleet_carrier_command_state
+
+NOT_PRIMARY_ROUTES:
+  - combat
+  - exploration
+  - exobiology
+  - trade
+  - mining
+  - bgs
+  - powerplay
+  - passenger
+  - missions
+  - colonization
+  - polish
+  - release
+  - beta
+  - security
+  - performance
+  - explainability
+  - kb
+  - defensive_update
+  - documentation
+  - trust_signing
+
+F. GLOBAL CONTAINMENT RULES
+---------------------------
+FEATURE_PLACEMENT_REQUIRED_FIELDS:
+  - primary_surface
+  - secondary_surfaces
+  - suppressed_surfaces
+  - display_pattern
+  - density_level
+  - alert_behavior
+  - source_provenance_behavior
+  - lifecycle
+  - user_controls
+  - non_duplication_rule
+
+NON_OWNING_ROUTE_MAY:
+  - show_compact_linked_summary
+  - show_status_chip
+  - show_blocker_unknown
+  - link_to_owning_route
+  - pin_compact_summary_to_dashboard_if_commander_selected
+
+NON_OWNING_ROUTE_MUST_NOT:
+  - duplicate_full_fact_view
+  - duplicate_full_route_view
+  - duplicate_full_workflow_workspace
+  - duplicate_audit_trail
+  - duplicate_settings_controls
+  - create_parallel_source_of_truth
+
+G. CROSS-ROUTE LINKING CONTRACT
+-------------------------------
+DASHBOARD_LINKS:
+  location: [intel:system, intel:local, navigation:active_if_route_linked]
+  local: [intel:local]
+  objective: [operations:<relevant>, navigation:active_if_route_linked]
+  data: [settings:sources_data_flow, settings:privacy_data, activity_log]
+
+INTEL_LINKS:
+  send_to_navigation: navigation:planner
+  bookmark: navigation:bookmarks
+  attach_operation: operations:<relevant>
+  view_activity: activity_log
+  source_lookup: source_routing_queue_plus_activity_log
+
+NAVIGATION_LINKS:
+  selected_system: intel:system
+  selected_local_place: intel:local
+  linked_operation: operations:<relevant>
+  source_issue: [navigation:sources, settings:sources_data_flow, activity_log]
+
+OPERATIONS_LINKS:
+  linked_facts: intel:<galaxy|system|local|ship_personal>
+  linked_route: navigation:<active|planner|library|bookmarks>
+  source_issue: [settings:sources_data_flow, activity_log]
+  audit_trail: activity_log
+  behavior_preference: settings
+  dashboard_summary: dashboard_pin_only
+
+SQUADRONS_LINKS:
+  peer_system: intel:system
+  peer_local: intel:local
+  route_to_peer: navigation:planner
+  shared_route: navigation:<active|library>
+  shared_bookmark: navigation:bookmarks
+  group_objective: operations:<relevant>
+  telemetry_consent: settings:privacy_data
+  integration_setup: settings:sources_data_flow
+  proof: activity_log
+
+ENGINEERING_LINKS:
+  raw_material_inventory: intel:personal/materials
+  current_loadout: intel:personal/loadout
+  engineer_material_route: navigation:planner
+  active_goal: operations:engineering
+  imports_sources: settings:<sources_data_flow|import_export>
+  proof: activity_log
+
+CARRIERS_LINKS:
+  owned_carrier_facts: intel:personal/fleet-carrier_until_carriers_active
+  public_carrier_context: intel:<system|local>
+  carrier_route: navigation:<planner|active|library>
+  active_objective: operations:carrier-logistics_until_carriers_active
+  capi_authorization: settings:sources_data_flow
+  proof: activity_log
+
+H. SOURCE / WORDING CONTRACT
+----------------------------
+AI_FACT_SOURCE: false
+LOCAL_FIRST: true
+UNKNOWN_REMAINS_UNKNOWN: true
+FIELD_LEVEL_PROVENANCE_REQUIRED: true
+CACHE_AND_BATCH_BEFORE_EXTERNAL_CALLS: true
+CONSENT_AUTH_GATES_REQUIRED_FOR: [capi, inara, commander_profile_lookup, outbound_submission, privacy_sensitive_source]
+NO_SCRAPING_BY_DEFAULT: true
+ROUTE_ACTIVATION_REQUIRES_COMMANDER_ACTION: true
+
+FORBIDDEN_OVERCLAIMS:
+  - best_hotspot_near_me_without_verified_source
+  - known_ganker_without_verified_source
+  - nearest_guaranteed_module_without_exact_inventory_source
+  - best_in_galaxy_without_verified_complete_source
+  - official_final_bgs_truth_for_community_sources
+
+RENAME_RULES:
+  pvp_gank_database: pvp_encounter_log_and_risk_intel
+  trade_loop_optimizer: trade_loop_candidate_review
+  mining_intelligence_core: mining_candidate_workflow
+  combat_difficulty_meter: combat_difficulty_estimate
+  massacre_mission_stacker: massacre_mission_review
+
+PREFERRED_FALLBACK_WORDING:
+  - Local telemetry
+  - Known local state
+  - Known active missions
+  - Community-known data
+  - Source-backed candidate
+  - Commander-entered note
+  - Requires Authorization
+  - Disabled
+  - Stale
+  - Unsupported
+  - No Verified Source
+  - Not Loaded
+  - Unknown
+
+I. PHASE 4 COMBAT PLACEMENT
+---------------------------
+PHASE: 4
+PILLAR: Tactical & Combat
+PRIMARY_ROUTE: operations:combat
+NEW_PRIMARY_ROUTE: false
+PACKAGE_STRUCTURE:
+  - combat_briefing_strip
+  - overview
+  - target_threat
+  - interdiction_escape
+  - pvp
+  - combat_zones_missions
+  - rewards_rank
+  - loadout_munitions
+  - ax
+  - odyssey_combat
+  - debrief
+  - shared_context_drawer
+  - combat_footer
+
+COMBAT_FEATURES:
+  target_intelligence:
+    primary: operations:combat/target-threat
+    secondary: [overlay_urgent_only, dashboard_optional_pin]
+    links: [intel_contextual_facts, activity_log]
+  interdiction_warning_response:
+    primary: overlay_live_then_operations:combat/interdiction-escape
+    links: [navigation:planner_or_active_route, activity_log]
+  pvp_encounter_log_risk_intel:
+    primary: operations:combat/pvp
+    facts: [intel:personal/encounters_notes_profile, intel:system/traffic-risk]
+    proof: activity_log
+  bounty_combat_bond_tracking:
+    facts: intel:personal/rewards_credits
+    workflow: operations:combat/rewards-rank
+    proof: activity_log
+  combat_zone_intelligence:
+    workflow: operations:combat/zones-missions
+    facts: intel:system/bgs_faction_context
+    route: navigation:planner_active_route
+  hostility_threat_warnings:
+    workflow: operations:combat/target-threat
+    overlay: critical_time_sensitive_only
+  combat_rank_tracking:
+    facts: intel:personal/ranks
+    workflow: operations:combat/rewards-rank
+  ax_operations:
+    workflow: operations:combat/ax
+    facts: intel:<system|local>_if_source_backed
+  massacre_mission_review:
+    workflow: operations:combat/zones-missions
+    route: navigation
+    facts: intel
+  sub_target_module_focus:
+    workflow: operations:combat/target-threat
+    commander_ship_facts: intel:personal/loadout
+  fighter_crew_support:
+    workflow: operations:combat/loadout-munitions_or_crew_support
+    automation: forbidden
+  on_foot_combat_awareness:
+    workflow: operations:combat/odyssey
+    facts: intel:local
+    dashboard: optional_srv_suit_pin
+  frontline_solutions_tracking:
+    workflow: operations:combat/odyssey_and_zones_missions_shared_component
+    facts: intel:<local|system>
+  settlement_raid_intel:
+    workflow: operations:combat/odyssey
+    facts: intel:local
+  post_combat_debrief:
+    summary: operations:combat/debrief
+    proof: activity_log
+  hardpoint_utility_management:
+    readiness: operations:combat/loadout-munitions
+    facts: intel:personal/loadout
+    future_planning: engineering
+  escape_planner:
+    workflow: operations:combat/interdiction-escape
+    route: navigation:planner
+  thermal_attack_intelligence:
+    interpretation: operations:combat/target-threat
+    live_heat_truth: dashboard_fixed_heat
+  wake_scanning_intelligence:
+    workflow: operations:combat/interdiction-escape
+    route: navigation
+  engagement_range_calculator:
+    workflow: operations:combat/target-threat
+    requirement: kb_source_confidence_label
+  pvp_cmdr_intelligence:
+    merge_into: pvp_encounter_log_risk_intel
+  munitions_management:
+    readiness: operations:combat/loadout-munitions
+    facts: intel:personal/loadout_or_inventory
+  critical_state_response:
+    primary: overlay_proposal_plus_operations_context
+    compliance: commander_confirmed_confirmation_gate_required_future_gated
+    proof: activity_log
+  combat_difficulty_estimate:
+    primary: operations:combat/target-threat
+    truth_class: inferred_confidence_labeled
+
+J. PHASE 5 EXPLORATION PLACEMENT
+--------------------------------
+PHASE: 5
+PILLAR: Exploration & Navigation
+NEW_PRIMARY_ROUTE: false
+PRIMARY_WORKFLOW: operations:exploration
+FACT_HOME: intel
+ROUTE_HOME: navigation
+
+PHASE5_RULES:
+  operations_only: [objective, checklist, progress, blockers, next_action, debrief]
+  intel_owns: [system_body_scan_bio_value_service_poi_unsold_data_known_facts]
+  navigation_owns: [routes_plotting_bookmarks_waypoints_spansh_route_state]
+
+FEATURES:
+  route_plotting: navigation:planner
+  system_intelligence_on_arrival: intel:system
+  scanning_intelligence:
+    facts: [intel:system/bodies, intel:personal/session_ledger]
+    operations: checklist_progress_only
+  bookmark_system: navigation:bookmarks
+  fuel_jump_range:
+    live: dashboard_pillar1
+    route_constraint: navigation
+    operations: readiness_blocker_only
+  fleet_carrier_navigation_basic:
+    route: navigation:<planner|active|library>
+    objective: operations:carrier-logistics
+    facts: intel:personal/fleet-carrier
+    future: carriers
+  edsm_integration:
+    setup: settings:sources_data_flow
+    facts: intel
+    proof: activity_log
+  bio_insights:
+    facts: intel:<local|system|personal>
+    workflow: operations:exploration/exobiology
+    route: navigation
+  exobiology_sample_distance_tracker:
+    live_workflow: operations:exploration/exobiology
+    records: intel:personal/exobiology-data
+    route: navigation
+  exobiology_value_estimation: intel:personal/exobiology-data
+  biome_genus_prediction: intel:local/exobiology
+  srv_survey_operations:
+    objective: operations:exploration/survey
+    facts: intel:local
+    route: navigation
+  first_discovery_hunting:
+    candidates: intel:system/bodies_discoveries
+    route: navigation
+    objective: operations
+  outfitting_shipyard_search:
+    facts: intel:local/services_outfitting_shipyard
+    route: navigation
+    operations: readiness_blocker_only
+  eddiscovery_integration: settings_import_export_or_sources_first
+  ed_observatory_integration: settings_import_export_or_sources_first
+  expedition_planner:
+    routes: navigation:<planner|library>
+    objective: operations
+  high_value_target_id: intel:system/bodies_exploration_data
+  lost_commander_assistance:
+    route: navigation:planner
+    facts: intel:<personal|system>
+    workflow: operations
+  jumponium_management:
+    materials: intel:personal/materials
+    route_constraints: navigation
+    blocker: operations
+    future_planning: engineering
+  codex_integration: intel:<galaxy|system|local|poi>
+  planetary_landing_intelligence:
+    facts: intel:local/landing
+    route: navigation
+    objective: operations
+  guardian_thargoid_site_navigation:
+    facts: intel:local_poi
+    route: navigation
+    objective: operations
+  biome_specific_exobiology: intel:local/exobiology
+  earnings_per_hour_tracker:
+    active_metric: operations
+    value_ledger: intel:personal
+    proof: activity_log
+  exploration_build_validator:
+    checklist: operations
+    facts: intel:personal/ship_loadout
+    route_constraints: navigation
+    full_planning: engineering
+  data_redemption_optimizer:
+    value: intel:personal/exploration-data
+    services: intel:local/services
+    route: navigation
+    objective: operations
+  pretty_system_finder:
+    candidates: intel:<galaxy|system|poi>
+    route: navigation
+    objective: operations
+  spansh_bulk_dump_import_pipeline:
+    status: navigation:route-sources
+    setup: settings:sources_data_flow
+  edastro_local_cache_layer:
+    setup: settings:sources_data_flow
+    facts: intel
+
+K. PHASE 6 TRADE MINING COLONIZATION PLACEMENT
+----------------------------------------------
+PHASE: 6
+PILLAR: Trading, Mining & Colonization
+NEW_TRADE_ROUTE: false
+NEW_MINING_ROUTE: false
+CARRIERS_ROUTE: reserved_future_primary_route
+
+OPERATIONS_PACKAGES:
+  trade_mining:
+    sections: [objective, trade_candidate_workflow, mining_candidate_workflow, cargo_sell_objective, linked_market_intel, linked_route, blockers_unknowns, coaching_readiness, efficiency_summary, future_illegal_ops]
+  carrier_logistics:
+    sections: [carrier_objective, tritium_objective, supply_logistics_objective, colonization_objective, linked_carrier_intel, linked_route, blockers_unknowns, next_action]
+
+FEATURES:
+  commodity_price_intelligence: intel:local/market_commodity
+  trade_loop_candidate_review:
+    workflow: operations:trade-mining
+    facts: intel:local/market_commodity
+    route: navigation:planner_library
+  mining_candidate_workflow:
+    workflow: operations:trade-mining
+    facts: intel:<system|local>/body_ring_market
+    route: navigation
+    forbidden_claim: guaranteed_best_hotspot
+  cargo_intelligence:
+    facts: intel:personal/cargo
+    workflow: operations_cargo_objective_only
+    dashboard: optional_pin
+  trader_interdiction_awareness:
+    workflow_context: operations:trade-mining
+    actual_interdiction: operations:combat/interdiction-escape
+    overlay: critical_only
+    route: navigation
+    facts: intel:system/risk
+  eddn_market_submission:
+    consent: settings:privacy_data
+    setup: settings:sources_data_flow
+    proof: activity_log
+    operations: status_chip_only
+  efficiency_logistics_tracking:
+    active_summary: operations:trade-mining
+    ledger: intel:personal
+    proof: activity_log
+  mining_coaching:
+    workflow: operations:trade-mining
+    facts: intel
+    route: navigation
+    proof: activity_log
+  fc_navigation: navigation
+  tritium_manager:
+    pre_carriers: operations:carrier-logistics_objective
+    facts: intel:<personal/fleet-carrier|local/market>
+    route: navigation
+    post_carriers: carriers:tritium
+  fc_market_basic:
+    pre_carriers_facts: intel:<personal/fleet-carrier|local/market>
+    pre_carriers_objective: operations:carrier-logistics
+    post_carriers: carriers:market
+  fc_full_command_center: activates_carriers_route
+  colonization_operations:
+    workflow: operations:carrier-logistics/colonization
+    facts: intel:<system|local|personal>
+    route: navigation
+    future_if_large: carriers:colonization_support
+  profit_margin_check: intel_market_facts_plus_operations_workflow
+  station_economy_intelligence: intel:<system|local>
+  rare_commodity_run_tracker:
+    route: navigation
+    facts: intel:local/commodity
+    objective: operations:trade-mining
+  price_history_analytics: intel:local/market_commodity_history
+  passenger_mission_intelligence: operations:passenger
+  ship_transfer_logistics:
+    objective: operations:<carrier-logistics|custom>
+    facts: intel:personal/ship
+    route: navigation
+  trade_build_validator:
+    checklist: operations:trade-mining
+    facts: intel:personal/ship_loadout
+    future: engineering
+  limpet_controller_optimization:
+    blocker: operations:trade-mining
+    facts: intel:personal/loadout
+    future: engineering
+  fleet_carrier_market_maker: carriers:market_future
+  deep_space_refueling_network:
+    routes: navigation
+    facts: intel:local/services_market
+    objective: operations:carrier-logistics
+    future: carriers
+  mining_yield_optimization:
+    workflow: operations:trade-mining
+    facts: intel:<personal|local>
+    proof: activity_log
+  smuggling_intelligence_base:
+    future_package: operations:trade-mining/illegal_ops_or_operations_illegal_ops
+    facts: intel:<system|local>
+    route: navigation
+    settings: privacy_safety_enablement
+  community_goal_trade_optimization:
+    facts: intel:galaxy/community-goals
+    objective: operations:trade-mining
+    route: navigation
+
+L. PHASE 7 SQUADRONS PLACEMENT
+------------------------------
+PHASE: 7
+PILLAR: Squadron & Social
+PRIMARY_ROUTE_ACTIVATED: squadrons
+OPERATIONS_SQUADRON_AFTER_ACTIVATION: thin_handoff_only
+
+SQUADRONS_SECTIONS:
+  - overview
+  - roster_peers
+  - invites
+  - telemetry_sync
+  - roles_authority
+  - shared_operations
+  - shared_navigation
+  - emergency_security
+  - squadron_log
+  - integrations
+
+FEATURES:
+  encryption: squadrons:emergency_security_and_telemetry_sync_posture
+  stun_p2p: squadrons:roster_peers
+  invite_codes: squadrons:invites
+  secure_p2p_telemetry_sync: squadrons:telemetry_sync
+  leader_authority: squadrons:roles_authority
+  group_persistence: squadrons:overview_and_invites
+  peer_relay_fallback: squadrons:roster_peers_plus_settings_diagnostics
+  shared_submodule_target_painting:
+    coordination: squadrons:shared_operations
+    combat_workflow: operations:combat/target-threat
+  mission_synchronization:
+    coordination: squadrons:shared_operations
+    workflow: operations:missions
+    route: navigation
+    facts: intel
+  wing_mining_coordination:
+    coordination: squadrons:shared_operations
+    workflow: operations:trade-mining
+    route: navigation
+    facts: intel
+  top_secret_mode:
+    state: squadrons:emergency_security
+    defaults: settings:privacy_data
+    proof: activity_log_subject_to_future_spec
+  burn_command:
+    state: squadrons:emergency_security
+    confirmation_gate: required
+    implementation_requires: future_security_doctrine
+  cross_squadron_model: squadrons:roles_authority_future
+  shared_bookmarks:
+    sharing_state: squadrons:shared_navigation
+    actual_bookmarks: navigation:bookmarks
+  role_assignments: squadrons:roles_authority
+  squadron_log:
+    summary: squadrons:squadron_log
+    proof: activity_log
+  emergency_broadcast:
+    state: squadrons:emergency_security
+    overlay: optional_urgent_group_alert
+  loot_coordination: squadrons:shared_operations_future
+  discord_integration:
+    status: squadrons:integrations
+    setup: settings:sources_data_flow
+    proof: activity_log
+
+M. PHASE 8 ENGINEERING PLACEMENT
+--------------------------------
+PHASE: 8
+PILLAR: Engineering & Materials
+PRIMARY_ROUTE_ACTIVATED: engineering
+OPERATIONS_ENGINEERING_AFTER_ACTIVATION: thin_handoff_only
+
+ENGINEERING_SECTIONS:
+  - overview
+  - goals
+  - materials
+  - blueprints
+  - engineers_unlocks
+  - guardian_tech_brokers
+  - suit_engineering
+  - builds_loadouts
+  - acquisition_plan
+  - sources_imports
+  - activity_footer
+
+FEATURE_CATEGORIES:
+  materials:
+    planning: engineering:materials
+    raw_inventory: intel:personal/materials
+    route: navigation
+  blueprints:
+    planning: engineering:blueprints
+    current_loadout: intel:personal/loadout
+    route: navigation
+  engineer_unlocks:
+    planning: engineering:engineers_unlocks
+    facts: intel:<system|local>
+    route: navigation
+    active_session: operations:engineering
+  guardian_tech:
+    planning: engineering:guardian_tech_brokers
+    site_facts: intel:local_poi
+    route: navigation
+  tech_brokers:
+    planning: engineering:guardian_tech_brokers
+    service_facts: intel:local/services
+    route: navigation
+  suit_engineering:
+    planning: engineering:suit_engineering
+    inventory: intel:personal
+    local_facts: intel:local
+  build_planning:
+    planned_build: engineering:builds_loadouts
+    current_loadout: intel:personal/loadout
+    import_export: settings:import_export
+    route: navigation
+  acquisition_plan:
+    plan: engineering:acquisition_plan
+    route: navigation
+    facts: intel
+    proof: activity_log
+
+N. PHASE 9 BGS POWERPLAY PLACEMENT
+----------------------------------
+PHASE: 9
+PILLAR: Powerplay 2.0 & BGS
+NEW_BGS_ROUTE: false
+NEW_POWERPLAY_ROUTE: false
+PRIMARY_FACT_HOME: intel
+PRIMARY_WORKFLOW_HOME: operations:bgs-powerplay
+PRIMARY_ROUTE_HOME: navigation
+GROUP_COORDINATION_HOME: squadrons
+
+INTEL_PANELS:
+  galaxy: [powerplay, bgs_tick, community_goals, broad_campaign_context]
+  system: [bgs, powerplay, factions, influence_states, traffic_deaths, campaign_relevance]
+  local: [faction_station_settlement_relevance, local_mission_service_context]
+  ship_personal: [personal_campaign_notes, contribution_state_if_source_backed, bgs_powerplay_history_summary]
+
+OPERATIONS_PACKAGE:
+  bgs_powerplay:
+    sections: [objective, campaign_board, target_system_faction_power, linked_intel, linked_route_circuit, squadron_coordination, tally_export_action, blockers_unknowns, next_action, debrief]
+
+FEATURE_CATEGORIES:
+  merit_intelligence:
+    facts: intel:<galaxy|system>
+    objective: operations:bgs-powerplay
+    route: navigation
+    proof: activity_log
+  tick_monitoring:
+    facts: intel:galaxy/bgs_tick_and_intel:system/bgs
+    blocker: operations:bgs-powerplay
+    setup: settings:sources_data_flow
+  bgs_tally_api:
+    setup: settings:sources_data_flow
+    consent: settings:privacy_data
+    action: operations:bgs-powerplay/tally_export_action
+    proof: activity_log
+  faction_influence_state_history: intel:system
+  bgs_operation_recommendation:
+    workflow: operations:bgs-powerplay
+    input_facts: intel
+    route: navigation
+    ai_fact_source: false
+    proof: activity_log
+  powerplay_context: intel:<galaxy|system>
+  community_goal_overlap:
+    facts: intel:galaxy/community-goals
+    personal: intel:personal_if_source_backed
+    objective: operations
+    route: navigation
+  squadron_bgs_coordination:
+    coordination: squadrons:shared_operations
+    objective: operations:bgs-powerplay
+    facts: intel
+    routes: navigation
+
+O. FINAL PRE-v1.0 POLISH PLACEMENT
+----------------------------------
+PHASE: final_pre_v1_0
+NEW_ROUTE: false
+PRIMARY_SURFACES:
+  diagnostics: settings:diagnostics
+  audit: activity_log
+  docs_reference: about
+  privacy_source_config: settings:<privacy_data|sources_data_flow|ai|import_export|diagnostics>
+
+ITEMS:
+  cross_pillar_validation:
+    surface: diagnostics_and_activity_log
+  performance_latency_audit:
+    surface: settings:diagnostics
+    dashboard: data_bar_compact_health_only
+  security_audit:
+    surface: settings:diagnostics_and_about_security_links
+  hallucination_guard_stress_test:
+    surface: activity_log_ai_gates_and_settings_ai
+  kb_completion:
+    surface: diagnostics_kb_health_and_activity_log_why
+  defensive_update_validation:
+    surface: settings:diagnostics_and_activity_log
+  explainability_ui:
+    route_local_why: allowed
+    full_trail: activity_log
+  documentation_user_guide_faq:
+    surface: about
+  signpath_foundation_application:
+    surface: about_and_diagnostics_build_signature_status
+  beta_release_preparation:
+    surface: about_diagnostics_activity_log_import_export
+
+P. SETTINGS CATEGORIES
+----------------------
+SETTINGS_CATEGORIES:
+  - general
+  - appearance
+  - dashboard
+  - profiles
+  - session_focus
+  - overlay
+  - game_controls
+  - ai
+  - voice
+  - privacy_data
+  - sources_data_flow
+  - diagnostics
+  - import_export
+
+ADVANCED_SETTINGS: removed
+GLOBAL_SEARCH: required
+HEALTH_BADGES: required
+RECENT_CHANGES_DRAWER: required
+
+Q. SLASH COMMANDS
+-----------------
+VISIBLE_OPEN_COMMAND:
+  /open dashboard|intel|operations|navigation|activity|settings|about
+LEGACY_ALIAS:
+  /open legal -> about_allowed_but_not_visible_primary_help
+
+SLASH_COMMAND_RULES:
+  - deterministic_app_shortcuts_only
+  - not_workflow_planning_engines
+  - not_permission_bypasses
+  - protected_actions_require_confirmation_gate
+
+COMPLEX_REQUESTS_AS_AI_WORKFLOWS:
+  - trade_search
+  - mining_location_planning
+  - mission_stack_review
+  - engineering_plan
+  - bgs_strategy
+  - passenger_planning
+  - optimization_questions
+
+R. DRIFT ITEMS
+--------------
+AUTHORITY_DOCS_TO_UPDATE_AFTER_UI_AND_BACKEND_BLUEPRINTS:
+  - master_blueprint_phase_status
+  - readme_phase_status
+  - native_first_voice_direction
+  - eddi_cut_from_current_ui_scope
+  - voiceattack_optional_adapter_only
+  - about_replaces_legal
+  - credits_sbom_about_linked_not_primary_routes
+  - phase_2_5_completed_collision_lock
+  - source_routing_limitations
+  - phase_4_combat_containment
+  - phase_5_ownership_split
+  - carriers_reserved_future_route
+  - squadrons_phase_7_activation
+  - engineering_phase_8_activation
+  - source_capability_reference_title_version_mismatch_if_still_present
+
+S. FEATURE DECISION SCHEMA
+--------------------------
+For every future feature audit, use this schema:
+
+FEATURE_ID:
+  source_name:
+  current_name:
+  source_phase:
+  current_status:
+  route_fit:
+  primary_surface:
+  secondary_surfaces:
+  suppressed_surfaces:
+  display_pattern:
+  density_level:
+  alert_behavior:
+  lifecycle:
+  user_controls:
+  backend_owner:
+  source_requirements:
+  privacy_compliance_requirements:
+  activity_log_requirements:
+  overlap_risk:
+  route_promotion_candidate:
+  decision:
+  blueprint_change:
+
+VALID_DECISIONS:
+  - covered_existing
+  - implemented_under_different_name
+  - merge_with_existing_feature
+  - ui_covered_backend_pending
+  - future_placeholder_needed
+  - backend_only_no_ui_surface
+  - authority_doc_reconciliation_needed
+  - route_promotion_reserved
+  - route_promotion_active
+  - rejected_duplicate
+  - compliance_gated_future
+
+End of AI Reference
+-------------------
