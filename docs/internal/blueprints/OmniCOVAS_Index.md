@@ -192,8 +192,10 @@ B. Core authority blueprints
    Owns: Frontier ToS, external-service compliance, privacy law posture,
    API-key handling compliance, license obligations, attributions, red flags,
    compliance schedule, maintainer contact register.
-   Note: remains active compliance authority until replaced. Review later for
-   native-first voice / EDDI-cut / VoiceAttack-optional posture drift.
+   Note: The Compliance Matrix v4.1 remains active and now supports the v5.0
+   documentation family, native-first voice, EDDI historical/not required, and
+   VoiceAttack optional-adapter posture. A future Compliance Matrix refresh may
+   still be created if new provider, legal, or release requirements emerge.
 
 C. Development sequence and phase guides
 ----------------------------------------
@@ -558,8 +560,10 @@ Use for:
 - legal / ToS / privacy / attribution / license / external service decisions.
 
 Maintenance note:
-- Review for old EDDI / VoiceAttack wording and v4.x source assumptions when a
-  Compliance Matrix v5 or v4.2 refresh is prepared.
+- The Compliance Matrix v4.1 remains active and now supports the v5.0
+  documentation family, native-first voice, EDDI historical/not required, and
+  VoiceAttack optional-adapter posture. A future Compliance Matrix refresh may
+  still be created if new provider, legal, or release requirements emerge.
 
 J. Development Roadmap v1.0 — Human Reference
 ---------------------------------------------
@@ -1481,7 +1485,7 @@ audit, migration, or comparison work.
 
 Archive handling
 ----------------
-- Historical docs may remain in docs/archive or an equivalent internal archive.
+- Historical docs may remain in docs/internal/archive.
 - Do not delete historical docs solely because they are superseded.
 - Do mark them clearly as historical if they remain near active docs.
 - Do not list old playbooks as active work.
@@ -1519,18 +1523,19 @@ clutter this core Index unless the package becomes a durable project guide.
 --------------------------------------------------------------------------------
 
 1. Compliance Matrix review
-   The Compliance Matrix remains active, but should be reviewed later for
-   native-first voice, EDDI cut, VoiceAttack optional-adapter, Source Capability
-   v1, and new authority-family references.
+   The Compliance Matrix v4.1 remains active and now supports the v5.0
+   documentation family, native-first voice, EDDI historical/not required, and
+   VoiceAttack optional-adapter posture. A future Compliance Matrix refresh may
+   still be created if new provider, legal, or release requirements emerge.
 
 2. ADR numbering check
    ADR 0003 is already UI Safe Rendering. Any Phase 4 combat scope ADR must use
    the next available number, not 0003.
 
 3. Historical document relocation
-   Confirm whether Master v4.2, Roadmap v4.1, old Phase 4 Guide Playbooks, old
-   Phase 2/3 guides, and old approval applications live under docs/archive or
-   another clear historical folder.
+   Resolved: historical Master, Roadmap, old Phase Guide, old playbooks, Phase
+   1-3 guides, and approval/application docs now live under
+   docs/internal/archive/.
 
 4. Path normalization
    Confirm final repository paths for roadmaps and dev-guides after adoption.
