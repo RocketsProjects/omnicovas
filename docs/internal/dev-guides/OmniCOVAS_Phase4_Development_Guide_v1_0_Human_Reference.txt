@@ -1,0 +1,1404 @@
+OmniCOVAS — Phase 4 Development Guide v1.0 — Human Reference
+================================================================
+
+Repository Adoption Revision Note
+---------------------------------
+This file is part of the OmniCOVAS v5.0 documentation adoption package created after OmniCOVAS_Index.md v2.0 and OmniCOVAS_Index_AI_Reference.md were added as the active document routers. Any earlier wording in this file or related drafts that described the Index as deferred, stale, or awaiting final reconciliation is superseded by this adoption package. The Index remains a router only; it does not override the owning authority documents.
+
+
+Name:        OmniCOVAS Phase 4 Development Guide
+Version:     1.0
+Status:      CANDIDATE_PHASE_GUIDE_FOR_REPOSITORY_ADOPTION
+Date:        2026-05-06
+Audience:    Commander, architects, maintainers, future phase-guide authors, future playbook authors, implementation reviewers
+Path target: docs/internal/dev-guides/OmniCOVAS_Phase4_Development_Guide_v1_0_Human_Reference.txt
+Companion:   OmniCOVAS_Phase4_Development_Guide_v1_0_AI_Reference.txt
+Scope:       Phase 4 only — Tactical & Combat / First Operations Bridge
+
+Purpose
+-------
+
+This document is the Phase 4 bridge from theory to development.
+
+The Master Blueprint v5.0 defines the constitutional umbrella. The UI Blueprint
+v1.0 defines the commander-facing route model. The Backend Blueprint v1.0 defines
+service, state, workflow, event, bridge, provenance, source-execution, Activity
+Log, and Confirmation Gate ownership. The Source Capability Routing Reference v1
+defines provider boundaries, unsupported facts, fallback wording, source budgets,
+cache/batch/queue posture, consent gates, and no-scraping rules. The Development
+Roadmap v1.0 defines Phase 4 as the first active implementation bridge after the
+completed Phase 1-3 baseline.
+
+This Phase 4 guide translates those authorities into a development path. It is
+not code. It is not a playbook. It is not a replacement for the UI Blueprint,
+Backend Blueprint, Source Capability Reference, Compliance Matrix, or Roadmap.
+It is the authoritative Phase 4 planning guide from which later playbooks may be
+created after the Index has been fully reconciled.
+
+Phase 4 is not simply "add combat features." Phase 4 must prove that OmniCOVAS
+can take a real domain — Tactical & Combat — and implement it as a coordinated
+frontend/backend/source/audit workflow without duplicating completed systems,
+without inventing facts, without creating a Combat route, and without weakening
+commander sovereignty.
+
+
+Table of Contents
+-----------------
+
+1.  Authority and Alignment Posture
+2.  Why Phase 4 Needs Human and AI References
+3.  Current Baseline and Non-Rebuild Rule
+4.  Phase 4 Mission Statement
+5.  Phase 4 Product Shape
+6.  Frontend / Backend Bridge Model for Phase 4
+7.  Phase 4 Development Passes
+8.  Phase 4 Workstream A — Alignment, Drift Removal, and Entry Gate
+9.  Phase 4 Workstream B — Operations -> Combat Package Shell
+10. Phase 4 Workstream C — Combat State, Events, and Target / Threat Foundation
+11. Phase 4 Workstream D — Interdiction, Escape, Critical Response, and Overlay Lane
+12. Phase 4 Workstream E — PvP Encounter Log & Risk Intel
+13. Phase 4 Workstream F — Combat Zones, Missions, Rewards, Rank, Loadout, and Munitions
+14. Phase 4 Workstream G — AX, Odyssey Combat, Debrief, Integration, and Hardening
+15. Source, Provenance, and Wording Rules
+16. AI, Voice, Input, and Confirmation Gate Rules
+17. Activity Log and Explainability Requirements
+18. UI Safety, Accessibility, and Performance Requirements
+19. Testing and Verification Strategy
+20. Phase 4 Acceptance Gate
+21. Future Playbook Derivation Rules
+22. Recommended AI Configuration for This Guide and Later Phase 4 Work
+23. Forbidden Patterns
+24. Drift Items This Guide Resolves
+25. Open Items Before Playbooks
+26. Glossary
+
+
+================================================================================
+1. AUTHORITY AND ALIGNMENT POSTURE
+================================================================================
+
+1.1 Alignment model
+-------------------
+
+This guide is written under the updated OmniCOVAS AI alignment model:
+
+- CLAUDE.MD defines the Architect / Commander Staff role.
+- CLAUDE_CODE.md defines the Senior Implementation Officer role.
+- GEMINI.md defines the Strict Soldier Executor role.
+
+This guide is an Architect-level document. It may define the Phase 4 development
+path, gates, sequencing, integration expectations, and future playbook inputs.
+It must not generate implementation code or implementation playbooks.
+
+1.2 Authority order for Phase 4
+-------------------------------
+
+When interpreting this guide, use the following order:
+
+1. Commander explicit request.
+   The Commander defines the task goal but cannot override law, compliance,
+   privacy, source truth, or safety.
+
+2. Master Blueprint v5.0 Human + AI References.
+   Owns constitution, laws, principles, phase/pillar framework, high-level
+   doctrine, release philosophy, and authority model.
+
+3. Compliance Matrix v4.1.
+   Owns legal, Frontier ToS, external-service terms, privacy law, license,
+   attribution, and compliance red flags.
+
+4. UI Blueprint v1.0 Human + AI References.
+   Owns route placement, feature containment, dashboard/overlay role, settings,
+   About route, and Phase 4 UI placement.
+
+5. Backend Blueprint v1.0 Human + AI References.
+   Owns backend services, state, events, workflow, bridge/API, source execution,
+   provenance, cache/queue, Activity Log, Confirmation Gate, and service-layer
+   privacy enforcement.
+
+6. Source Capability Routing Reference v1.
+   Owns source/provider capability, unsupported facts, fallback wording, source
+   budgets, cache/batch rules, consent/auth gates, and source routing.
+
+7. Development Roadmap v1.0 Human + AI References.
+   Owns Phase 4-10 sequencing and the bridge from theory to development.
+
+8. This Phase 4 Development Guide.
+   Owns Phase 4 development path and future playbook inputs.
+
+9. Future Phase 4 playbooks.
+   Will own execution detail only after the Index v2.0 router is adopted and
+   playbooks are intentionally created from this guide.
+
+10. Index.
+    OmniCOVAS_Index.md v2.0 and OmniCOVAS_Index_AI_Reference.md are now the
+    active document routers. They locate authorities; they do not override them.
+
+1.3 Conflict handling
+---------------------
+
+If this guide appears to conflict with Master v5.0, Compliance Matrix, UI
+Blueprint, Backend Blueprint, Source Capability Reference, or the Development
+Roadmap, the higher authority wins. The conflict should be reported as a drift
+item before playbook creation.
+
+
+================================================================================
+2. WHY PHASE 4 NEEDS HUMAN AND AI REFERENCES
+================================================================================
+
+The Phase 4 guide should exist as two companion files.
+
+The Human Reference explains the intent, development sequence, rationale,
+workstream boundaries, and acceptance criteria in readable language for the
+Commander, architects, maintainers, and reviewers.
+
+The AI Reference converts the same guide into structured registries for future
+ChatGPT / Claude / Gemini sessions. It should be used when generating phase
+playbooks, auditing scope, checking route ownership, checking backend ownership,
+validating source/provenance behavior, and preventing agent drift.
+
+The AI Reference is necessary because Phase 4 touches the most drift-prone parts
+of the project:
+
+- combat features could easily become a new Combat route, which is forbidden;
+- Operations could accidentally absorb Intel and Navigation ownership, which is
+  forbidden;
+- PvP risk could become an unsupported "known ganker" claim, which is forbidden;
+- overlay alerts could become noisy UI spam, which is forbidden;
+- critical response could become automation, which is forbidden;
+- source/provider limits could be stretched beyond verified capability, which is
+  forbidden;
+- playbook authors could recreate completed Phase 2.5 Shield Intelligence,
+  which is forbidden.
+
+For these reasons, the Phase 4 AI Reference must be strict, structured, and
+machine-usable.
+
+
+================================================================================
+3. CURRENT BASELINE AND NON-REBUILD RULE
+================================================================================
+
+3.1 Completed baseline
+----------------------
+
+Phases 1, 2, 2.5, and 3 are complete and integrated. They are baseline, not
+backlog.
+
+Existing baseline includes:
+
+- Python 3.11 / FastAPI backend foundation.
+- Tauri v2 desktop shell.
+- Dynamic bridge/port discovery.
+- WebSocket event stream.
+- Journal watcher.
+- Status.json reader.
+- Companion JSON reader patterns.
+- StateManager.
+- Dispatcher.
+- Broadcaster.
+- Activity Log baseline.
+- Confirmation Gate baseline.
+- AIProvider abstraction and NullProvider.
+- DPAPI vault.
+- Redaction processor.
+- Resource monitor.
+- Knowledge Base loader and validation pattern.
+- Dashboard shell.
+- Overlay baseline.
+- Settings, Privacy, First-Run Setup, Activity Log, and About/Credits-adjacent
+  support from Phase 3.
+- Pillar 1 ship telemetry, including hull, shields, fuel, heat event handling,
+  pips, module/cargo/loadout/rebuy-related baseline.
+
+3.2 Non-rebuild rule
+--------------------
+
+Phase 4 must extend the baseline. It must not recreate it.
+
+Do not create:
+
+- a second StateManager;
+- a second dispatcher;
+- a second broadcaster;
+- a second Activity Log;
+- a second Confirmation Gate;
+- a second DPAPI vault;
+- a second FastAPI bridge;
+- a second WebSocket stream;
+- a second AIProvider abstraction;
+- a separate CombatStateManager;
+- a separate combat event bus;
+- a Combat route;
+- a new root Dashboard model for combat;
+- a new source/provenance system outside the Backend Blueprint model.
+
+3.3 Shield Intelligence lock
+----------------------------
+
+Shield Intelligence now lives under the Hull/Shields safety model. It must not
+be recreated as a Phase 4 combat feature, Dashboard card, Settings category,
+Combat page, or separate backend service.
+
+Phase 4 may consume shield state for combat readiness, threat context, and
+critical alerts. It may not redefine shield ownership.
+
+
+================================================================================
+4. PHASE 4 MISSION STATEMENT
+================================================================================
+
+Phase 4 is Tactical & Combat / First Operations Bridge.
+
+Its mission is to make OmniCOVAS useful during combat while proving the new
+frontend/backend architecture split in a real domain.
+
+Phase 4 should deliver:
+
+1. A contained Operations -> Combat workspace.
+2. Combat workflow structure without creating a Combat route.
+3. Source-backed target/threat and combat-context interpretation where sources
+   support it.
+4. Interdiction and escape support that links Operations, Overlay, Navigation,
+   Dashboard, and Activity Log correctly.
+5. PvP Encounter Log & Risk Intel that avoids unsupported "known ganker" claims.
+6. Combat rewards, rank, mission, and combat-zone session support using local
+   telemetry and source-backed facts.
+7. Loadout and munitions readiness summaries that consume known ship/personal
+   facts without duplicating Intel or Engineering.
+8. Early AX and Odyssey combat containment as bounded workflows, not broad new
+   feature systems.
+9. Post-combat debriefs grounded in Activity Log and local/source-backed facts.
+10. Strict Confirmation Gate boundaries for any protected action.
+
+The phase should feel like a real commander assistant, not a collection of
+unrelated combat cards.
+
+
+================================================================================
+5. PHASE 4 PRODUCT SHAPE
+================================================================================
+
+5.1 Primary route
+-----------------
+
+Primary route: Operations -> Combat.
+
+Phase 4 does not create a Combat primary route. Combat is a contained Operations
+package.
+
+5.2 Phase 4 Operations -> Combat package structure
+--------------------------------------------------
+
+The Phase 4 combat workspace should be organized around the UI Blueprint's
+locked package structure:
+
+- Combat Briefing Strip.
+- Overview.
+- Target & Threat.
+- Interdiction / Escape.
+- PvP.
+- Combat Zones / Missions.
+- Rewards / Rank.
+- Loadout / Munitions.
+- AX.
+- Odyssey Combat.
+- Debrief.
+- Shared Context Drawer.
+- Combat Footer.
+
+This structure does not mean every panel must become a large feature at once.
+Phase 4 may stage the workspace in thin vertical slices. The guide's purpose is
+to ensure the slices grow toward the correct final shape.
+
+5.3 Route roles
+---------------
+
+Operations owns:
+- active combat intent;
+- combat objectives;
+- combat workflow steps;
+- blockers;
+- next actions;
+- debriefs;
+- session combat summary;
+- combat-specific recommendations, labeled and grounded.
+
+Intel owns:
+- known facts about systems, local places, factions, rewards, commander profile,
+  ship/personal facts, encounter notes, market/outfitting facts if relevant;
+- field-level provenance for those facts;
+- risk context that is source-backed or commander-entered.
+
+Navigation owns:
+- route candidates;
+- escape/wake/follow route candidates;
+- mission destination movement;
+- route proof from NavRoute.json;
+- bookmarks and route library references.
+
+Dashboard owns:
+- compact live summary only;
+- optional commander-selected combat pin only;
+- never the full combat workspace.
+
+Overlay owns:
+- critical and time-sensitive glance/interruption alerts only;
+- no persistent combat workspace;
+- no noisy combat feed.
+
+Activity Log owns:
+- proof;
+- source chains;
+- event history;
+- external requests;
+- AI/Confirmation Gate records;
+- blocked, stale, unknown, unsupported records.
+
+Settings owns:
+- behavior controls;
+- source/provider setup;
+- privacy/data controls;
+- AI and voice configuration;
+- overlay profile;
+- diagnostics.
+
+About owns:
+- compact project/reference links, not Phase 4 behavior.
+
+5.4 Commander experience target
+-------------------------------
+
+A commander should be able to open Operations -> Combat and understand:
+
+- what combat mode/session focus is active;
+- what the current target/threat context says and how reliable it is;
+- whether an interdiction or escape workflow is active;
+- what combat rewards/rank/progress are being tracked;
+- what loadout/munitions/readiness blockers exist;
+- what facts are known, unknown, stale, unsupported, or disabled;
+- where the supporting facts come from;
+- what happened during the session;
+- what the next safe action is;
+- what requires commander confirmation.
+
+
+================================================================================
+6. FRONTEND / BACKEND BRIDGE MODEL FOR PHASE 4
+================================================================================
+
+6.1 The bridge requirement
+--------------------------
+
+A Phase 4 feature is not complete because a UI card exists. It is not complete
+because a backend event exists. It is complete only when the frontend and backend
+meet through the correct ownership path.
+
+Every Phase 4 feature must define:
+
+- commander outcome;
+- primary UI surface;
+- secondary UI surfaces;
+- suppressed UI surfaces;
+- backend owner;
+- state/event/workflow behavior;
+- source facts required;
+- fallback wording;
+- Activity Log events;
+- Confirmation Gate requirement;
+- privacy/consent/auth gate;
+- NullProvider/no-AI behavior;
+- accessibility and safe-rendering behavior;
+- acceptance criteria.
+
+6.2 The Phase 4 bridge pattern
+------------------------------
+
+Phase 4 should use thin vertical slices:
+
+1. Extend backend capability.
+2. Record Activity Log proof.
+3. Expose a bridge/API or WebSocket surface.
+4. Render under Operations -> Combat with safe DOM patterns.
+5. Link to Intel / Navigation / Activity Log / Settings where needed.
+6. Add Dashboard pin or Overlay alert only when the route role permits it.
+7. Validate with tests and a manual commander-flow check.
+
+This keeps development from producing a rich UI with fake state or a backend
+with no commander-facing utility.
+
+6.3 Backend ownership expectations
+----------------------------------
+
+Phase 4 should use or extend:
+
+- StateManager for canonical state;
+- dispatcher and broadcaster for events;
+- Activity Log for proof;
+- Confirmation Gate for protected actions;
+- FastAPI bridge and WebSocket stream for UI consumption;
+- operations service group / workflow engine as the active workflow owner;
+- combat domain handlers/services as narrow domain extensions;
+- source router model only where a workflow needs external facts;
+- AI workflow planner only as a draft/planning assistant, never a source.
+
+Phase 4 may introduce a narrow combat workflow layer if it follows the Backend
+Blueprint's Operations / Workflow Engine model. It must not introduce a separate
+combat architecture.
+
+
+================================================================================
+7. PHASE 4 DEVELOPMENT PASSES
+================================================================================
+
+Phase 4 should be developed in seven guide-level workstreams. These are not
+playbooks. They are the phase chunks from which future playbooks can be derived.
+
+A. Alignment, drift removal, and entry gate.
+B. Operations -> Combat package shell.
+C. Combat state, events, and Target / Threat foundation.
+D. Interdiction, Escape, Critical Response, and Overlay lane.
+E. PvP Encounter Log & Risk Intel.
+F. Combat Zones, Missions, Rewards, Rank, Loadout, and Munitions.
+G. AX, Odyssey Combat, Debrief, Integration, and Hardening.
+
+Each workstream should pass through the same five-phase mini-cycle:
+
+1. Authority check.
+2. Backend readiness.
+3. UI containment.
+4. Trust hardening.
+5. Integration verification.
+
+
+================================================================================
+8. PHASE 4 WORKSTREAM A — ALIGNMENT, DRIFT REMOVAL, AND ENTRY GATE
+================================================================================
+
+Purpose
+-------
+
+Prepare Phase 4 so future implementation starts from current truth rather than
+old v4.2 or old roadmap assumptions.
+
+What needs to be done
+---------------------
+
+1. Retire old Phase 4 wording as active authority.
+   The old Phase 4 guide/playbook package was created from Master v4.2-era
+   context and Soldier-style assumptions. It should remain historical reference
+   only until replaced by new playbooks derived from this guide.
+
+2. Reconcile feature names.
+   Replace older overclaiming or route-confusing names:
+   - PvP Gank Database -> PvP Encounter Log & Risk Intel.
+   - Combat Difficulty Meter -> Combat Difficulty Estimate.
+   - Combat Dashboard cards -> Operations -> Combat summaries or optional
+     Dashboard pins.
+   - Critical response automation -> commander-confirmed action proposal only,
+     future/compliance-gated.
+
+3. Confirm completed baseline locks.
+   Phase 1/2/2.5/3 are complete. Shield Intelligence is not Phase 4 backlog.
+
+4. Confirm route placement.
+   Combat lives under Operations -> Combat. No Combat route.
+
+5. Confirm source posture.
+   No source/provider claim enters Phase 4 unless Source Capability permits it.
+   Unsupported or unverified facts use fallback wording.
+
+6. Confirm UI safety posture.
+   ADR 0003 safe-rendering pattern applies before new Phase 4 UI code is
+   created.
+
+7. Confirm AI/executor posture.
+   Future playbooks must use the updated alignment model: Architect, Claude Code
+   Officer, Gemini Soldier.
+
+How it should be done
+---------------------
+
+This workstream should be handled as documentation and audit work first. It
+should produce a short Phase 4 entry-gate note before implementation playbooks
+are created.
+
+The note should answer:
+
+- Which old Phase 4 assumptions are superseded?
+- Which features are renamed or narrowed?
+- Which baseline systems must not be recreated?
+- Which source claims are unsupported?
+- Which UI surfaces are allowed?
+- Which backend service groups are allowed?
+- Which tests/gates must future playbooks run?
+
+Completion definition
+---------------------
+
+Workstream A is complete when Phase 4's scope is reconciled against Master v5.0,
+UI v1.0, Backend v1.0, Source Capability v1, Roadmap v1.0, ADR 0003, and the
+updated AI alignment files.
+
+
+================================================================================
+9. PHASE 4 WORKSTREAM B — OPERATIONS -> COMBAT PACKAGE SHELL
+================================================================================
+
+Purpose
+-------
+
+Create the commander-facing home for Phase 4 without overloading Dashboard or
+creating a Combat route.
+
+What needs to be done
+---------------------
+
+1. Establish Operations -> Combat as a contained package.
+   The package should hold the combat session workspace, not become a route.
+
+2. Create the Combat package structure.
+   Use the locked structure:
+   - briefing strip;
+   - overview;
+   - target & threat;
+   - interdiction / escape;
+   - PvP;
+   - combat zones / missions;
+   - rewards / rank;
+   - loadout / munitions;
+   - AX;
+   - Odyssey Combat;
+   - debrief;
+   - shared context drawer;
+   - footer.
+
+3. Define empty, disabled, not-loaded, and unsupported states.
+   The shell must be honest even before all data exists.
+
+4. Link outward correctly.
+   The shell should link to:
+   - Intel for facts;
+   - Navigation for movement;
+   - Activity Log for proof;
+   - Settings for source/privacy/behavior controls;
+   - Dashboard only through optional compact pins.
+
+5. Support NullProvider/no-AI mode.
+   The combat package must remain useful with AI off.
+
+How it should be done
+---------------------
+
+Build the package as a route-owned container that consumes backend snapshots and
+events. Start with honest placeholders and source/freshness states rather than
+fake data. Do not create final card density before the backend can provide real
+state.
+
+Completion definition
+---------------------
+
+Workstream B is complete when Operations -> Combat has a navigable, accessible,
+source-aware shell that clearly separates active workflow state from Intel facts,
+Navigation routes, Dashboard summaries, and Activity Log proof.
+
+
+================================================================================
+10. PHASE 4 WORKSTREAM C — COMBAT STATE, EVENTS, AND TARGET / THREAT FOUNDATION
+================================================================================
+
+Purpose
+-------
+
+Create the first real combat backend/UI vertical slice: target and threat
+awareness grounded in local telemetry, known ship/session state, Knowledge Base
+rules, and source-backed context.
+
+What needs to be done
+---------------------
+
+1. Identify combat event inputs.
+   Use local journal events, Status.json where applicable, existing state, and
+   existing event handler patterns. Do not assume the game exposes facts that it
+   does not expose.
+
+2. Extend state through the existing StateManager.
+   Combat-related state should be typed and source-labeled. It must not create a
+   separate CombatStateManager.
+
+3. Define combat event families.
+   Combat events should enter the existing event taxonomy and broadcaster model.
+
+4. Create Target & Threat support.
+   The target/threat panel should provide source-backed or confidence-labeled
+   interpretation. It may use local telemetry, known ship/loadout context, KB
+   rules, and supported external/local facts. It must not invent precise threat
+   ratings when sources do not support them.
+
+5. Preserve Dashboard truth.
+   Dashboard remains the owner of live safety glance values like hull, shields,
+   fuel, heat, and pips. Target & Threat may interpret context but must not
+   redefine those core truths.
+
+6. Use Activity Log proof.
+   Threat label changes, target context changes, inferred estimates, and
+   unsupported/unknown fields should produce useful Activity Log records.
+
+How it should be done
+---------------------
+
+Develop a small number of target/threat events and UI states first. Treat combat
+interpretation as a layered output:
+
+- live local telemetry;
+- known local state;
+- KB interpretation;
+- source-backed context where available;
+- inferred/confidence-labeled estimate;
+- unknown/unsupported when unavailable.
+
+Completion definition
+---------------------
+
+Workstream C is complete when Target & Threat can show real, source-labeled
+combat context from existing backend truth, with fallback wording and Activity
+Log proof, without overclaiming or duplicating Dashboard.
+
+
+================================================================================
+11. PHASE 4 WORKSTREAM D — INTERDICTION, ESCAPE, CRITICAL RESPONSE, AND OVERLAY LANE
+================================================================================
+
+Purpose
+-------
+
+Make combat urgency useful without turning the overlay into a second dashboard
+or allowing AI/game automation.
+
+What needs to be done
+---------------------
+
+1. Implement interdiction workflow containment.
+   Interdiction belongs primarily in Operations -> Combat -> Interdiction /
+   Escape. Overlay may show immediate glance/interruptive alerts. Navigation may
+   own route candidates. Activity Log owns proof.
+
+2. Connect escape planning to Navigation.
+   Operations may describe the escape objective and next action. Navigation owns
+   route candidates, waypoints, bookmarks, and route source state.
+
+3. Define critical response boundaries.
+   Critical response may propose a safe, commander-confirmed next action. It must
+   not execute game actions. It must not bypass Confirmation Gate. Future
+   Commander-Confirmed Input Assist remains compliance-gated.
+
+4. Keep Overlay sparse.
+   Overlay should show only time-sensitive notices and interruptive alerts. It
+   should not show a full combat workspace, history table, route planner, or
+   settings controls.
+
+5. Protect accessibility and focus.
+   Overlay must not steal focus. Critical alerts should be screen-reader
+   discoverable through existing accessibility patterns.
+
+6. Log every meaningful action.
+   Interdiction start/end, escape recommendation, critical alert, commander
+   confirmation, canceled action, blocked action, and unsupported state should be
+   auditable.
+
+How it should be done
+---------------------
+
+Build the workflow as a linked chain:
+
+- local event or state change indicates risk;
+- Operations records active combat/escape workflow state;
+- Overlay emits short urgent notice only if severity requires it;
+- Navigation receives or prepares a route candidate if movement is needed;
+- Confirmation Gate handles protected action proposals;
+- Activity Log records the chain.
+
+Completion definition
+---------------------
+
+Workstream D is complete when interdiction/escape support works as a coherent
+Operations + Overlay + Navigation + Activity Log flow, with no direct AI action,
+no unattended automation, and no overlay noise.
+
+
+================================================================================
+12. PHASE 4 WORKSTREAM E — PVP ENCOUNTER LOG & RISK INTEL
+================================================================================
+
+Purpose
+-------
+
+Support commander awareness around PvP encounters without creating unsupported
+claims, public accusations, or a fake "ganker database."
+
+What needs to be done
+---------------------
+
+1. Use the correct feature identity.
+   The Phase 4 feature is PvP Encounter Log & Risk Intel, not PvP Gank Database.
+
+2. Separate known facts from session workflow.
+   Intel owns known encounter facts, commander-entered notes, system risk facts,
+   and source-backed context. Operations owns the active PvP workflow. Activity
+   Log owns proof.
+
+3. Forbid unsupported identity claims.
+   Do not label a commander as a "known ganker" unless a verified source and
+   compliance posture support that exact claim. In normal Phase 4 posture, use
+   safer wording such as encounter note, commander-entered note, prior encounter,
+   traffic/death risk, or source-backed risk context.
+
+4. Keep privacy and defamation risk in mind.
+   PvP notes and encounter history are sensitive. Local-first and commander-owned
+   data rules apply. Any external lookup, sync, or share behavior requires later
+   source/compliance support.
+
+5. Make risk explainable.
+   If a risk indicator appears, it must link to why it appears: local history,
+   commander-entered note, EDSM-reported traffic/deaths where supported, or other
+   verified source-backed context.
+
+6. Avoid social/squadron overreach.
+   Shared PvP intel belongs to future Squadron work and compliance review, not
+   Phase 4 unless explicitly authorized later.
+
+How it should be done
+---------------------
+
+Build local encounter logging first. Treat risk as an explainable context label,
+not a verdict. Keep commander-entered notes clearly labeled. Do not create global
+reputation features.
+
+Completion definition
+---------------------
+
+Workstream E is complete when PvP encounter context can be recorded, reviewed,
+linked to Activity Log proof, and surfaced in Operations -> Combat without
+unsupported public accusation language or external overreach.
+
+
+================================================================================
+13. PHASE 4 WORKSTREAM F — COMBAT ZONES, MISSIONS, REWARDS, RANK, LOADOUT, AND MUNITIONS
+================================================================================
+
+Purpose
+-------
+
+Turn combat sessions into understandable objectives and outcomes while keeping
+facts, routes, and workflows in their proper owners.
+
+What needs to be done
+---------------------
+
+1. Combat Zones / Missions.
+   Operations owns the active CZ/mission workflow. Intel owns known system,
+   faction, mission, and local facts. Navigation owns the route to the zone or
+   destination. Activity Log owns proof.
+
+2. Rewards / Rank.
+   Intel owns commander personal reward/rank facts where source-backed.
+   Operations owns session reward/rank summary and debrief. Unknown or stale
+   values must be labeled.
+
+3. Loadout / Munitions.
+   Intel -> Ship / Personal owns known loadout, modules, cargo, materials, and
+   munitions facts. Operations -> Combat owns readiness interpretation and active
+   session blockers. Engineering remains the future build-planning owner.
+
+4. Hardpoints and utilities.
+   Phase 4 may show readiness and session context. It must not become an
+   Engineering replacement or automation layer.
+
+5. Mission stacking/review.
+   Use careful wording. Phase 4 may review known active missions and objective
+   compatibility if local/source-backed facts support it. It must not claim
+   hidden board state or unsupported optimization.
+
+6. Munitions and resupply.
+   Show known local state and commander-readable blockers. Any station/service
+   recommendation must respect Source Capability boundaries and fallback wording.
+
+How it should be done
+---------------------
+
+Start with local telemetry and known mission/reward/loadout state. Create
+Operations summaries that link outward for details. Do not duplicate Intel fact
+views or Navigation route planners.
+
+Completion definition
+---------------------
+
+Workstream F is complete when combat objectives, rewards/rank, and readiness can
+be summarized in Operations -> Combat with correct links to Intel, Navigation,
+Activity Log, and future Engineering boundaries.
+
+
+================================================================================
+14. PHASE 4 WORKSTREAM G — AX, ODYSSEY COMBAT, DEBRIEF, INTEGRATION, AND HARDENING
+================================================================================
+
+Purpose
+-------
+
+Add bounded AX/Odyssey combat containment and close Phase 4 as an integrated,
+auditable baseline.
+
+What needs to be done
+---------------------
+
+1. AX containment.
+   AX belongs inside Operations -> Combat -> AX. It may consume Intel facts about
+   systems/local context where sources support them. It must not invent Thargoid
+   state, site state, target strength, or route facts.
+
+2. Odyssey Combat containment.
+   Odyssey Combat belongs inside Operations -> Combat -> Odyssey Combat. Intel
+   owns settlement/site/local facts. Operations owns active objective/checklist
+   and debrief. Dashboard may show optional Suit/SRV summary only where valid.
+
+3. Frontline / settlement workflows.
+   Treat them as Operations workflows with Intel facts and Activity Log proof.
+   Do not create new routes.
+
+4. Post-combat debrief.
+   Debrief should summarize what happened during the operation, what sources
+   support it, what was inferred, what remains unknown, and what next action is
+   safe. Activity Log is the source of record.
+
+5. Cross-route integration.
+   Operations -> Combat should link cleanly to Intel, Navigation, Activity Log,
+   Settings, and optional Dashboard pins. Overlay should remain sparse.
+
+6. Hardening.
+   Apply safe rendering, accessibility, performance, bridge readiness, privacy,
+   source fallback, NullProvider, and Confirmation Gate checks.
+
+How it should be done
+---------------------
+
+Use bounded implementations. AX and Odyssey should be framed as contained
+Phase 4 surfaces that can grow later, not as massive new pillars inside the
+phase. The closeout should focus on integration and correctness, not adding more
+feature breadth.
+
+Completion definition
+---------------------
+
+Workstream G is complete when Phase 4 behaves as one coherent Tactical & Combat
+Operations package, passes integration gates, records audit proof, preserves
+route boundaries, and is ready to become completed baseline.
+
+
+================================================================================
+15. SOURCE, PROVENANCE, AND WORDING RULES
+================================================================================
+
+15.1 Source hierarchy
+---------------------
+
+For Phase 4, use local truth first:
+
+1. Local Journal.
+2. Status.json.
+3. Local companion JSON files.
+4. OmniCOVAS StateManager/cache.
+5. Authenticated/private sources only if commander enabled and the source
+   supports the fact.
+6. Verified external sources only where Source Capability permits.
+7. Fallback wording when unsupported.
+
+15.2 AI is not a source
+-----------------------
+
+AI may classify commander intent, draft workflow plans, summarize known state,
+compare supported facts, and propose next actions. AI may not create facts,
+provider data, risk claims, target data, station services, combat outcomes,
+route quality, commander reputation, or unsupported warnings.
+
+15.3 Required fallback wording
+------------------------------
+
+Use clear fallback wording:
+
+- Unknown.
+- Not Loaded.
+- Disabled.
+- Stale.
+- Requires Authorization.
+- Unsupported.
+- No Verified Source.
+- Commander-entered note.
+- Source-backed candidate.
+- Inferred estimate.
+
+15.4 Forbidden overclaims
+-------------------------
+
+Do not claim:
+
+- known ganker;
+- best combat target;
+- guaranteed escape route;
+- guaranteed module availability;
+- official BGS/combat-zone truth from community data;
+- live target facts from external APIs;
+- hidden mission board state;
+- exact AX/local threat state without verified source;
+- automated critical response.
+
+15.5 Field-level provenance
+---------------------------
+
+Every displayed meaningful fact must have a provenance path. In early Phase 4,
+this may be shown through source chips, Why links, Activity Log references, or
+source drawers depending on UI readiness. The important rule is that the project
+must be able to explain how it knows a thing.
+
+
+================================================================================
+16. AI, VOICE, INPUT, AND CONFIRMATION GATE RULES
+================================================================================
+
+16.1 AI doctrine
+----------------
+
+Phase 4 must work with AI off.
+
+AI may:
+- draft a combat workflow;
+- explain current source-backed state;
+- summarize a debrief;
+- suggest a next action;
+- identify unknowns and blockers;
+- prepare a WorkflowSourcePlan where external facts are needed.
+
+AI must not:
+- invent facts;
+- call APIs directly;
+- bypass source routing;
+- bypass Confirmation Gate;
+- execute in-game actions;
+- claim unsupported risk or target knowledge.
+
+16.2 Voice/input doctrine
+-------------------------
+
+Native-first voice remains the direction. EDDI is cut from current UI scope.
+VoiceAttack is optional adapter only. VoiceAttack is not required, not the
+brain, not a source of facts, and not a Confirmation Gate bypass.
+
+16.3 Commander-Confirmed Input Assist
+-------------------------------------
+
+Any future in-game input assist remains compliance-gated and must be:
+
+- commander-requested;
+- narrow in scope;
+- explicitly confirmed;
+- auditable;
+- safe;
+- never unattended;
+- never botting;
+- never direct AI game action.
+
+Phase 4 may design UI/Activity Log/Confirmation Gate posture for future action
+proposals, but should not implement unattended control.
+
+
+================================================================================
+17. ACTIVITY LOG AND EXPLAINABILITY REQUIREMENTS
+================================================================================
+
+17.1 Activity Log as proof layer
+--------------------------------
+
+Phase 4 must treat Activity Log as the source of proof.
+
+Log meaningful events such as:
+
+- combat operation created/started/paused/completed/aborted;
+- workflow step started/completed/blocked;
+- target/threat context changed;
+- interdiction/escape event recorded;
+- overlay critical alert shown;
+- recommendation proposed/accepted/rejected;
+- Confirmation Gate proposed/confirmed/canceled/blocked;
+- PvP encounter note created/edited/linked;
+- reward/rank/mission summary updated;
+- source lookup planned/queued/blocked/completed;
+- fallback wording shown due to unknown/stale/unsupported/disabled state;
+- debrief finalized.
+
+17.2 Explainability surfaces
+----------------------------
+
+Every Phase 4 panel should be able to answer:
+
+- What is this recommendation based on?
+- Is this live local telemetry, local snapshot, cached external data,
+  authenticated snapshot, community-known data, commander-entered, inferred,
+  AI draft, unknown, disabled, stale, requires authorization, unsupported, or no
+  verified source?
+- What changed?
+- What did the commander confirm or reject?
+- Where is the Activity Log proof?
+
+17.3 Debrief doctrine
+---------------------
+
+Post-combat debriefs should not be merely narrative. They should be structured
+summaries grounded in Activity Log entries and source-backed facts. AI may draft
+a debrief, but it must be labeled as a draft and grounded in known events.
+
+
+================================================================================
+18. UI SAFETY, ACCESSIBILITY, AND PERFORMANCE REQUIREMENTS
+================================================================================
+
+18.1 Safe rendering
+-------------------
+
+All Phase 4 UI work must follow ADR 0003:
+
+- Prefer createElement + textContent for telemetry, API, user-derived, or log
+  values.
+- Use escapeHtml + innerHTML only where permitted and justified.
+- Do not use unsafe innerHTML/outerHTML/insertAdjacentHTML/eval patterns.
+
+Phase 4 is especially sensitive because hostile commander names, user-entered
+notes, external-source strings, and log-derived values may appear in combat UI.
+
+18.2 Accessibility
+------------------
+
+Phase 4 UI must preserve:
+
+- semantic structure;
+- keyboard navigation;
+- visible focus;
+- screen-reader labels;
+- live region behavior for urgent alerts;
+- non-color-only signals;
+- modal/confirmation accessibility;
+- no overlay focus theft.
+
+18.3 Performance
+----------------
+
+Phase 4 must not compromise the live command experience.
+
+Combat UI should:
+
+- avoid polling loops when WebSocket events suffice;
+- avoid hard-coded localhost ports;
+- respect bridge readiness;
+- avoid overlay noise;
+- keep rendering efficient;
+- avoid heavy external requests during urgent combat moments;
+- degrade gracefully when providers are disabled, stale, or rate-limited.
+
+
+================================================================================
+19. TESTING AND VERIFICATION STRATEGY
+================================================================================
+
+Testing details belong in future playbooks, but the Phase 4 guide sets the test
+shape.
+
+19.1 Required test categories
+-----------------------------
+
+Future Phase 4 playbooks should include tests for:
+
+- backend event handling;
+- StateManager extension behavior;
+- Activity Log records;
+- Confirmation Gate proposals and blocked actions;
+- NullProvider/no-AI behavior;
+- source/fallback behavior;
+- bridge/API payload shape;
+- WebSocket event delivery where relevant;
+- UI safe rendering;
+- UI route containment;
+- accessibility-critical behavior;
+- overlay alert behavior;
+- no route duplication;
+- no hard-coded bridge port.
+
+19.2 Verification gates
+-----------------------
+
+Expected gates should include, where relevant:
+
+- ruff format/check;
+- mypy;
+- pytest;
+- UI tests/Vitest if UI changed;
+- cargo check / Tauri build checks if Tauri changed;
+- safe-rendering grep/audit for UI changes;
+- manual commander-flow validation for complex flows;
+- Activity Log proof inspection.
+
+19.3 Documentation verification
+-------------------------------
+
+Phase 4 closeout should update:
+
+- Phase 4 guide closeout notes;
+- release notes;
+- future Index reconciliation input;
+- README/SECURITY/CONTRIBUTING references only when the support-doc update pass
+  occurs;
+- playbook archive only after playbooks exist.
+
+
+================================================================================
+20. PHASE 4 ACCEPTANCE GATE
+================================================================================
+
+Phase 4 is complete only when all of the following are true:
+
+1. Operations -> Combat exists as the primary combat workspace.
+2. No Combat route has been created.
+3. Dashboard remains a live command surface, not a combat workspace.
+4. Overlay is sparse and urgent-only.
+5. Intel owns known combat/context/personal facts.
+6. Navigation owns route and escape movement candidates.
+7. Activity Log owns proof and source chains.
+8. Settings owns behavior/source/privacy controls.
+9. Combat state extends existing backend systems without duplicate architecture.
+10. Target/Threat, Interdiction/Escape, PvP Encounter Log, Rewards/Rank,
+    Loadout/Munitions, AX/Odyssey, and Debrief have honest source/fallback
+    behavior appropriate to their maturity.
+11. AI-off / NullProvider mode preserves core Phase 4 usefulness.
+12. No AI direct action, direct API call, source bypass, or Confirmation Gate
+    bypass exists.
+13. No unattended automation or botting exists.
+14. Source Capability boundaries are followed.
+15. Unsupported facts say unsupported/unknown/no verified source instead of
+    guessing.
+16. Safe-rendering rules are followed.
+17. Accessibility is preserved.
+18. Performance remains within project posture.
+19. All required tests and verification gates for implemented slices pass.
+20. Phase 4 guide and release-note inputs are prepared, and any future Index updates are identified as router-only maintenance.
+
+
+================================================================================
+21. FUTURE PLAYBOOK DERIVATION RULES
+================================================================================
+
+No new Phase 4 implementation playbooks should be created until the Index has
+been fully updated/reconciled after the relevant authority/support documents are
+stable.
+
+When playbooks are created later, they should derive from this guide and use the
+following pattern:
+
+- one narrow vertical slice per playbook;
+- explicit authority list;
+- Recommended AI Execution Configuration block;
+- files likely involved;
+- non-goals;
+- stop/escalate rules;
+- expected tests;
+- final report format;
+- source/fallback requirements;
+- Activity Log requirements;
+- Confirmation Gate requirements;
+- safe-rendering requirements where UI is touched.
+
+Playbooks do not need to be listed inside the Index. The Index should track core
+authority, support, guide, and reference files rather than every executor
+handoff.
+
+
+================================================================================
+22. RECOMMENDED AI CONFIGURATION FOR THIS GUIDE AND LATER PHASE 4 WORK
+================================================================================
+
+22.1 For revising this guide
+----------------------------
+
+Primary model/rank:
+- Opus-class Architect / Commander Staff.
+
+Reasoning effort:
+- High by default.
+- Max/xHigh for full drift audit or final sign-off.
+
+Thinking mode:
+- Adaptive thinking ON where available.
+- Manual extended thinking only if adaptive is unavailable.
+
+22.2 For future Phase 4 playbook creation
+-----------------------------------------
+
+Primary model/rank:
+- Opus-class Architect / Commander Staff.
+
+Reasoning effort:
+- High for normal playbook design.
+- Max/xHigh for multi-workstream or source/compliance-sensitive playbooks.
+
+Thinking mode:
+- Adaptive thinking ON.
+
+22.3 For future implementation execution
+----------------------------------------
+
+Primary executor:
+- Claude Code / Sonnet as Senior Implementation Officer.
+
+Reasoning effort:
+- Medium for narrow, local tasks.
+- High for UI/backend bridge, state/event/workflow, Activity Log, Confirmation
+  Gate, source/provenance, privacy, or overlay work.
+
+Thinking mode:
+- Adaptive thinking ON where available.
+
+Fallback executor:
+- Gemini CLI as Strict Soldier only.
+
+Gemini requirements:
+- explicit file list;
+- explicit tasks;
+- no architecture decisions;
+- no broad refactors;
+- stop on ambiguity;
+- final report with files changed and commands run.
+
+Scout/helper:
+- Haiku only for low-risk scanning, summarization, or formatting checks.
+
+
+================================================================================
+23. FORBIDDEN PATTERNS
+================================================================================
+
+Forbidden in Phase 4:
+
+- Create a Combat route.
+- Turn Dashboard into Combat dashboard.
+- Turn Overlay into a combat workspace.
+- Put Intel fact ownership inside Operations.
+- Put Navigation route ownership inside Operations.
+- Duplicate Activity Log inside Operations.
+- Duplicate Settings controls inside Operations.
+- Create CombatStateManager.
+- Create second event bus, bridge, vault, Confirmation Gate, or AIProvider.
+- Recreate Shield Intelligence as Phase 4 work.
+- Use "known ganker" without verified authority.
+- Use "best" claims without verified complete source.
+- Claim hidden game state.
+- Treat AI as fact source.
+- Let AI call APIs directly.
+- Bypass source routing.
+- Bypass Confirmation Gate.
+- Implement unattended automation.
+- Require VoiceAttack.
+- Reintroduce EDDI as current UI dependency.
+- Use unsafe dynamic HTML rendering.
+- Hard-code localhost bridge ports.
+- Call external providers one field/card/sentence at a time.
+- Treat provider hard limits as usage targets.
+- Scrape websites by default.
+
+
+================================================================================
+24. DRIFT ITEMS THIS GUIDE RESOLVES
+================================================================================
+
+This guide resolves or supersedes the following old planning drift for Phase 4:
+
+- Old Phase 4 guide/playbooks were built from v4.2-era context.
+- Combat is not a route.
+- Combat Dashboard language becomes Operations -> Combat plus optional Dashboard
+  pins.
+- PvP Gank Database becomes PvP Encounter Log & Risk Intel.
+- Combat Difficulty Meter becomes Combat Difficulty Estimate.
+- Critical response automation becomes commander-confirmed proposal doctrine only.
+- EDDI is not a current dependency.
+- VoiceAttack is optional adapter only.
+- Shield Intelligence is not Phase 4 backlog.
+- Source/provider claims must obey Source Capability Reference.
+- Phase 4 playbooks may be created only after the Index v2.0 router is adopted and this guide is accepted as the phase authority.
+
+
+================================================================================
+25. OPEN ITEMS BEFORE PLAYBOOKS
+================================================================================
+
+Before new Phase 4 implementation playbooks are created:
+
+1. Adopt this Human Reference and AI Reference into the repository.
+2. Finish any remaining support-doc revisions needed before Index work.
+3. Use Index v2.0 as the stable router and update it only after future authority changes.
+4. Decide whether the old Phase 4 package is archived, renamed historical, or
+   removed from active tracking.
+5. Confirm any missing Compliance Matrix references that still mention old EDDI
+   or VoiceAttack assumptions.
+6. Confirm README/SECURITY/CONTRIBUTING references after their revision pass.
+7. Confirm ADR numbering/status drift is documented.
+8. Only then produce Phase 4 playbooks from this guide.
+
+
+================================================================================
+26. GLOSSARY
+================================================================================
+
+Activity Log
+  The canonical proof layer. Owns event history, source chains, external
+  requests, AI/gate records, confirmations, blocked requests, exports, deletes,
+  diagnostics, stale/unknown/unsupported records.
+
+AI Draft
+  Text, workflow plan, or recommendation prepared by AI. It is not a fact until
+  grounded by allowed sources.
+
+Combat Package
+  The Phase 4 Operations -> Combat workspace. It is not a primary route.
+
+Commander-Confirmed Input Assist
+  Future, compliance-gated input assist pattern. Commander-requested,
+  commander-confirmed, scoped, auditable, and never unattended automation.
+
+Confirmation Gate
+  Non-bypassable boundary for protected actions. AI, voice, slash commands,
+  workflows, and adapters cannot bypass it.
+
+Dashboard Pin
+  Commander-selected compact summary from an owning route. It is not ownership
+  transfer.
+
+Field-Level Provenance
+  Source, timestamp, freshness, truth class, caveat, and Activity Log reference
+  for a displayed fact.
+
+NullProvider
+  No-AI provider. Core functionality must work when this is active.
+
+Operations
+  Session Operations Console. Owns active goals, workflows, blockers, next
+  actions, and debriefs.
+
+Overlay
+  In-game glance/interruption layer. Critical and time-sensitive only.
+
+PvP Encounter Log & Risk Intel
+  Phase 4 PvP awareness feature. Local/source-backed encounter context and risk
+  explanation, not a public accusation database.
+
+Source Capability Reference
+  The authority for provider capability, fallback wording, request budgets,
+  unsupported facts, and source boundaries.
+
+Unknown Remains Unknown
+  If OmniCOVAS cannot verify a fact, it says so instead of guessing.

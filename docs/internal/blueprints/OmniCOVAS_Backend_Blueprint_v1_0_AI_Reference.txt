@@ -1,6 +1,15 @@
 OmniCOVAS Backend Blueprint v1.0 — AI Reference
 ===============================================
 
+REPOSITORY_ADOPTION_REVISION_NOTE:
+  package: OmniCOVAS_v5_0_documentation_adoption
+  index_status: active_router_v2_0
+  human_index: OmniCOVAS_Index.md
+  ai_index: OmniCOVAS_Index_AI_Reference.md
+  rule: Any earlier wording that described the Index as deferred, stale, or awaiting final reconciliation is superseded by this package.
+  authority_limit: The Index is a router only and does not override owning authority documents.
+
+
 STATUS: FINAL_BACKEND_REFERENCE
 DATE: 2026-05-06
 VERSION: 1.0
@@ -59,13 +68,13 @@ B. AUTHORITY POSTURE
 ================================================================================
 
 AUTHORITY_RANK:
-  1: master_blueprint_v4_2          # docs/internal/blueprints/OmniCOVAS_Master_Blueprint_v4_2.txt
+  1: master_blueprint_v5_0          # docs/internal/blueprints/OmniCOVAS_Master_Blueprint_v5_0_Human_Reference.txt + AI Reference
   2: compliance_matrix_v4_1         # docs/internal/blueprints/OmniCOVAS_Compliance_Matrix_v4_1.txt
   3: ui_blueprint_v1_0              # frontend/route ownership
   4: backend_blueprint_v1_0         # this document; backend service ownership
   5: source_capability_routing_v1   # provider capability/budget/wording
   6: phase_guides_and_release_notes # task detail and shipped state
-  7: claude_md_and_executor_files   # operating rules (CLAUDE.md / CLAUDE_CODE.md / Soldier.md)
+  7: claude_md_and_executor_files   # operating rules (CLAUDE.MD / CLAUDE_CODE.md / GEMINI.md)
   8: playbooks                      # implementation assignment
   9: session_conversation           # user intent
 
@@ -1726,8 +1735,8 @@ RECONCILIATION_ITEMS:
     owner: index_maintainer
     blocking: false
 
-  - id: source_capability_filename_vs_status_drift
-    summary: "Companion file is _v1.txt; document Status reads 'v0.6 Candidate'. Reconcile filename or document status."
+  - id: source_capability_v1_adoption_resolved
+    summary: "Resolved: Companion file is the active Source Capability Routing Reference v1.0; prior candidate wording is superseded history only."
     owner: source_capability_maintainer
     blocking: false
 
@@ -1742,7 +1751,7 @@ RECONCILIATION_ITEMS:
     blocking: true_for_phase_4_kickoff
 
   - id: master_phase_status_drift
-    summary: "Master v4.2 Status Dashboard predates Phase 3 close-out and Phase 4 start."
+    summary: "Historical Master v4.2 status dashboard predates Phase 3 close-out and Phase 4 start; Master v5.0 now owns current phase status."
     owner: master_blueprint_maintainer
     blocking: false
 
@@ -1757,17 +1766,17 @@ RECONCILIATION_ITEMS:
     blocking: false
 
   - id: eddi_voiceattack_drift
-    summary: "Master §8 and CONTRIBUTING.md still mention EDDI as integration. UI Blueprint v1.0 cuts EDDI from current UI scope; VoiceAttack optional adapter only. Reconcile in Master/CONTRIBUTING."
+    summary: "Resolved in the v5.0 documentation family. Master v5.0, README, CONTRIBUTING, UI Blueprint v1.0, Roadmap v1.0, and alignment files use native-first voice; EDDI is cut from current scope and VoiceAttack is optional adapter only."
     owner: master_blueprint_maintainer
     blocking: false
 
   - id: contributing_legacy_paths
-    summary: "CONTRIBUTING.md references OmniCOVAS_Master_Blueprint_v4_0.txt and CLAUDE.MD legacy uppercase. Master is now v4.2; CLAUDE.md path is docs/internal/ai-workflow/CLAUDE.md."
+    summary: "CONTRIBUTING.md has been rewritten for the v5.0 authority family. CLAUDE.MD, CLAUDE_CODE.md, and GEMINI.md now define Architect, Officer, and Soldier alignment roles."
     owner: docs_maintainer
     blocking: false
 
   - id: phase_count_normalization
-    summary: "Some older documents use the pre-revision phase order. v4.2 adopted the revised order (Pillar 7 = Phase 7, Pillar 6 = Phase 8, Pillar 4 = Phase 9). Use revised order in all new docs."
+    summary: "Some historical documents use the pre-revision phase order. Master v5.0, Roadmap v1.0, and Index v2.0 own the current revised order."
     owner: docs_maintainer
     blocking: false
 

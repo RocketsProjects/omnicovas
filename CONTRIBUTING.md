@@ -1,41 +1,92 @@
 # Contributing to OmniCOVAS
 
-Thank you for your interest in contributing. This project is built on a constitutional framework, and contributions are most welcome when they work within that framework.
+Thank you for your interest in contributing to OmniCOVAS.
 
-## Before You Start
+OmniCOVAS is a local-first, source-backed, auditable command deck for Elite Dangerous commanders. Contributions are welcome when they preserve the project constitution, commander sovereignty, privacy posture, source truth, accessibility, performance, and compliance boundaries.
 
-Every contribution requires a signed **Contributor License Agreement** (CLA) before it can be merged. The CLA is electronic and takes about two minutes — when you open your first pull request, a bot will prompt you automatically.
+---
 
-See `CLA.md` for the full CLA text.
+## 1. Contribution principles
 
-## Read These First
+Every contribution is evaluated against these rules:
 
-Before making non-trivial changes, please read:
+- The AI suggests; the commander decides.
+- Local telemetry defines local reality.
+- AI is not a source of facts.
+- Unknown remains unknown.
+- Commander data stays local by default.
+- Outbound data is opt-in and auditable.
+- The Confirmation Gate cannot be bypassed.
+- No unattended automation, botting, memory manipulation, or direct AI in-game action.
+- External providers are used only for supported facts and within respectful budgets.
+- Accessibility, safe rendering, redaction, tests, and Activity Log coverage are product requirements.
 
-- `README.md` — what OmniCOVAS is and why it exists
-- `OmniCOVAS_Master_Blueprint_v4_0.txt` — the Ten Laws, Ten Architectural Principles, and tech stack
-- `OmniCOVAS_Roadmap.txt` — feature priorities and release planning
-- `CLAUDE.MD` — engineering operational parameters
+If a change conflicts with the current authority documents, it will not be merged even if the code works.
 
-Every pull request is evaluated against the Ten Laws and Ten Architectural Principles. Features that conflict with the constitution will not be accepted, regardless of code quality.
+---
 
-## Development Setup
+## 2. Contributor License Agreement
 
-OmniCOVAS v1.0 targets Windows 10/11 only.
+Every contribution requires a signed **Contributor License Agreement** before it can be merged.
 
-Required tooling:
+The CLA is handled electronically when you open your first pull request. See `CLA.md` for the full terms.
+
+---
+
+## 3. Read these first
+
+For small typo fixes, reading this file may be enough.
+
+For non-trivial changes, read the relevant authority documents before opening a pull request.
+
+Baseline reading order:
+
+1. `README.md`
+2. `docs/internal/blueprints/OmniCOVAS_Master_Blueprint_v5_0_Human_Reference.txt`
+3. `docs/internal/blueprints/OmniCOVAS_Master_Blueprint_v5_0_AI_Reference.txt`
+4. `docs/internal/roadmaps/OmniCOVAS_Development_Roadmap_v1_0.txt`
+5. The active phase guide.
+
+Then read the relevant companion authority:
+
+- UI/product/route/layout work:
+  - `docs/internal/blueprints/OmniCOVAS_UI_Blueprint_v1_0_Human_Reference.txt`
+  - `docs/internal/blueprints/OmniCOVAS_UI_Blueprint_v1_0_AI_Reference.txt`
+- Backend/service/state/event/API/workflow work:
+  - `docs/internal/blueprints/OmniCOVAS_Backend_Blueprint_v1_0_Human_Reference.txt`
+  - `docs/internal/blueprints/OmniCOVAS_Backend_Blueprint_v1_0_AI_Reference.txt`
+- Source/provider/external request work:
+  - `docs/internal/blueprints/OmniCOVAS_Source_Capability_Routing_Reference_v1.txt`
+- Legal/privacy/ToS/license/attribution work:
+  - `docs/internal/blueprints/OmniCOVAS_Compliance_Matrix_v4_1.txt`
+- UI rendering/security work:
+  - `docs/decisions/0003-ui-safe-rendering.md`
+- Tauri plugin decision context:
+  - `docs/decisions/0002-tauri-plugins.md`
+- Accessibility context:
+  - `docs/accessibility/nvda_smoke_test.md`
+
+The Index is a topic router. It should be used after it has been reconciled to the current document family, but authority decisions still belong to the owning documents above.
+
+---
+
+## 4. Development setup
+
+OmniCOVAS targets Windows 10/11.
+
+Required tools:
 
 - Git
-- Python 3.11 (pinned — do not use 3.12 or 3.13)
-- `uv` (Python package manager): `pip install uv`
+- Python 3.11
+- `uv`
 - Node.js LTS
-- Rust toolchain (via `rustup`)
+- Rust toolchain via `rustup`
 - Microsoft C++ Build Tools
-- VS Code recommended with extensions: Python, Rust Analyzer, Tauri, GitLens
+- Visual Studio Code or another editor suitable for Python/Rust/Tauri
 
-Project setup:
+Setup:
 
-```bash
+```powershell
 git clone https://github.com/RocketsProjects/omnicovas.git
 cd omnicovas
 uv venv --python 3.11
@@ -44,71 +95,202 @@ uv sync --all-extras
 pre-commit install
 ```
 
-Verify the environment:
+Recommended verification:
 
-```bash
-pytest
-```
-
-All tests should pass on a fresh clone.
-
-## Coding Standards
-
-- **Python 3.11 only.** Syntax or stdlib features newer than 3.11 are not permitted.
-- **Full type hints.** Every function signature is annotated. `mypy --strict` runs in CI and must pass.
-- **Async-first.** Core code is `async def`. No blocking I/O in the event loop.
-- **Docstrings required** on every public class and function, referencing the relevant Law or Principle where appropriate.
-- **Tests required** for any non-trivial logic.
-- **No direct AI provider calls.** AI access goes through the `AIProvider` interface (Law 4).
-- **No silent data flows.** Every outbound request is logged and opt-in gated.
-- **No game automation.** Every AI suggestion passes through the Confirmation Gate (Law 1).
-
-## Code Quality Gates
-
-Before committing, run locally:
-
-```bash
-ruff check omnicovas/ tests/
+```powershell
 ruff format omnicovas/ tests/
+ruff check omnicovas/ tests/
 mypy omnicovas/
-pytest
+pytest -v
 ```
 
-All four must pass. Pre-commit hooks run these automatically when you commit.
+For Tauri work:
 
-GitHub Actions CI runs the same checks on every push and pull request. Pull requests cannot be merged with red CI.
+```powershell
+npm install
+npm run tauri dev
+npm run tauri build
+```
 
-## Submitting Changes
+Use the active phase guide for any additional phase-specific checks.
 
-1. **Open an issue first** for anything beyond a small bugfix. This avoids wasted work on changes that conflict with the roadmap or constitution.
-2. **Fork and branch.** Branch names: `feature/...`, `fix/...`, `docs/...`
-3. **Keep commits focused.** One logical change per commit where possible.
-4. **Write clear commit messages.** First line ≤ 72 chars, imperative mood ("Add X", not "Added X").
-5. **Run the quality gates locally** before pushing.
-6. **Open a pull request** against `main`. Link the issue it addresses.
-7. **Sign the CLA** when prompted.
-8. **Respond to review feedback.** Reviewers may ask for changes to align with the constitution — this is normal.
+---
 
-## What Gets Merged
+## 5. Coding standards
 
-- Bugfixes with a regression test ✓
-- Documentation improvements ✓
-- Performance improvements with before/after measurements ✓
-- New features that align with the roadmap and pass the Ten Laws ✓
-- Refactors that improve clarity without changing behavior ✓
+Python:
 
-## What Doesn't Get Merged
+- Python 3.11 only unless the project officially updates the target.
+- Use full type hints for public functions and meaningful internal boundaries.
+- Keep `mypy` clean.
+- Use async patterns for backend I/O and avoid blocking the event loop.
+- Keep domain logic small, testable, and source-backed.
 
-- Changes that violate any of the Ten Laws
-- Features not on the roadmap (open an issue for discussion first)
-- Bundling or redistributing third-party software
-- Anything that automates in-game actions or bypasses the Confirmation Gate
-- Features gated behind a paywall
-- Telemetry or analytics reporting back to maintainers
-- Changes that add blocking I/O to the event loop
+Backend:
 
-## Questions
+- Do not create parallel versions of existing baseline services.
+- Extend the existing StateManager, dispatcher, broadcaster, Activity Log, Confirmation Gate, AIProvider abstraction, DPAPI vault, bridge, and KB loader instead of duplicating them.
+- Preserve source priority, provenance, freshness, and fallback wording.
+- Every external workflow that needs facts must produce or consume a source plan before request execution.
+- Every meaningful state mutation, external request, gate decision, AI draft, export, delete, blocker, or diagnostic must be auditable.
 
-Open a GitHub Issue or Discussion. Please be patient — this is a volunteer project.
+UI:
 
-Fly safely.
+- Follow the UI Blueprint route ownership model.
+- Do not create new primary routes unless an authority document approves the route.
+- Use compact summaries and links when a route does not own the full feature.
+- Follow ADR 0003 safe-rendering rules.
+- Preserve accessibility, focus, screen-reader, reduced-motion, contrast, and keyboard behavior.
+- Do not hard-code the FastAPI bridge port in UI code; use dynamic bridge discovery patterns.
+
+AI:
+
+- AI must not be treated as a fact source.
+- NullProvider / no-AI mode must keep core functionality working.
+- AI cannot call APIs directly, bypass source routing, or bypass the Confirmation Gate.
+- AI output must be labeled, grounded, and auditable where meaningful.
+
+External sources:
+
+- Use only documented provider capability.
+- Cache and batch before external calls.
+- Respect project request budgets.
+- Treat provider hard limits as ceilings, not usage goals.
+- Do not scrape by default.
+- Do not claim unsupported facts.
+
+---
+
+## 6. Documentation standards
+
+Documentation changes should preserve the current document architecture:
+
+- Master Blueprint = constitution and project framework.
+- UI Blueprint = frontend/product/user-surface truth.
+- Backend Blueprint = backend/service/state/event/API/workflow truth.
+- Source Capability Reference = provider/source truth.
+- Compliance Matrix = legal/privacy/ToS/license/attribution truth.
+- Development Roadmap = phase sequence from Phase 4 through Phase 10.
+- Phase guides = phase-specific implementation guidance.
+- Playbooks = executor handoffs, not authority documents.
+- Index = final router after companion documents stabilize.
+
+Do not copy detailed UI/backend/source tables into the Master or README. Link or reference the owning document instead.
+
+---
+
+## 7. Branching and commits
+
+Recommended branch names:
+
+- `docs/...`
+- `fix/...`
+- `feature/...`
+- `chore/...`
+- `test/...`
+
+Commit messages:
+
+- Use imperative mood: `Add source fallback wording`, not `Added source fallback wording`.
+- Keep the first line concise.
+- Keep commits focused where possible.
+
+---
+
+## 8. Pull request expectations
+
+Before opening a pull request:
+
+1. Confirm your change belongs to the phase or document authority you are working under.
+2. Check for completed-baseline collisions, especially Phases 1, 2, 2.5, and 3.
+3. Run relevant verification commands.
+4. Update or add tests for non-trivial code.
+5. Update documentation if behavior changes.
+6. Include a clear summary and verification section in the PR description.
+
+PR descriptions should include:
+
+```text
+Summary:
+- ...
+
+Authority checked:
+- Master / UI / Backend / Source / Compliance / Roadmap / Phase Guide as relevant
+
+Verification:
+- ruff format ...
+- ruff check ...
+- mypy ...
+- pytest ...
+- npm / cargo / tauri checks as relevant
+
+Notes / limitations:
+- ...
+```
+
+---
+
+## 9. What gets merged
+
+Likely to be accepted:
+
+- bug fixes with regression tests;
+- documentation improvements aligned to current authority docs;
+- accessibility improvements;
+- performance improvements with evidence;
+- test coverage improvements;
+- safe refactors that preserve behavior;
+- approved phase-guide or playbook implementation work;
+- source-routing improvements that follow the Source Capability Reference and Compliance Matrix.
+
+Not accepted:
+
+- changes that violate the Ten Laws or Architectural Principles;
+- features outside the current roadmap or phase authority;
+- new provider/source claims without verification;
+- new routes not approved by the UI Blueprint / future authority update;
+- external requests without consent, provenance, cache/batch posture, Activity Log coverage, and fallback wording;
+- game automation, botting, memory manipulation, or Confirmation Gate bypasses;
+- maintainer telemetry, analytics, tracking, or hidden outbound flows;
+- bundled third-party tools without explicit legal/compliance approval;
+- unsafe dynamic HTML rendering of telemetry, user data, provider data, logs, or WebSocket payloads;
+- broad cleanup mixed with unrelated functional work.
+
+---
+
+## 10. AI-assisted contributions
+
+AI-assisted development is allowed, but the contributor is responsible for the result.
+
+Rules:
+
+- Read and apply the current authority documents.
+- Do not let an AI invent facts, provider capability, telemetry behavior, or Elite mechanics.
+- Do not let an AI rewrite scope beyond the approved task.
+- Run the verification gates yourself.
+- Review generated code carefully before submitting.
+- Mention any AI assistance when relevant to review clarity.
+
+Project AI alignment files are available for internal workflow use:
+
+- `CLAUDE.MD` — Architect / Commander Staff alignment.
+- `CLAUDE_CODE.md` — Claude Code Senior Implementation Officer alignment.
+- `AGENTS.md` — ChatGPT Codex Senior Implementation Officer alignment.
+- `GEMINI.md` — Strict Soldier Executor alignment.
+
+These are workflow aids, not substitutes for human review or authority documents. Claude Code and ChatGPT Codex may be used as officer-level coding agents only within approved architecture, approved playbooks, and the current authority chain.
+
+---
+
+## 11. Questions
+
+Open a GitHub Issue or Discussion for non-security questions.
+
+For security issues, use GitHub Private Vulnerability Reporting instead of a public issue.
+
+Fly safely, Commander.
+
+
+---
+
+Documentation router: use `docs/internal/blueprints/OmniCOVAS_Index.md` and `docs/internal/blueprints/OmniCOVAS_Index_AI_Reference.md` to locate the current v5.0 authority documents. The Index is a router only; it does not override the owning authority files.

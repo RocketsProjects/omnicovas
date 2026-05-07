@@ -227,7 +227,6 @@ alembic_dev.db
 qwen-executor.Modelfile
 .claude/
 .gemini/
-GEMINI.md
 
 # Continue agent configs -- track templates, ignore live configs
 .continue/agents/Qwen.yaml

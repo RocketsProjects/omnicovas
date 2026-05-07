@@ -1,7 +1,17 @@
 # OmniCOVAS — Compliance Matrix
-### Companion Document to Master Blueprint v4.1
+### Active Compliance Companion for the OmniCOVAS v5.0 Documentation Family
 
-*Complete compliance audit reflecting the v4.0 constitutional framework (Ten Laws, Ten Architectural Principles) and Phase 1 operational status.*
+*Active compliance audit supporting Master Blueprint v5.0 and the current UI, Backend, Source Capability, Roadmap, and Phase Guide authority family. This v4.1 matrix remains active until replaced; stale v4.x authority references are superseded by the v5.0 documentation family.*
+
+**Current authority posture:**
+- Supports Master Blueprint v5.0 as the constitutional authority.
+- Preserves legal, privacy, ToS, license, attribution, rate-limit, and audit obligations.
+- Aligns with native-first voice direction.
+- EDDI is cut from current scope and must not be required.
+- VoiceAttack is optional adapter only and must not be required.
+- OmniCOVAS is the brain.
+- No unattended automation, botting, or direct AI in-game action.
+- Commander-Confirmed Input Assist remains future/compliance-gated only.
 
 ---
 
@@ -211,28 +221,31 @@ Law 2 makes real-world legal compliance an absolute constraint. This section enu
 
 ## 🔧 Section 4 — External Tools & Dependencies
 
-### 4.1 EDDI (Required for Voice Features)
+### 4.1 EDDI (Historical / Not Required)
 
 **License:** GPL-3.0
 
 **Compliance Under Law 9 Interpretation B:**
 - ❌ Cannot be bundled with OmniCOVAS (GPL-3.0 vs AGPL-3.0 bundling conflict)
-- ✅ External dependency — user-installed
-- ✅ Required only for voice features, not core functionality
-- ✅ Socket bridge communication (GPL-3.0 allows inter-process)
-- ⏳ Recommended EDDI configuration profile (Phase 3+)
-- ⏳ EDDI disables its own Inara integration to give us exclusive 2/min budget (Phase 3+)
+- ✅ Not a current OmniCOVAS dependency
+- ✅ Must not be required for voice features or core functionality
+- ✅ Historical or future optional interop only if later approved by the current authority family
+- ✅ Any future interop must preserve consent, source routing, privacy gates, Activity Log auditability, and Confirmation Gate boundaries
 - ✅ Users retain all EDDI GPL-3.0 rights
 
-### 4.2 VoiceAttack (Required for Voice Commands)
+### 4.2 VoiceAttack (Optional Adapter Only)
 
 **License:** Commercial proprietary (~$10-15 purchase)
 
 **Compliance:**
 - ✅ Never bundled or redistributed
-- ✅ Required only for voice features, not core functionality
+- ✅ Optional adapter only; never required for voice commands or core functionality
+- ✅ OmniCOVAS remains the brain
+- ✅ Must not bypass the Confirmation Gate
+- ✅ Must not enable unattended automation, botting, or direct AI in-game action
+- ✅ Commander-Confirmed Input Assist remains future/compliance-gated only
 - ✅ Users provide their own license
-- ⏳ Pre-built VoiceAttack profile (Phase 3+)
+- ⏳ Any future profile or adapter requires explicit approval under the current authority family
 
 ### 4.3 EDMC
 
@@ -486,7 +499,7 @@ Full thank-you text to all maintainers and communities.
 
 ---
 
-*This document is maintained in parallel with the Master Blueprint v4.1.*
+*This document is maintained as the active Compliance Matrix v4.1 companion to the OmniCOVAS v5.0 documentation family until replaced by a newer compliance authority.*
 
 *— OmniCOVAS Compliance Matrix v4.1*
-*Last updated: 2026-04-19*
+*Last updated: 2026-05-07*

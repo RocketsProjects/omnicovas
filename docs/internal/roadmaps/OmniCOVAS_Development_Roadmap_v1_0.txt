@@ -1,0 +1,1683 @@
+OmniCOVAS — Development Roadmap v1.0
+========================================
+
+Repository Adoption Revision Note
+---------------------------------
+This file is part of the OmniCOVAS v5.0 documentation adoption package created after OmniCOVAS_Index.md v2.0 and OmniCOVAS_Index_AI_Reference.md were added as the active document routers. Any earlier wording in this file or related drafts that described the Index as deferred, stale, or awaiting final reconciliation is superseded by this adoption package. The Index remains a router only; it does not override the owning authority documents.
+
+
+Name:        OmniCOVAS Development Roadmap
+Version:     1.0
+Status:      CANDIDATE_ROADMAP_FOR_REPOSITORY_ADOPTION
+Date:        2026-05-06
+Audience:    Commander, architects, maintainers, future phase-guide authors, playbook authors, implementation auditors
+Path target: docs/internal/roadmaps/OmniCOVAS_Development_Roadmap_v1_0.txt
+Supersedes:  OmniCOVAS_Roadmap_v4_1.txt as active roadmap once adopted
+Scope:       Phase 4 through Phase 10 only
+
+Purpose
+-------
+
+This roadmap bridges the gap between OmniCOVAS theory and development.
+
+The Master Blueprint v5.0 defines the constitutional umbrella. The UI Blueprint
+v1.0 defines the frontend/product truth. The Backend Blueprint v1.0 defines the
+backend/service truth. The Source Capability Routing Reference defines provider
+and source truth. The Compliance Matrix defines legal/privacy/compliance truth.
+
+This roadmap does not replace any of those authorities.
+
+Instead, it answers the practical development question:
+
+  How do we turn the locked OmniCOVAS architecture into a real, integrated
+  application from Phase 4 through completion?
+
+This document starts at Phase 4 by design. Phases 1, 2, 2.5, and 3 are treated
+as complete/integrated baselines. They are not backlog. They may be repaired,
+hardened, extended, or refactored only where a later phase requires it, but they
+must not be rebuilt or reinterpreted as missing work.
+
+
+Table of Contents
+-----------------
+
+1.  Roadmap Authority and Use
+2.  Current Baseline
+3.  The Frontend/Backend Bridge Model
+4.  Phase Structure Overview
+5.  Phase 4 — Tactical & Combat / First Operations Bridge
+6.  Phase 5 — Exploration, Navigation, Intel, and Source Infrastructure
+7.  Phase 6 — Trading, Mining, Colonization, and Market Candidate Workflows
+8.  Phase 7 — Squadrons, Group Coordination, and Secure Sharing
+9.  Phase 8 — Engineering, Materials, Builds, and Progression Planning
+10. Phase 9 — Powerplay 2.0, BGS, and Campaign Intelligence
+11. Phase 10 — Completion, Release Hardening, Documentation, and v1.0 Readiness
+12. Cross-Phase Development Rules
+13. Phase-Gate Template
+14. Roadmap Maintenance Rules
+15. Known Drift and Follow-Up Documents
+16. Glossary
+
+
+================================================================================
+1. ROADMAP AUTHORITY AND USE
+================================================================================
+
+1.1 What this roadmap owns
+--------------------------
+
+This roadmap owns the development sequence from Phase 4 through Phase 10.
+
+It defines:
+- what each phase is trying to make real;
+- which UI surfaces should become active or mature in that phase;
+- which backend systems should be introduced, extended, or hardened;
+- how frontend and backend work should meet in the middle;
+- what source/compliance gates must shape the work;
+- what a phase must prove before the next phase starts;
+- what should become phase guides and playbooks later.
+
+It intentionally avoids code, endpoint tables, state-field registries, and
+executor-level tasks. Those belong in future phase guides and playbooks.
+
+1.2 What this roadmap does not own
+----------------------------------
+
+This roadmap does not own:
+- constitutional laws or principles;
+- route ownership;
+- backend service ownership;
+- provider capability;
+- request budget numbers;
+- legal/privacy/ToS decisions;
+- UI layout details;
+- endpoint families;
+- event taxonomies;
+- implementation code;
+- executor playbooks.
+
+If this roadmap appears to conflict with a higher authority, the higher
+authority wins.
+
+1.3 Authority order
+-------------------
+
+For roadmap interpretation:
+
+1. Compliance Matrix v4.1
+   Owns legal, privacy, ToS, license, attribution, external-service, and red-flag
+   boundaries.
+
+2. Master Blueprint v5.0
+   Owns laws, principles, project identity, phase/pillar framework, high-level
+   doctrine, release philosophy, and companion-document authority model.
+
+3. UI Blueprint v1.0
+   Owns frontend route ownership, feature placement, route containment,
+   Dashboard/Intel/Navigation/Operations/Activity Log/Settings/About/Squadrons/
+   Engineering/Carriers behavior, overlay role, and UI wording posture.
+
+4. Backend Blueprint v1.0
+   Owns backend services, state, events, workflows, bridge/API, source execution,
+   provenance, cache/queue, Activity Log, Confirmation Gate, AI boundary, and
+   backend privacy enforcement.
+
+5. Source Capability Routing Reference v1
+   Owns source/provider capability, unsupported facts, fallback wording,
+   cache/batch/queue posture, source relationships, provider limits, and
+   source-routing boundaries.
+
+6. This Development Roadmap v1.0
+   Owns sequencing and development translation.
+
+7. Future phase guides and playbooks
+   Own detailed execution. They must derive from this roadmap and the authority
+   documents above.
+
+
+================================================================================
+2. CURRENT BASELINE
+================================================================================
+
+2.1 Completed baseline
+----------------------
+
+The following are treated as complete and integrated:
+
+- Phase 1 — The Core.
+- Phase 2 — Ship Telemetry.
+- Phase 2.5 — Deferred Pillar 1 reconciliation.
+- Phase 3 — UI Shell.
+
+These phases establish the existing baseline:
+- Python/FastAPI backend foundation.
+- Tauri desktop shell.
+- Dynamic bridge/port discovery.
+- WebSocket event stream.
+- Activity Log baseline.
+- Confirmation Gate baseline.
+- Settings/Privacy/Onboarding baseline.
+- Dashboard shell and overlay baseline.
+- StateManager, dispatcher, broadcaster, vault, resource monitor, AIProvider,
+  NullProvider, Knowledge Base, and local telemetry ingestion baseline.
+- Pillar 1 ship telemetry baseline.
+
+Completed baseline means:
+- Do not recreate these systems.
+- Do not create second versions of StateManager, dispatcher, broadcaster,
+  Activity Log, Confirmation Gate, vault, bridge, cache, or AIProvider.
+- Do not treat Phase 2.5 Shield Intelligence as missing work. It is merged into
+  the Hull/Shields safety model.
+
+2.2 Current active starting point
+---------------------------------
+
+Phase 4 is the active roadmap / beginning implementation planning point.
+
+Phase 4 is not just "add combat features." It is the first phase that must prove
+the new v5.0 architecture split in active development:
+
+- UI must place combat correctly under Operations -> Combat.
+- Backend must extend existing state/events/services instead of creating a
+  separate combat universe.
+- Source capability must constrain what combat risk, PvP, bounty, CZ, AX, and
+  target-intel claims may say.
+- Activity Log must remain the proof layer.
+- Confirmation Gate must remain the boundary for protected actions.
+- Dashboard and Overlay may surface combat summaries and alerts, but they must
+  not become combat workspaces.
+
+2.3 Why the old roadmap cannot remain active
+--------------------------------------------
+
+The older roadmap was useful when the Master Blueprint contained almost
+everything. It now conflicts with the new document architecture because:
+- Phase 1-3 status has advanced.
+- The route model changed.
+- UI v1.0 and Backend v1.0 split ownership.
+- EDDI is cut from current UI scope.
+- VoiceAttack is optional adapter only.
+- Source/provider claims now require Source Capability routing.
+- Phase 4 guide language predates UI/Backend v1.0.
+- "combat dashboard cards" and "PvP Gank Database" language must be replaced
+  with the Operations -> Combat containment model and "PvP Encounter Log & Risk
+  Intel" wording.
+
+This roadmap is the bridge from the older phase sequence to the new authority
+family.
+
+
+================================================================================
+3. THE FRONTEND/BACKEND BRIDGE MODEL
+================================================================================
+
+3.1 The bridge problem
+----------------------
+
+The UI Blueprint answers: "Where does the commander see and use this?"
+
+The Backend Blueprint answers: "Which service owns the state, event, workflow,
+source execution, bridge contract, and audit behavior?"
+
+The roadmap must answer: "How do we develop both sides together so the feature
+becomes real without duplication?"
+
+A feature is only real when all of the following are true:
+- it has a correct route owner;
+- it has a correct backend service owner;
+- it has source/provenance behavior;
+- it has fallback wording for unknown/unsupported/stale/disabled states;
+- it writes meaningful events to the Activity Log;
+- it respects privacy, consent, and source gates;
+- it passes through the Confirmation Gate where required;
+- it degrades gracefully under NullProvider/no-AI mode;
+- it does not require unsupported external providers;
+- it has tests and diagnostics appropriate for its risk.
+
+3.2 The development pattern for every phase
+-------------------------------------------
+
+Every phase should be developed in five passes:
+
+Pass 1 — Authority Reconciliation
+  Translate phase scope against:
+  - Master laws and pillars;
+  - UI route placement;
+  - Backend service ownership;
+  - Source Capability provider boundaries;
+  - Compliance Matrix constraints;
+  - current completed baseline.
+
+  Output: phase alignment note, not code.
+
+Pass 2 — Backend Capability Foundation
+  Extend existing backend systems first:
+  - state model extension where needed;
+  - domain event handling;
+  - source-backed service layer;
+  - workflow state where needed;
+  - Activity Log records;
+  - Confirmation Gate proposals where needed;
+  - bridge/API surface where needed;
+  - diagnostics and failure modes.
+
+  Output: backend-ready capability.
+
+Pass 3 — UI Containment and Surface Wiring
+  Add or extend the route-owned UI surface:
+  - Operations for active workflows;
+  - Intel for known facts;
+  - Navigation for movement and route candidates;
+  - Dashboard for compact live summary only;
+  - Overlay for time-sensitive glance/interruption only;
+  - Activity Log for proof;
+  - Settings for behavior/source/privacy controls;
+  - About for compact project/reference links.
+
+  Output: commander-facing surface that consumes backend truth.
+
+Pass 4 — Source, Provenance, Privacy, and Audit Hardening
+  Prove the data is safe and honest:
+  - local-first behavior;
+  - field-level provenance;
+  - source chips / Why links / Activity Log references;
+  - unknown/stale/unsupported fallback wording;
+  - cache and batch before external calls;
+  - consent and authentication gates;
+  - no scraping by default;
+  - no AI fact creation;
+  - no unconfirmed protected action.
+
+  Output: trustable feature behavior.
+
+Pass 5 — Integration Gate and Phase Closeout
+  Validate the phase as a cohesive user flow:
+  - full-session scenario;
+  - no route duplication;
+  - no source overclaim;
+  - no completed-baseline recreation;
+  - accessibility/safe-rendering checks where UI changed;
+  - ruff/mypy/pytest/UI/Tauri checks as appropriate;
+  - updated release notes;
+  - phase guide/playbooks archived or reconciled;
+  - next phase readiness note.
+
+  Output: phase accepted as integrated baseline.
+
+3.3 The frontend/backend handoff contract
+-----------------------------------------
+
+For every feature, phase guides should define:
+
+- Feature name.
+- Commander outcome.
+- Primary UI surface.
+- Secondary UI surfaces.
+- Suppressed UI surfaces.
+- Backend owner.
+- State/event/workflow shape.
+- Bridge/API family or event stream path.
+- Source facts needed.
+- Source Capability section to verify.
+- Fallback wording.
+- Activity Log events.
+- Confirmation Gate requirement.
+- Privacy/consent/auth gates.
+- NullProvider/no-AI behavior.
+- Accessibility and safe-rendering concerns.
+- Acceptance criteria.
+
+This is how the UI and backend blueprints become implementation.
+
+
+================================================================================
+4. PHASE STRUCTURE OVERVIEW
+================================================================================
+
+Phase 4 — Tactical & Combat / First Operations Bridge
+  Proves Operations -> Combat as the first real workflow package after the UI
+  overhaul. Builds combat support without creating a Combat route, second
+  StateManager, or unsupported PvP claims.
+
+Phase 5 — Exploration, Navigation, Intel, and Source Infrastructure
+  Builds the major Intel/Navigation split, creates the practical source-routing
+  foundation, and makes provenance/cache/queue behavior real enough for
+  exploration and route workflows.
+
+Phase 6 — Trading, Mining, Colonization, and Market Candidate Workflows
+  Applies source-routing infrastructure to market, commodity, station-service,
+  mining-candidate, carrier-logistics, and colonization-support workflows while
+  preventing unsupported "best" claims.
+
+Phase 7 — Squadrons, Group Coordination, and Secure Sharing
+  Activates the Squadrons route and introduces consent-scoped group coordination,
+  shared operations/routes/bookmarks, secure telemetry sharing posture, and
+  squadron auditability.
+
+Phase 8 — Engineering, Materials, Builds, and Progression Planning
+  Activates the Engineering route and turns material inventory, blueprint goals,
+  unlock planning, build references, and acquisition routes into a coherent
+  progression-planning system.
+
+Phase 9 — Powerplay 2.0, BGS, and Campaign Intelligence
+  Adds BGS/Powerplay campaign intelligence without creating a BGS or Powerplay
+  route. Intel owns facts, Operations owns campaigns, Navigation owns circuits,
+  Squadrons supports coordination.
+
+Phase 10 — Completion, Release Hardening, Documentation, and v1.0 Readiness
+  Freezes feature scope, hardens the full app, reconciles all documentation,
+  updates the Index last, prepares packaging, validates compliance/accessibility/
+  security/performance, and determines v1.0 readiness.
+
+
+================================================================================
+5. PHASE 4 — TACTICAL & COMBAT / FIRST OPERATIONS BRIDGE
+================================================================================
+
+5.1 Phase identity
+------------------
+
+Pillar: Pillar 2 — Tactical & Combat.
+Primary route: Operations -> Combat.
+Secondary surfaces:
+- Dashboard: compact combat/session/safety summaries only.
+- Overlay: urgent combat glance/interruption alerts only.
+- Intel: source-backed facts and risk context only.
+- Navigation: escape/movement/destination context only.
+- Activity Log: proof, decisions, source chains, gate records.
+- Settings: behavior, mute/sensitivity, source/privacy controls where needed.
+
+No new Combat primary route.
+
+5.2 Purpose
+-----------
+
+Phase 4 turns OmniCOVAS from a telemetry dashboard into an operations assistant.
+It should prove that the app can support active commander workflows without
+becoming cluttered or unsafe.
+
+The phase is successful when combat assistance feels like a real command-deck
+workflow:
+- the commander can understand what is happening;
+- OmniCOVAS can surface useful combat context;
+- recommendations are grounded and explainable;
+- urgent alerts reach Dashboard/Overlay without stealing ownership;
+- every important event is auditable;
+- all protected actions remain commander-confirmed.
+
+5.3 What needs to be done
+-------------------------
+
+A. Reconcile Phase 4 scope before implementation.
+   The existing Phase 4 guide predates UI v1.0 and Backend v1.0. Before writing
+   implementation playbooks, it must be aligned to:
+   - Operations -> Combat as the primary workspace.
+   - "PvP Encounter Log & Risk Intel" instead of "PvP Gank Database."
+   - No "combat dashboard cards" as primary ownership.
+   - No new ADR number collision with existing ADR 0003.
+   - No recreation of Shield Intelligence.
+
+B. Establish the Operations workflow pattern.
+   Combat should be the first concrete Operations package. It should create the
+   template for:
+   - active operation overview;
+   - current objective;
+   - linked Intel facts;
+   - linked Navigation context;
+   - blockers and unknowns;
+   - recommendation drafts;
+   - next actions;
+   - debrief;
+   - Activity Log proof.
+
+C. Extend backend combat capability through existing systems.
+   Add combat domain behavior by extending:
+   - existing event taxonomy;
+   - existing dispatcher/broadcaster;
+   - existing StateManager typed extensions;
+   - existing Activity Log;
+   - existing Confirmation Gate;
+   - existing bridge and WebSocket model;
+   - existing AIProvider/NullProvider boundary.
+
+   Do not create a CombatStateManager, CombatBridge, CombatActivityLog, or
+   separate combat event bus.
+
+D. Implement combat information layers honestly.
+   The phase should support combat context such as:
+   - target and threat context where telemetry supports it;
+   - interdiction/escape assistance;
+   - hostile encounter logging where observed locally;
+   - bounty/reward/rank progress where source-backed;
+   - combat-zone context where supported;
+   - ammunition/loadout readiness where local telemetry supports it;
+   - AX and on-foot combat as constrained, source-backed subdomains.
+
+   Any unsupported claim must be labeled rather than invented.
+
+E. Wire frontend surfaces to their proper roles.
+   Operations -> Combat owns the workspace.
+   Dashboard owns only compact summary pins/status.
+   Overlay owns only urgent/interruption lanes.
+   Intel owns facts and source-backed risk context.
+   Navigation owns movement or escape route context.
+   Activity Log owns proof.
+   Settings owns behavior and controls.
+
+F. Preserve AI doctrine.
+   AI may explain, summarize, compare, and draft a recommendation. AI must not
+   become a source of combat facts, call APIs directly, bypass source routing,
+   bypass the Confirmation Gate, or perform game actions.
+
+5.4 How it should be done
+-------------------------
+
+Phase 4 should be developed in thin vertical slices, not as a giant combat
+rewrite.
+
+Recommended order:
+1. Phase 4 alignment and guide correction.
+2. Operations -> Combat shell and backend operation object.
+3. Combat event ingestion and state extensions from local telemetry.
+4. Combat Activity Log records and source/provenance labels.
+5. Dashboard/Overlay compact alert lanes.
+6. Interdiction/escape workflow.
+7. Target/threat context workflow.
+8. PvP Encounter Log & Risk Intel workflow.
+9. Rewards/rank/munitions/loadout readiness workflow.
+10. Combat-zone/AX/on-foot constrained surfaces.
+11. Debrief and phase integration gate.
+
+Each slice should prove the full bridge:
+backend event/state -> backend service/workflow -> bridge/event stream ->
+route-owned UI -> Activity Log proof -> tests.
+
+5.5 Frontend/backend bridge focus
+---------------------------------
+
+Phase 4 is where the project proves that:
+- Operations can own workflows without stealing facts from Intel.
+- Dashboard can show urgent summaries without becoming a workflow board.
+- Overlay can interrupt when necessary without becoming a second Dashboard.
+- Backend services can support a route package without creating parallel
+  infrastructure.
+- Activity Log can explain every recommendation, unknown, blocked source, and
+  gate decision.
+
+5.6 Source and compliance posture
+---------------------------------
+
+Phase 4 should be conservative.
+
+Local telemetry is the primary source for live combat state. External or
+community sources may only appear where the Source Capability Routing Reference
+explicitly supports the fact. PvP and risk wording must avoid unsupported
+certainty. "Known ganker" style claims are forbidden unless a verified source
+supports that exact claim.
+
+No in-game automation, no automatic fire/boost/jump/actions, no AI-controlled
+combat, no unattended play, no VoiceAttack requirement.
+
+5.7 Phase 4 acceptance criteria
+-------------------------------
+
+Phase 4 is complete when:
+- Operations -> Combat is the active combat workspace.
+- No Combat primary route exists.
+- No combat feature duplicates Intel, Navigation, Dashboard, Activity Log, or
+  Settings ownership.
+- Combat backend extends existing StateManager/dispatcher/broadcaster/bridge.
+- Combat recommendations are source-backed or labeled as AI draft/inferred.
+- Unsupported facts use fallback wording.
+- Dashboard/Overlay combat summaries are compact and route-linked.
+- Activity Log records meaningful combat workflow events.
+- Confirmation Gate wraps protected actions/proposals.
+- NullProvider/no-AI mode preserves core combat workflow usefulness.
+- Phase 4 guide and playbooks are reconciled to UI/Backend/Source v1.0.
+- ADR numbering collision is resolved before any new combat-scope ADR lands.
+- Verification gates pass.
+
+
+================================================================================
+6. PHASE 5 — EXPLORATION, NAVIGATION, INTEL, AND SOURCE INFRASTRUCTURE
+================================================================================
+
+6.1 Phase identity
+------------------
+
+Pillars:
+- Pillar 3 — Exploration & Navigation.
+- Cross-cutting Intel and Navigation foundation.
+
+Primary routes:
+- Intel.
+- Navigation.
+- Operations -> Exploration/Exobiology for active objectives.
+
+Secondary surfaces:
+- Dashboard for compact route/context pins.
+- Overlay for time-sensitive route/safety notices.
+- Activity Log for proof.
+- Settings for source/data-flow controls.
+
+6.2 Purpose
+-----------
+
+Phase 5 is the infrastructure expansion phase.
+
+It is not only an exploration phase. It is the phase where OmniCOVAS makes the
+new source-backed architecture practical for the rest of the product.
+
+Phase 5 should mature:
+- Intel as the Known Information Console;
+- Navigation as the Route and Movement Console;
+- source registry and source router behavior;
+- WorkflowSourcePlan and ExternalRequestBundle discipline;
+- cache/queue/provenance behavior;
+- exploration and exobiology workflows;
+- route planning/link-out/future-router readiness.
+
+6.3 What needs to be done
+-------------------------
+
+A. Stand up Intel as a real known-information surface.
+   Intel should organize facts into:
+   - Galaxy;
+   - System;
+   - Local;
+   - Ship / Personal.
+
+   Each fact should carry:
+   - source;
+   - timestamp;
+   - freshness;
+   - truth class;
+   - caveat;
+   - Activity Log reference where meaningful.
+
+B. Stand up Navigation as a real route/movement surface.
+   Navigation should own:
+   - Active Route;
+   - Planner;
+   - Route Library;
+   - Bookmarks;
+   - Route Sources.
+
+   NavRoute.json should be treated as proof of the current in-game route.
+   Spansh should be link-out first unless endpoint/rate/terms verification
+   supports deeper API integration.
+
+C. Build the source-routing foundation.
+   This phase should introduce the practical architecture for:
+   - SourceRegistry;
+   - SourceRouter;
+   - WorkflowSourcePlan;
+   - ExternalRequestBundle;
+   - ExternalRequestQueue;
+   - cache/freshness;
+   - provenance registry;
+   - blocked/unsupported request records.
+
+   The goal is not to call every provider. The goal is to make source routing
+   safe, auditable, and reusable for Phases 6-9.
+
+D. Add exploration and exobiology workflows.
+   Exploration facts belong in Intel.
+   Routes and candidate movement belong in Navigation.
+   Active exploration objectives belong in Operations.
+   Dashboard may show compact current context.
+   Overlay may show time-sensitive notices only.
+
+E. Clarify source use.
+   Exploration/system/body/route context should follow source capability:
+   - local Journal and companion files for commander-observed facts;
+   - EDSM for system/body/context where supported;
+   - EDAstro for exploration/cartographic/POI context where supported;
+   - Spansh link-out for route planning now;
+   - CAPI only where authenticated commander facts are needed and consented.
+
+6.4 How it should be done
+-------------------------
+
+Recommended order:
+1. Intel information architecture and backend KnownFact/EntityRef/provenance
+   path.
+2. Navigation architecture and NavRoute.json active-route proof.
+3. SourceRegistry and SourceRouter minimum viable implementation.
+4. Cache/freshness/provenance labels and Activity Log source-chain records.
+5. Spansh link-out route flow.
+6. EDSM/EDAstro constrained lookups where source capability allows.
+7. Exploration scan context and exobiology session objective surfaces.
+8. Bookmarks and route library foundation.
+9. Dashboard pins and cross-route links.
+10. Phase 5 full exploration/navigation integration gate.
+
+6.5 Frontend/backend bridge focus
+---------------------------------
+
+Phase 5 should prove the central split:
+- Intel owns facts.
+- Navigation owns routes and movement.
+- Operations owns active exploration/exobiology objectives.
+- Activity Log owns proof.
+- Backend source infrastructure serves all three without duplicating state.
+
+The same system used to look up a system body should be able to:
+- show source-backed facts in Intel;
+- attach selected facts to an Operation;
+- use selected facts to inform a Navigation candidate;
+- record the source chain in Activity Log;
+- display fallback wording when unsupported.
+
+6.6 Source and compliance posture
+---------------------------------
+
+No provider is universal. Do not stretch source capability:
+- EDSM is not a route engine unless OmniCOVAS builds routing logic around
+  supported data.
+- Spansh API use requires endpoint/rate/terms verification; link-out is the
+  immediate safe pattern.
+- CAPI is authenticated and privacy-gated, not a public galaxy lookup.
+- EDAstro is specialized exploration/cartographic/POI context.
+- AI may summarize source-backed facts but may not create them.
+
+6.7 Phase 5 acceptance criteria
+-------------------------------
+
+Phase 5 is complete when:
+- Intel has working Galaxy/System/Local/Ship-Personal fact surfaces.
+- Navigation has working Active Route, Planner, Route Library, Bookmarks, and
+  Route Sources foundations.
+- SourceRegistry/SourceRouter/WorkflowSourcePlan/ExternalRequestBundle concepts
+  are real enough for future phases.
+- Field-level provenance is visible or inspectable.
+- Activity Log can show source chains and blocked/unsupported lookups.
+- Exploration/exobiology workflows use Intel/Navigation/Operations correctly.
+- Route activation remains commander-triggered.
+- Unsupported facts remain unknown/unsupported rather than guessed.
+- Source budgets are delegated to Source Capability Routing Reference.
+- NullProvider/no-AI mode remains useful.
+- Verification gates pass.
+
+
+================================================================================
+7. PHASE 6 — TRADING, MINING, COLONIZATION, AND MARKET CANDIDATE WORKFLOWS
+================================================================================
+
+7.1 Phase identity
+------------------
+
+Pillar: Pillar 5 — Trading, Mining, and Colonization.
+Primary routes:
+- Operations -> Trade/Mining.
+- Operations -> Carrier/Logistics where carrier/colonization work is still a
+  workflow, not a full Carriers route.
+- Intel for market/station/system/local facts.
+- Navigation for route loops, mining routes, hauling routes, carrier logistics
+  routes, and candidate movement.
+
+Reserved route:
+- Carriers remains reserved for Fleet Carrier Full Command Center scope.
+
+7.2 Purpose
+-----------
+
+Phase 6 applies the Phase 5 source-routing foundation to high-value economic
+workflows.
+
+This phase should make OmniCOVAS useful for:
+- known local station market snapshots;
+- known station service context;
+- commodity buy/sell candidate review;
+- trade-loop candidate review;
+- mining candidate workflow;
+- cargo/hauling objectives;
+- colonization support planning at the operations level;
+- carrier logistics handoff without overloading Operations prematurely.
+
+7.3 What needs to be done
+-------------------------
+
+A. Build market and commodity fact handling.
+   Intel should own market, station, service, cargo, and commodity facts.
+   These facts must be freshness-labeled and source-backed.
+
+B. Build trade/mining operations.
+   Operations should own:
+   - active hauling/trade/mining goal;
+   - buy/sell candidate workflow;
+   - cargo progress;
+   - blockers;
+   - next actions;
+   - debrief.
+
+C. Build Navigation route loops.
+   Navigation should own:
+   - trade-loop candidates;
+   - mining routes;
+   - hauling routes;
+   - carrier logistics routes;
+   - route libraries and reusable loops.
+
+D. Apply honest wording.
+   The phase must avoid unsupported certainty:
+   - "Trade Loop Candidate Review," not guaranteed optimizer if sources are
+     incomplete.
+   - "Mining Candidate Workflow," not "best hotspot near me" unless a complete
+     verified source exists.
+   - "Nearest known station with service X," not guaranteed inventory.
+   - "Known station market data," not universal live market truth.
+
+E. Introduce colonization support as bounded logistics.
+   Colonization should initially live as Operations/Carrier Logistics workflow
+   plus Intel facts and Navigation movement. It should not become a separate
+   primary route unless a future route-promotion test justifies it.
+
+7.4 How it should be done
+-------------------------
+
+Recommended order:
+1. Market and commodity source capability audit.
+2. Intel market/local/station fact surfaces.
+3. Ardent/EDSM/local/CAPI constrained source workflows where permitted.
+4. Trade/hauling Operations package.
+5. Navigation route-loop candidate surfaces.
+6. Mining candidate workflow with strict unsupported-fact handling.
+7. Cargo and sell/buy debrief.
+8. Colonization support planning as logistics workflow.
+9. Carrier logistics pressure review: keep in Operations or defer to future
+   Carriers route if scope overloads.
+10. Phase 6 integration gate.
+
+7.5 Frontend/backend bridge focus
+---------------------------------
+
+Phase 6 should prove that economic workflows can combine:
+- local cargo/market snapshots;
+- external candidate data;
+- freshness labels;
+- route candidates;
+- active operation objectives;
+- source-chain proof;
+- commander confirmation;
+- useful fallback states.
+
+This phase is where "source-backed candidate" becomes a product habit.
+
+7.6 Source and compliance posture
+---------------------------------
+
+Source routing must be strict:
+- Ardent is the candidate source for commodity buy/sell candidates and station
+  service discovery where supported.
+- EDSM supports system/station/body/context and selected known station market/
+  outfitting/shipyard context where supported.
+- Local Market.json, Outfitting.json, Shipyard.json, Cargo.json, and journal
+  events are primary for locally observed station/ship/cargo facts.
+- CAPI is authenticated/privacy-gated and only used where enabled.
+- EDDN is a relay, not a direct query database.
+- Inara is not a universal lookup API.
+- Mining hotspot/ring candidate workflow has no complete verified direct
+  source; the UI must not claim "best hotspot near me."
+
+7.7 Phase 6 acceptance criteria
+-------------------------------
+
+Phase 6 is complete when:
+- Trade/mining workflows are useful but honestly labeled.
+- Intel owns market/station/local facts with provenance and freshness.
+- Navigation owns loops/routes/candidates.
+- Operations owns active trade/mining/hauling/mining objectives.
+- Mining workflow does not overclaim unsupported hotspot certainty.
+- Activity Log records source requests, stale data, blocked requests, and
+  decisions.
+- External calls are cached/batched/queued and respect source budgets.
+- Carrier/colonization scope is contained or formally deferred to Carriers.
+- NullProvider/no-AI mode remains useful.
+- Verification gates pass.
+
+
+================================================================================
+8. PHASE 7 — SQUADRONS, GROUP COORDINATION, AND SECURE SHARING
+================================================================================
+
+8.1 Phase identity
+------------------
+
+Pillar: Pillar 7 — Squadron & Social.
+Primary route activated:
+- Squadrons.
+
+Supporting routes:
+- Intel for facts about systems, local places, commander-entered context, and
+  shared source-backed information.
+- Navigation for shared routes/bookmarks.
+- Operations for shared objectives and group missions/campaigns.
+- Settings for privacy, sharing, source permissions, identity controls.
+- Activity Log for proof and shared-state audit.
+
+8.2 Purpose
+-----------
+
+Phase 7 introduces group coordination while preserving commander sovereignty.
+
+The Squadrons route should become the group coordination workspace:
+- who is participating;
+- what is shared;
+- what is private;
+- what operation or route is active;
+- what role/authority each participant has;
+- what has been synchronized;
+- what has been blocked or revoked;
+- what emergency/security actions exist.
+
+8.3 What needs to be done
+-------------------------
+
+A. Activate the Squadrons route.
+   Squadrons should have a clear primary route identity. It should not be a
+   Settings page, Operations subpanel, or Dashboard widget.
+
+B. Define consent-scoped sharing.
+   Every shared data path must be explicit:
+   - what is shared;
+   - with whom;
+   - for how long;
+   - under what role/permission;
+   - how revocation works;
+   - how the Activity Log records it.
+
+C. Build group coordination surfaces.
+   The route should support:
+   - roster/peer state;
+   - shared operation links;
+   - shared route links;
+   - shared bookmark links;
+   - group objective summaries;
+   - role/authority model;
+   - emergency/security controls;
+   - integration status where source-gated.
+
+D. Bridge to existing route owners.
+   Squadrons must link outward:
+   - facts -> Intel;
+   - routes/bookmarks -> Navigation;
+   - active goals -> Operations;
+   - permissions/privacy -> Settings;
+   - proof -> Activity Log.
+
+E. Establish secure-sharing doctrine.
+   The phase should design for secure sharing before feature richness. Do not
+   build broad peer sync without privacy gates, audit trails, and failure modes.
+
+8.4 How it should be done
+-------------------------
+
+Recommended order:
+1. Squadron route activation and route containment review.
+2. Privacy/security doctrine for group sharing.
+3. Backend squadron service group scaffold.
+4. Invite/identity/role model.
+5. Shared operation link model.
+6. Shared route/bookmark link model.
+7. Telemetry-sharing scope controls.
+8. Activity Log squadron events and revocation audit.
+9. Emergency/security doctrine and UX.
+10. Phase 7 integration gate.
+
+8.5 Frontend/backend bridge focus
+---------------------------------
+
+Phase 7 should prove that a new reserved route can activate without breaking
+the route model.
+
+Squadrons owns group coordination. It does not own the facts, routes, workflows,
+settings, or audit details it links to. Backend must support shared state
+without bypassing local-first/privacy-by-default doctrine.
+
+8.6 Source and compliance posture
+---------------------------------
+
+Squadron sharing is privacy-sensitive. Outbound/shared commander data is opt-in.
+No telemetry to maintainers. No silent sync. No hidden shared state. No
+third-party sharing without consent and compliance review.
+
+If any future relay or peer infrastructure is introduced, it must pass
+Compliance Matrix and security review before implementation.
+
+8.7 Phase 7 acceptance criteria
+-------------------------------
+
+Phase 7 is complete when:
+- Squadrons is an active primary route.
+- Sharing is explicitly scoped and revocable.
+- Shared facts/routes/operations link to their owning routes.
+- Activity Log records sharing, invite, sync, role, revocation, and emergency
+  events.
+- Settings owns privacy and sharing defaults.
+- No shared data leaves the machine without explicit commander control.
+- Failure modes are safe and visible.
+- Verification gates pass.
+
+
+================================================================================
+9. PHASE 8 — ENGINEERING, MATERIALS, BUILDS, AND PROGRESSION PLANNING
+================================================================================
+
+9.1 Phase identity
+------------------
+
+Pillar: Pillar 6 — Engineering & Materials.
+Primary route activated:
+- Engineering.
+
+Supporting routes:
+- Intel for raw material inventory, loadout facts, commander facts, and
+  source-backed current-state truth.
+- Navigation for acquisition routes.
+- Operations for active engineering goals and session tasks.
+- Settings for imports/exports/source configuration.
+- Activity Log for proof.
+
+9.2 Purpose
+-----------
+
+Phase 8 turns progression planning into a first-class OmniCOVAS experience.
+
+The Engineering route should help the commander answer:
+- What do I want to build or unlock?
+- What materials do I have?
+- What materials do I need?
+- Which engineers, Guardian tech, tech brokers, or suit engineering steps are
+  relevant?
+- What route or operation should I run next?
+- Which facts are local, source-backed, imported, commander-entered, or unknown?
+
+9.3 What needs to be done
+-------------------------
+
+A. Activate the Engineering route.
+   Engineering becomes the dedicated progression-planning workspace once the
+   amount of persistent goal/state would overload Operations.
+
+B. Separate raw facts from planning.
+   Intel owns raw known facts:
+   - current loadout;
+   - material inventory;
+   - ranks/reputation if relevant;
+   - commander profile facts where source-backed;
+   - local Journal/CAPI-backed current state.
+
+   Engineering owns planning:
+   - goals;
+   - material gaps;
+   - blueprint progress;
+   - unlock planning;
+   - build readiness;
+   - acquisition planning;
+   - imports/links to planning tools.
+
+C. Respect build-tool boundaries.
+   EDSY/Coriolis may be link/import/export references after format verification.
+   They are not telemetry truth. Current ship truth comes from local Loadout/
+   ModulesInfo and source-backed state.
+
+D. Connect acquisition routes.
+   Navigation owns material acquisition routes. Engineering may request or link
+   route candidates but must not become a route planner.
+
+E. Keep Operations focused.
+   Operations may own an active engineering task/checklist during a session.
+   Engineering owns the persistent plan.
+
+9.4 How it should be done
+-------------------------
+
+Recommended order:
+1. Engineering route activation and route containment review.
+2. Material inventory/source audit.
+3. Engineering goal model and route surface.
+4. Material gap planning.
+5. Blueprint/unlock/Guardian/tech broker planning.
+6. Build-plan references and EDSY/Coriolis link/import posture.
+7. Navigation acquisition-route handoff.
+8. Operations active-goal handoff.
+9. Activity Log provenance and planning change records.
+10. Phase 8 integration gate.
+
+9.5 Frontend/backend bridge focus
+---------------------------------
+
+Phase 8 should prove a persistent planning route can coexist with Operations.
+
+Engineering owns the long-lived plan. Operations owns what the commander is
+doing right now. Intel owns source-backed facts. Navigation owns route
+movement. Backend services must preserve that separation.
+
+9.6 Source and compliance posture
+---------------------------------
+
+Local Journal and companion files are primary for current material/loadout facts
+where available. CAPI may provide authenticated commander state only when
+enabled and verified. EDSY/Coriolis are planned-build/link/import references,
+not telemetry truth. AI may explain gaps and draft acquisition suggestions, but
+it may not invent material inventory or hidden game mechanics.
+
+9.7 Phase 8 acceptance criteria
+-------------------------------
+
+Phase 8 is complete when:
+- Engineering is an active primary route.
+- Material inventory and current ship facts are source-backed.
+- Build/blueprint/goals are clearly separated from telemetry truth.
+- Acquisition routes hand off to Navigation.
+- Active engineering tasks hand off to Operations.
+- Imports/exports are consented, traceable, and not treated as live truth.
+- Activity Log records goal changes, plan changes, imports, and source chains.
+- NullProvider/no-AI mode remains useful.
+- Verification gates pass.
+
+
+================================================================================
+10. PHASE 9 — POWERPLAY 2.0, BGS, AND CAMPAIGN INTELLIGENCE
+================================================================================
+
+10.1 Phase identity
+-------------------
+
+Pillar: Pillar 4 — Powerplay 2.0 & BGS.
+No new BGS primary route.
+No new Powerplay primary route.
+
+Primary surfaces:
+- Intel for BGS/Powerplay facts.
+- Operations -> BGS/Powerplay for active campaigns.
+- Navigation for BGS circuits and movement planning.
+- Squadrons for group coordination where active.
+- Activity Log for proof.
+- Settings for source/provider configuration.
+
+10.2 Purpose
+------------
+
+Phase 9 adds strategic campaign intelligence without breaking route discipline.
+
+The commander should be able to understand:
+- what is known about a system/faction/power;
+- what objective the commander or squadron is pursuing;
+- what route/circuit supports the campaign;
+- what facts are stale, unsupported, or source-limited;
+- what action is suggested and why;
+- what happened and how OmniCOVAS knows.
+
+10.3 What needs to be done
+--------------------------
+
+A. Build BGS/Powerplay facts into Intel.
+   Intel owns:
+   - faction influence/state/history/tick context where supported;
+   - system-level BGS facts;
+   - powerplay context where source-backed;
+   - traffic/death/risk context where source-backed;
+   - caveats and freshness labels.
+
+B. Build campaign workflows into Operations.
+   Operations owns:
+   - active BGS/Powerplay campaign objective;
+   - campaign blockers;
+   - suggested next actions;
+   - linked Intel facts;
+   - linked Navigation circuits;
+   - debrief.
+
+C. Build movement circuits into Navigation.
+   Navigation owns:
+   - BGS route circuits;
+   - saved campaign routes;
+   - repeatable loops;
+   - bookmarked targets;
+   - route-source status.
+
+D. Connect Squadrons where group coordination exists.
+   Squadrons owns group-level coordination, roles, shared objectives, and shared
+   campaign state. It does not own facts or routes.
+
+E. Preserve uncertainty.
+   BGS and Powerplay mechanics are sensitive to stale data, hidden mechanics,
+   timing, and external source limitations. OmniCOVAS must distinguish known
+   facts, inferred guidance, commander-entered objectives, AI drafts, and
+   unsupported claims.
+
+10.4 How it should be done
+--------------------------
+
+Recommended order:
+1. BGS/Powerplay source capability review.
+2. Intel BGS/Powerplay fact model and freshness labels.
+3. EliteBGS/EDSM/local Journal routing where permitted.
+4. Operations campaign package.
+5. Navigation campaign circuit support.
+6. Squadron shared campaign support where enabled.
+7. Recommendation/debrief model with explainability.
+8. Activity Log proof and source-chain hardening.
+9. Phase 9 integration gate.
+
+10.5 Frontend/backend bridge focus
+----------------------------------
+
+Phase 9 should prove multi-route strategic workflows:
+- Intel tells what is known.
+- Operations tells what campaign is active.
+- Navigation tells where to move.
+- Squadrons tells who is coordinating.
+- Activity Log proves all of it.
+
+This phase should also prove that OmniCOVAS can be useful even when sources are
+imperfect and recommendations must be caveated.
+
+10.6 Source and compliance posture
+----------------------------------
+
+Use source capability strictly:
+- EliteBGS is the BGS candidate source.
+- EDSM may provide secondary faction/system context where supported.
+- Local Journal provides commander-observed mission/faction effects where
+  exposed.
+- AI may synthesize a plan only from sourced facts and must label
+  recommendations.
+- Do not present community data as official or final truth.
+- Do not invent hidden BGS/Powerplay mechanics.
+
+10.7 Phase 9 acceptance criteria
+--------------------------------
+
+Phase 9 is complete when:
+- BGS/Powerplay facts live in Intel.
+- Campaign workflows live in Operations.
+- Campaign movement lives in Navigation.
+- Group coordination lives in Squadrons where relevant.
+- Recommendations are explainable and caveated.
+- Stale/unknown/unsupported data is visible.
+- Activity Log proves source, workflow, recommendation, and decision chains.
+- No BGS/Powerplay route is created.
+- Verification gates pass.
+
+
+================================================================================
+11. PHASE 10 — COMPLETION, RELEASE HARDENING, DOCUMENTATION, AND v1.0 READINESS
+================================================================================
+
+11.1 Phase identity
+-------------------
+
+Phase 10 is the completion phase.
+
+It is not a feature-expansion phase. It is where OmniCOVAS becomes coherent,
+stable, trustworthy, documented, and releasable.
+
+Primary focus:
+- integration;
+- hardening;
+- documentation;
+- trust;
+- packaging;
+- readiness;
+- public clarity.
+
+11.2 Purpose
+------------
+
+Phase 10 closes the gap between "features exist" and "OmniCOVAS can be shipped
+as a trustworthy pre-v1.0/v1.0 application."
+
+A project this broad can fail at the end if each phase works alone but the whole
+application does not feel unified. Phase 10 prevents that.
+
+11.3 What needs to be done
+--------------------------
+
+A. Freeze v1.0 feature scope.
+   Phase 10 should stop new feature creation unless a feature is required to
+   complete, stabilize, or safely expose already-built functionality.
+
+B. Perform cross-route integration.
+   Confirm that each route still owns the right thing:
+   - Dashboard = immediate command surface.
+   - Intel = known facts.
+   - Navigation = movement/routes.
+   - Operations = active workflows.
+   - Activity Log = proof.
+   - Settings = behavior/configuration.
+   - About = project/reference.
+   - Squadrons = group coordination.
+   - Engineering = progression planning.
+   - Carriers = reserved unless formally activated.
+
+C. Complete trust and safety hardening.
+   Validate:
+   - Confirmation Gate cannot be bypassed.
+   - AI cannot perform actions.
+   - AI cannot create facts.
+   - NullProvider mode works.
+   - source routing prevents unsupported overclaims.
+   - all external flows are opt-in, logged, and source-budgeted.
+   - secrets are redacted and DPAPI-vaulted.
+   - no telemetry goes to maintainers.
+
+D. Complete performance and reliability hardening.
+   Validate:
+   - startup and bridge readiness;
+   - dynamic port discovery;
+   - WebSocket reconnect behavior;
+   - resource budgets;
+   - no blocking event-loop regressions;
+   - no repeated failed external calls;
+   - no runaway queue/cache behavior;
+   - overlay does not steal focus;
+   - UI remains responsive during source failures.
+
+E. Complete accessibility and UI safety hardening.
+   Validate:
+   - keyboard navigation;
+   - screen reader behavior;
+   - focus behavior;
+   - reduced motion;
+   - color/contrast;
+   - safe rendering per ADR 0003;
+   - no unsafe dynamic HTML;
+   - overlay alert accessibility;
+   - Activity Log auditability.
+
+F. Complete public documentation.
+   Update:
+   - README;
+   - SECURITY.md;
+   - CONTRIBUTING.md;
+   - CLA references where needed;
+   - About route links;
+   - release notes;
+   - installation/development instructions;
+   - support/troubleshooting docs;
+   - source/provider acknowledgments;
+   - license/attribution/SBOM references.
+
+G. Maintain the Index after authority changes.
+   OmniCOVAS_Index.md v2.0 and OmniCOVAS_Index_AI_Reference.md now serve as
+   the active document routers for the v5.0 family. Future roadmap or authority
+   changes should update the owning documents first, then update the Index last
+   as a router-only reconciliation step.
+
+H. Prepare release packaging and verification.
+   Validate:
+   - clean clone development setup;
+   - CI gates;
+   - Tauri build;
+   - installer/package readiness where applicable;
+   - security reporting links;
+   - dependency/license posture;
+   - release checklist;
+   - beta/playtest checklist.
+
+I. Decide v1.0 readiness.
+   Phase 10 should end with one of three decisions:
+   - ready for v1.0;
+   - ready for public beta but not v1.0;
+   - not ready, with blockers listed.
+
+11.4 How it should be done
+--------------------------
+
+Recommended order:
+1. Scope freeze and release definition.
+2. Full authority-document drift audit.
+3. Cross-route ownership audit.
+4. Backend service and source-routing audit.
+5. Compliance/privacy/security audit.
+6. Accessibility and safe-rendering audit.
+7. Performance and resource-budget audit.
+8. Full user-flow testing.
+9. Documentation updates.
+10. Index router check and update only after authority changes.
+11. Packaging/release candidate.
+12. Public readiness decision.
+
+11.5 Frontend/backend bridge focus
+----------------------------------
+
+Phase 10 should test the application as a commander would use it:
+- launch OmniCOVAS;
+- complete setup;
+- connect to local telemetry;
+- use Dashboard;
+- inspect Intel facts;
+- plan Navigation;
+- run an Operation;
+- review Activity Log proof;
+- change Settings;
+- use About/reporting links;
+- operate under missing external sources;
+- operate under NullProvider/no-AI mode;
+- recover from provider failures;
+- quit and restart cleanly.
+
+11.6 Source and compliance posture
+----------------------------------
+
+No new source/provider claims should be introduced in Phase 10. The work is to
+verify that all existing claims match Source Capability and Compliance Matrix
+truth.
+
+11.7 Phase 10 acceptance criteria
+---------------------------------
+
+Phase 10 is complete when:
+- v1.0 feature scope is frozen.
+- All route ownership audits pass.
+- All backend ownership audits pass.
+- Source Capability and Compliance posture are reconciled.
+- README/SECURITY/CONTRIBUTING/CLA references are current.
+- Phase guides and playbooks are reconciled or archived.
+- Index router is checked after authority documents stabilize.
+- Safe-rendering and accessibility checks pass.
+- Security/privacy checks pass.
+- NullProvider/no-AI mode works.
+- No critical external dependency is required for core functionality.
+- Release notes and public documentation are ready.
+- Packaging/release candidate passes verification.
+- Commander decides v1.0/beta/not-ready status based on evidence.
+
+
+================================================================================
+12. CROSS-PHASE DEVELOPMENT RULES
+================================================================================
+
+12.1 No duplicate ownership
+---------------------------
+
+Do not create:
+- a second StateManager;
+- a second dispatcher;
+- a second broadcaster;
+- a second bridge;
+- a second Activity Log;
+- a second Confirmation Gate;
+- a second vault;
+- a second AIProvider abstraction;
+- route-owned copies of facts/routes/workflows/settings/audit detail.
+
+12.2 No route sprawl
+--------------------
+
+Do not create primary routes for:
+- Combat;
+- Exploration;
+- Exobiology;
+- Trade;
+- Mining;
+- Passenger;
+- Missions;
+- BGS;
+- Powerplay;
+- Legal;
+- Credits;
+- SBOM;
+- Security;
+- Performance;
+- Release;
+- Polish.
+
+Use the UI Blueprint route model unless a future route-promotion test explicitly
+passes and the authority documents are updated.
+
+12.3 No unsupported overclaims
+------------------------------
+
+Avoid absolute claims unless the source supports them.
+
+Forbidden patterns include:
+- "best hotspot near me" without verified complete source;
+- "known ganker" without verified source;
+- "nearest guaranteed module" when only service availability is known;
+- "best in galaxy" without complete verified source coverage;
+- "official BGS truth" from community data;
+- cached/stale data presented as live.
+
+12.4 No AI fact creation
+------------------------
+
+AI may:
+- classify intent;
+- summarize;
+- explain;
+- compare;
+- draft plans;
+- draft recommendations;
+- help prepare WorkflowSourcePlans.
+
+AI may not:
+- create facts;
+- call APIs directly;
+- bypass source routing;
+- bypass Confirmation Gate;
+- perform in-game actions;
+- hide uncertainty;
+- replace provenance.
+
+12.5 Local-first and privacy-first
+----------------------------------
+
+Every phase must preserve:
+- local telemetry first;
+- commander data local by default;
+- outbound opt-in;
+- secrets in DPAPI vault;
+- redaction before logs;
+- Activity Log visibility;
+- consent/auth gates;
+- source-backed facts;
+- unknown remains unknown.
+
+12.6 Commander-confirmed action boundary
+----------------------------------------
+
+Every meaningful action that affects the commander, game, local state, external
+service, shared state, source submission, route activation, or input-assist path
+must remain commander-requested, scoped, confirmed, auditable, and safe.
+
+12.7 Native-first voice
+-----------------------
+
+Native-first voice remains the direction. EDDI is cut from current UI scope.
+VoiceAttack is optional adapter only. It is never required, never bundled, never
+the brain, never a source of facts, and never a Confirmation Gate bypass.
+
+12.8 Phase guides and playbooks
+-------------------------------
+
+This roadmap should be turned into future phase guides and playbooks only after
+the phase scope is reconciled against:
+- Master v5.0;
+- UI v1.0;
+- Backend v1.0;
+- Source Capability v1;
+- Compliance Matrix;
+- current implementation reality.
+
+
+================================================================================
+13. PHASE-GATE TEMPLATE
+================================================================================
+
+Every phase closeout should answer:
+
+1. What phase was completed?
+2. Which pillar(s) did it serve?
+3. Which UI routes changed?
+4. Which backend services changed?
+5. Which source/provider workflows changed?
+6. Which privacy/compliance gates were affected?
+7. Which Activity Log events prove the behavior?
+8. Which Confirmation Gate flows exist?
+9. Which unsupported facts are explicitly labeled?
+10. Which old-roadmap or old-blueprint drift was reconciled?
+11. Which tests/checks passed?
+12. Which manual validation was performed?
+13. Which docs were updated?
+14. Which docs are intentionally deferred?
+15. What remains blocked, deferred, or out of scope?
+16. Is the phase now integrated baseline?
+
+A phase is not complete because code was written. A phase is complete when the
+feature family is integrated, source-backed, auditable, correctly routed,
+compliance-safe, and understandable to the commander.
+
+
+================================================================================
+14. ROADMAP MAINTENANCE RULES
+================================================================================
+
+14.1 Update order
+-----------------
+
+When roadmap reality changes:
+1. Confirm the change against Master/UI/Backend/Source/Compliance authority.
+2. Update the roadmap.
+3. Update affected phase guide(s).
+4. Update support docs.
+5. Update the Index only after authority documents stabilize.
+
+14.2 What belongs here
+----------------------
+
+Keep this roadmap focused on:
+- phase sequencing;
+- development bridging;
+- phase goals;
+- phase acceptance criteria;
+- cross-phase integration logic;
+- how to transform blueprint theory into implementation work.
+
+Do not turn this into:
+- a code plan;
+- endpoint registry;
+- service registry;
+- UI layout spec;
+- provider table;
+- legal matrix;
+- playbook collection.
+
+14.3 Versioning
+---------------
+
+Roadmap v1.0 begins at Phase 4 and ends at Phase 10.
+
+Future revisions should bump minor versions for scope clarifications and major
+versions for phase-order or release-strategy changes.
+
+
+================================================================================
+15. KNOWN DRIFT AND FOLLOW-UP DOCUMENTS
+================================================================================
+
+The following items should be handled after this roadmap is adopted:
+
+1. Update Phase 4 Development Guide to match:
+   - Operations -> Combat placement;
+   - Backend Blueprint service ownership;
+   - Source Capability wording;
+   - no ADR 0003 collision;
+   - PvP Encounter Log & Risk Intel wording.
+
+2. Update README:
+   - current status;
+   - current route model;
+   - native-first voice direction;
+   - no EDDI requirement;
+   - VoiceAttack optional adapter only;
+   - test counts and install notes as current.
+
+3. Update SECURITY.md:
+   - replace old Master references;
+   - align with v5.0 authority family.
+
+4. Update CONTRIBUTING.md:
+   - replace old Master/Roadmap references;
+   - align with current docs/internal paths and authority model.
+
+5. Review CLA.md references:
+   - likely stable legally, but update cross-document references if present.
+
+6. Source Capability document status/title:
+   - resolved: `OmniCOVAS_Source_Capability_Routing_Reference_v1.txt` is the
+     active source/provider routing reference;
+   - prior v0.6 Candidate wording is superseded history only.
+
+7. Compliance Matrix current posture:
+   - resolved for v5.0 adoption: Compliance Matrix v4.1 supports native-first
+     voice, EDDI historical/not required, and VoiceAttack optional adapter only;
+   - future compliance iteration remains allowed.
+
+8. Index posture:
+   - resolved: Index v2.0 and Index AI Reference v2.0 are active routers;
+   - future Index revisions should follow future authority-document changes
+     after those changes stabilize.
+
+
+================================================================================
+16. GLOSSARY
+================================================================================
+
+Activity Log
+  Canonical proof layer for meaningful events, source chains, external requests,
+  AI/gate records, confirmations, blocked requests, settings/privacy actions,
+  diagnostics, exports, and deletes.
+
+Backend Blueprint
+  Authority for backend service ownership, state, events, workflow, bridge,
+  source execution, provenance, privacy enforcement, and implementation
+  ownership.
+
+Commander
+  The OmniCOVAS user. The commander decides; OmniCOVAS assists.
+
+Confirmation Gate
+  Non-bypassable boundary between proposal and protected action.
+
+Development Roadmap
+  Sequencing document that translates the authority documents into phase-by-
+  phase development reality.
+
+ExternalRequestBundle
+  Backend request unit queued after a WorkflowSourcePlan.
+
+Field-level provenance
+  Requirement that each displayed fact can identify source, timestamp,
+  freshness, truth class, and caveat.
+
+Intel
+  Route/domain for what is known.
+
+Navigation
+  Route/domain for where and how to move.
+
+Operations
+  Route/domain for what the commander is doing.
+
+Source Capability Routing Reference
+  Authority for provider/source capability, unsupported facts, request budgets,
+  fallback wording, and provider boundaries.
+
+Source-backed candidate
+  A recommendation or option grounded in available enabled sources, not an
+  absolute claim of best/complete truth.
+
+Unknown remains unknown
+  Unsupported, missing, stale, unauthenticated, disabled, or unavailable facts
+  must be labeled honestly instead of guessed.
+
+WorkflowSourcePlan
+  Backend plan-level contract required before source-bound workflows create or
+  queue ExternalRequestBundles.
+
+
+END OF DOCUMENT

@@ -1,0 +1,1452 @@
+OmniCOVAS — Master Blueprint v5.0 — Human Reference
+====================================================
+
+Repository Adoption Revision Note
+---------------------------------
+This file is part of the OmniCOVAS v5.0 documentation adoption package created after OmniCOVAS_Index.md v2.0 and OmniCOVAS_Index_AI_Reference.md were added as the active document routers. Any earlier wording in this file or related drafts that described the Index as deferred, stale, or awaiting final reconciliation is superseded by this adoption package. The Index remains a router only; it does not override the owning authority documents.
+
+
+Name:        OmniCOVAS Master Blueprint — Human Reference
+Version:     5.0
+Status:      FINAL_REPOSITORY_ADOPTION_REFERENCE
+Date:        2026-05-06
+Supersedes:  OmniCOVAS_Master_Blueprint_v4_2.txt as historical authority
+Audience:    human maintainers, architects, reviewers, contributors, and future planning sessions
+Purpose:     Define the constitutional umbrella for OmniCOVAS after the UI, Backend,
+             Source Capability, and Compliance companion authorities have been split out.
+
+Companion document family:
+- OmniCOVAS_Master_Blueprint_v5_0_Human_Reference.txt
+- OmniCOVAS_Master_Blueprint_v5_0_AI_Reference.txt
+- OmniCOVAS_UI_Blueprint_v1_0_Human_Reference.txt
+- OmniCOVAS_UI_Blueprint_v1_0_AI_Reference.txt
+- OmniCOVAS_Backend_Blueprint_v1_0_Human_Reference.txt
+- OmniCOVAS_Backend_Blueprint_v1_0_AI_Reference.txt
+- OmniCOVAS_Source_Capability_Routing_Reference_v1.txt
+- OmniCOVAS_Compliance_Matrix_v4_1.txt
+- OmniCOVAS_Index.md
+- OmniCOVAS_Index_AI_Reference.md
+- OmniCOVAS_Development_Roadmap_v1_0.txt
+- OmniCOVAS_Development_Roadmap_v1_0_AI_Reference.txt
+- README.md, SECURITY.md, CONTRIBUTING.md, CLA.md
+- docs/decisions/0002-tauri-plugins.md
+- docs/decisions/0003-ui-safe-rendering.md
+- docs/accessibility/nvda_smoke_test.md
+- docs/internal/dev-guides/OmniCOVAS_Phase4_Development_Guide_v1_0_Human_Reference.txt
+- docs/internal/dev-guides/OmniCOVAS_Phase4_Development_Guide_v1_0_AI_Reference.txt
+
+
+TABLE OF CONTENTS
+-----------------
+1.  Executive Summary
+2.  v4.2 to v5.0 Audit Outline
+3.  Authority Model
+4.  Core Philosophy
+5.  The Ten Laws of Operation
+6.  The Ten Architectural Principles
+7.  Project Architecture Summary
+8.  Data and Source Philosophy
+9.  AI Doctrine
+10. Voice and Input Doctrine
+11. Privacy, Security, and Compliance Doctrine
+12. UI / Product Framework Summary
+13. Backend / Service Framework Summary
+14. Pillar Framework
+15. Phase Framework and Status
+16. Release Strategy
+17. Dependency and Blocker Framework
+18. Documentation System
+19. Status Dashboard
+20. Reconciliation Notes from v4.2 to v5.0
+21. Glossary
+22. Open Items / Future Document Work
+
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+
+OmniCOVAS is a local-first, source-backed, auditable command deck for Elite
+Dangerous commanders. Its purpose is to consolidate live ship telemetry,
+combat support, navigation, exploration, trading, mining, engineering,
+Powerplay/BGS context, and squadron coordination into one coherent intelligence
+suite while preserving commander sovereignty.
+
+The project remains governed by the same constitutional direction established in
+v4.x:
+- AI suggests; the commander decides.
+- Telemetry defines local reality.
+- Unknown remains unknown.
+- External services are respected, consent-gated, cached, batched, and bounded.
+- Commander data stays local by default.
+- Every meaningful action is auditable through the Activity Log.
+- OmniCOVAS must work with no AI provider active.
+- OmniCOVAS must not automate gameplay, bypass confirmation, or invent facts.
+
+Master Blueprint v4.2 was intentionally broad. It contained the constitution,
+architecture, roadmap, pillars, phase plans, source registry, voice assumptions,
+backend assumptions, frontend assumptions, dependencies, and status dashboard in
+one document. That was useful while the project was young, but it now creates
+avoidable overlap and drift.
+
+Master Blueprint v5.0 changes the document architecture. The Master Blueprint is
+now the constitutional umbrella. It keeps laws, principles, project identity,
+release philosophy, phase and pillar framework, authority rules, high-level
+architecture, and doctrine. It delegates detailed UI, backend, provider, and
+compliance decisions to companion authority files.
+
+The purpose of v5.0 is therefore not to make the Master larger. The purpose is
+to make the Master cleaner, more stable, and less likely to contradict the new
+specialized authorities.
+
+
+================================================================================
+2. v4.2 TO v5.0 AUDIT OUTLINE
+================================================================================
+
+2.1 Sections that stay mostly intact
+------------------------------------
+The following v4.2 material remains constitutional and should be preserved in
+refined form:
+- Core Philosophy.
+- The Ten Laws of Operation.
+- The Ten Architectural Principles.
+- High-level legal, privacy, and attribution posture.
+- High-level AI provider agnosticism and NullProvider doctrine.
+- High-level performance, resource, and defensive-update posture.
+- The Seven Pillars as project domains.
+- The release philosophy from v1.0 through v2.0.
+- Dependency and blocker categories.
+- Status dashboard concept.
+- Glossary-style project language.
+
+2.2 Sections that must be rewritten
+-----------------------------------
+The following v4.2 material must be rewritten because the project authority
+model changed or because later work superseded earlier assumptions:
+- v4.2 title posture: replace “the definitive source of truth for everything”
+  with “constitutional umbrella and authority router.”
+- Law 4: preserve AI provider agnosticism and require NullProvider/no-AI mode to
+  preserve core functionality.
+- Law 5: align zero hallucination with field-level provenance and Source
+  Capability Routing Reference truth boundaries.
+- Law 7: clarify local telemetry truth and source priority without treating
+  external providers as interchangeable.
+- Law 9: remove EDDI as a required voice dependency; lock native-first voice and
+  VoiceAttack as optional adapter only.
+- Law 10: remove the implication that voice dependencies are acceptable as
+  critical dependencies; core independent operation must remain unified.
+- Data Pipeline: keep local-first philosophy, delegate detailed source routing.
+- Tech Stack/System Architecture: keep high-level stack summary, delegate
+  detailed service ownership.
+- External Data Services: replace provider tables with a pointer to the Source
+  Capability Routing Reference and Compliance Matrix.
+- AI Abstraction: keep doctrine, delegate implementation details.
+- EDDI Integration Strategy: rewrite as Voice and Input Doctrine.
+- Status Dashboard: update completed phases and active Phase 4 posture.
+- Companion Documents: replace the v4.2 family with the v5.0 authority family.
+
+2.3 Sections that must be delegated
+-----------------------------------
+The following material no longer belongs in the Master as detailed content:
+- Frontend route ownership, dashboard layout, settings categories, About route,
+  overlay behavior, route promotion rules, and feature placement: UI Blueprint
+  v1.0.
+- Backend service registry, state models, endpoint families, event taxonomy,
+  source execution, bridge contracts, workflow engine, cache/queue/provenance,
+  and implementation ownership: Backend Blueprint v1.0.
+- Provider capabilities, call-type routing, provider budgets, unsupported facts,
+  fallback wording, source relationships, exact external request posture:
+  Source Capability Routing Reference v1.
+- Legal, ToS, privacy law, license, attribution, maintainer contact, external
+  service compliance, and red flags: Compliance Matrix v4.1.
+- Public install/user-facing repository summary: README.md.
+- Security reporting process: SECURITY.md.
+- Contribution process and CLA operations: CONTRIBUTING.md and CLA.md.
+- Safe-rendering implementation details: ADR 0003.
+- Tauri plugin decision history: ADR 0002.
+- NVDA smoke-test detail: accessibility smoke-test document.
+- Per-week implementation tasks: phase guides and future Development Roadmap.
+
+2.4 Sections that should be removed or compressed
+-------------------------------------------------
+The following v4.2 material should be compressed in v5.0:
+- Detailed per-pillar feature lists.
+- Detailed phase-by-phase execution tasks.
+- Detailed rate-limit tables.
+- Detailed external provider capability claims.
+- Detailed UI implementation claims.
+- Detailed backend implementation claims.
+- Historical retrospective detail except where needed for current doctrine.
+- Archived Roadmap v4.1 content except as a drift item.
+
+2.5 Proposed v5.0 document pair
+-------------------------------
+Human Reference:
+- readable constitutional framework;
+- explains why the authority split exists;
+- summarizes doctrine, phase status, pillars, release strategy, and open drift.
+
+AI Reference:
+- structured machine-usable authority registry;
+- provides laws, principles, delegation maps, conflict rules, phase/pillar
+  registries, forbidden patterns, and checklist for future AI sessions.
+
+
+================================================================================
+3. AUTHORITY MODEL
+================================================================================
+
+3.1 Master Blueprint v5.0
+-------------------------
+The Master Blueprint is the constitutional umbrella. It owns:
+- project identity and purpose;
+- Core Philosophy;
+- The Ten Laws;
+- The Ten Architectural Principles;
+- high-level project architecture;
+- high-level data and source philosophy;
+- high-level AI doctrine;
+- high-level voice/input doctrine;
+- high-level privacy, security, and compliance doctrine;
+- pillar framework;
+- phase framework and status;
+- release philosophy;
+- dependency and blocker framework;
+- companion-document authority model;
+- documentation maintenance rules;
+- status dashboard;
+- reconciliation notes and glossary.
+
+It does not own the detailed implementation surfaces delegated to companion
+documents.
+
+3.2 UI Blueprint v1.0
+---------------------
+The UI Blueprint is authoritative for frontend, product, and user-surface truth.
+It owns:
+- route ownership and route boundaries;
+- Dashboard, Intel, Navigation, Operations, Activity Log, Settings, About,
+  Squadrons, Engineering, and Carriers route models;
+- dashboard structure;
+- settings categories;
+- About route structure;
+- overlay role;
+- feature placement;
+- cross-route linking;
+- UI wording posture where it affects route containment.
+
+3.3 Backend Blueprint v1.0
+--------------------------
+The Backend Blueprint is authoritative for backend/service truth. It owns:
+- backend service boundaries;
+- state ownership;
+- event models;
+- workflow systems;
+- API/bridge contracts;
+- source-routing execution;
+- cache and queue behavior;
+- provenance implementation;
+- privacy enforcement at the service layer;
+- backend implementation ownership.
+
+3.4 Source Capability Routing Reference v1
+------------------------------------------
+The Source Capability Routing Reference is authoritative for provider and source
+truth. It owns:
+- which provider may answer which fact;
+- which provider must not answer a fact;
+- source boundaries and unsupported claims;
+- fallback wording;
+- request budget posture;
+- cache/batch/queue expectations;
+- consent and authentication gates for source use;
+- source relationship and contact guidance.
+
+3.5 Compliance Matrix v4.1
+--------------------------
+The Compliance Matrix is authoritative for legal and compliance truth. It owns:
+- Frontier ToS posture;
+- external service compliance;
+- EDDN, EDSM, Inara, Spansh, EDAstro, EliteBGS, BGS-Tally compliance detail;
+- external tool and dependency compliance;
+- privacy law and commander privacy posture;
+- API key handling compliance;
+- AGPL, CLA, SBOM, attribution, and license obligations;
+- compliance red flags and review schedule.
+
+3.6 Index
+---------
+The Index is the lookup router. It tells a future reader where to look first.
+It is not itself the final authority for the substance of a decision.
+
+3.7 README, SECURITY, CONTRIBUTING, CLA, ADRs, accessibility docs, and phase guides
+----------------------------------------------------------------------------------
+These documents remain supporting authorities for their specific purposes:
+- README: public repository face and user/developer quick summary.
+- SECURITY.md: security reporting and security commitments.
+- CONTRIBUTING.md: contribution process.
+- CLA.md: contributor license agreement terms.
+- ADR 0002: accepted Tauri plugin decision history.
+- ADR 0003: accepted UI safe-rendering rule.
+- NVDA smoke test: accessibility validation detail.
+- Phase guides: execution detail for a phase; they do not override the Master,
+  Compliance Matrix, UI Blueprint, Backend Blueprint, or Source Capability
+  Routing Reference.
+
+3.8 Conflict-resolution rules
+-----------------------------
+1. Compliance beats all implementation desire where law, ToS, privacy, license,
+   attribution, or external-service rules are involved.
+2. Master beats companion documents on laws, principles, pillars, phases, and
+   constitutional doctrine.
+3. UI Blueprint beats Master and Backend on route ownership and user-surface
+   placement detail, except where a law or compliance rule forbids it.
+4. Backend Blueprint beats lower-level docs on service ownership, state models,
+   event models, workflow execution, API/bridge contracts, and backend
+   implementation boundaries.
+5. Source Capability Routing Reference beats Master/Backend/UI on provider
+   capability, request budget details, unsupported facts, and fallback wording.
+6. Index routes the lookup; it does not override the owning authority.
+7. README and root docs are public-facing summaries; when they drift, update
+   them after the authority docs are settled.
+8. In real conflict, report the conflict, follow the highest authority, and add
+   a reconciliation item rather than silently blending the documents.
+
+
+================================================================================
+4. CORE PHILOSOPHY
+================================================================================
+
+OmniCOVAS is:
+- event-driven;
+- async-first;
+- modular by design;
+- local-first for latency and privacy;
+- source-backed for truth;
+- auditable by default;
+- privacy-protective by default;
+- AI-provider agnostic;
+- performance-first;
+- commander-sovereign;
+- zero-budget and community-sustainable;
+- built for long-term maintainability.
+
+The commander owns the system. OmniCOVAS must never become a black box that acts
+without the commander, invents certainty, hides data flow, or turns external
+services into unbounded dependencies.
+
+Telemetry defines live reality. Sources define external knowledge. AI may help
+classify, compare, explain, and draft plans, but AI is not a source of facts.
+
+
+================================================================================
+5. THE TEN LAWS OF OPERATION
+================================================================================
+
+Every module, document, route, service, workflow, and implementation decision is
+subordinate to these laws. They are not suggestions.
+
+Law 1 — Confirmation Gate
+-------------------------
+Mandate:
+AI suggests. Commander decides. Always.
+
+Requirements:
+- The AI must never perform, trigger, or initiate an in-game action without
+  explicit commander confirmation.
+- Voice, slash command, route activation, workflow recommendation, external
+  service write, or local setting change cannot bypass the Confirmation Gate
+  when the action is protected.
+- Commander confirmation must be scoped, auditable, and reversible where
+  possible.
+- No setting, macro, script, voice adapter, or plugin may disable the gate.
+
+Delegated details:
+- Backend gate contracts: Backend Blueprint.
+- UI prompt/confirmation surfaces: UI Blueprint.
+- Compliance boundaries for game actions: Compliance Matrix.
+
+Hard stop:
+Any design that allows unattended action, direct AI in-game action, or hidden
+action execution is forbidden.
+
+Law 2 — Legal Compliance Protocol
+---------------------------------
+Mandate:
+Every applicable law, license, EULA, ToS, copyright, trademark rule, privacy
+obligation, and provider policy is an absolute constraint.
+
+Requirements:
+- When uncertain, stop and verify.
+- Do not treat “technically possible” as “permitted.”
+- Do not bundle, scrape, automate, redistribute, or transmit in ways that the
+  Compliance Matrix has not approved.
+
+Delegated details:
+- Compliance Matrix owns the legal details.
+- SECURITY.md owns vulnerability reporting.
+- CONTRIBUTING.md and CLA.md own contribution process and rights grants.
+
+Hard stop:
+Any proposal that conflicts with legal, license, ToS, privacy, or external
+service terms must be redesigned, blocked, or deferred.
+
+Law 3 — API Respect Protocol
+----------------------------
+Mandate:
+External services are relationships, not infinite utilities. Rate limits,
+provider terms, and maintainer goodwill are hard constraints.
+
+Requirements:
+- Cache and batch before calling.
+- Use respectful request budgets, not provider hard limits as targets.
+- Back off on rate-limit or health signals.
+- Keep external calls visible in the Activity Log.
+- Do not design one-call-per-field, one-call-per-card, or one-call-per-AI-line
+  workflows.
+
+Delegated details:
+- Provider capability and budget posture: Source Capability Routing Reference.
+- Queue/cache/source execution: Backend Blueprint.
+- Provider compliance: Compliance Matrix.
+
+Hard stop:
+A workflow that requires uncontrolled external calls cannot ship.
+
+Law 4 — AI Provider Agnosticism
+-------------------------------
+Mandate:
+Any AI provider, or no AI provider, must be a commander choice. Core
+OmniCOVAS functionality must work under NullProvider/no-AI mode.
+
+Requirements:
+- AI providers must sit behind an abstraction boundary.
+- NullProvider must remain a first-class supported mode.
+- Core telemetry, UI, Activity Log, settings, source routing, and deterministic
+  workflows must not require an LLM.
+- AI cannot be wired directly into backend services as a hidden dependency.
+
+Delegated details:
+- AI backend abstraction: Backend Blueprint.
+- AI settings and UI behavior: UI Blueprint.
+
+Hard stop:
+A feature that makes a cloud AI provider mandatory for core operation violates
+this law.
+
+Law 5 — Zero Hallucination Doctrine
+-----------------------------------
+Mandate:
+If it is not verified, it is not said as fact. Unknown remains unknown.
+
+Requirements:
+- Every displayed fact must have a source posture.
+- Every recommendation must expose grounding, caveat, or confidence where
+  relevant.
+- AI output must be labeled as draft, synthesis, comparison, explanation, or
+  recommendation, not source truth.
+- Unsupported facts must use approved fallback wording.
+- Mining hotspot/ring candidate claims, guaranteed market claims, known-ganker
+  claims, and exact inventory claims require verified source support.
+
+Delegated details:
+- Fact provenance and truth class: Backend Blueprint.
+- Provider support and fallback wording: Source Capability Routing Reference.
+- UI source chips and wording surfaces: UI Blueprint.
+
+Hard stop:
+Do not invent Elite Dangerous mechanics, provider capabilities, market values,
+route quality, source freshness, or commander data.
+
+Law 6 — Performance Priority
+----------------------------
+Mandate:
+Zero lag. Function before flair. Always.
+
+Requirements:
+- No blocking I/O in the core event loop.
+- UI must stay responsive and must not steal focus during play.
+- External calls must be queued, cached, and kept off hot paths.
+- Resource budgets and latency budgets are constraints, not decorations.
+- Visual effects must never outrank information clarity, accessibility, or game
+  performance.
+
+Delegated details:
+- Backend resource monitoring and queue behavior: Backend Blueprint.
+- UI density and overlay behavior: UI Blueprint.
+- Phase-specific gates: active phase guide or future Development Roadmap.
+
+Hard stop:
+Any design that risks game stutter, hot-path blocking, or unbounded resource use
+must be redesigned.
+
+Law 7 — Telemetry Rigidity
+--------------------------
+Mandate:
+Telemetry defines live local reality. External sources provide external
+knowledge; they do not override local truth.
+
+Requirements:
+- Local Journal, Status.json, companion JSON files, and StateManager/cache are
+  the primary truth path for the commander’s current session.
+- Missing local fields stay missing unless a verified source supplies a labeled
+  snapshot or context value.
+- Inferred values must be labeled as inferred and must never override telemetry.
+- External sources are not interchangeable; they are capability-bounded.
+
+Delegated details:
+- Source priority, state ownership, and event handling: Backend Blueprint.
+- Provider capabilities and call-type boundaries: Source Capability Routing
+  Reference.
+
+Hard stop:
+Do not use external APIs to fabricate live hull, shields, heat, fuel, pips, or
+other local telemetry values.
+
+Law 8 — Sovereignty and Transparency
+------------------------------------
+Mandate:
+Commander data stays local by default. The system is always auditable.
+
+Requirements:
+- Outbound data is opt-in.
+- Secrets are encrypted at rest and redacted from logs.
+- No telemetry or analytics are sent to maintainers by default.
+- Every meaningful action, source lookup, gate decision, export/delete,
+  settings change, and external request is visible through the Activity Log.
+
+Delegated details:
+- Backend privacy enforcement and Activity Log records: Backend Blueprint.
+- UI privacy/source controls: UI Blueprint.
+- Legal/privacy detail: Compliance Matrix.
+- Security reporting: SECURITY.md.
+
+Hard stop:
+Silent outbound data flow, secret leakage, or unlogged meaningful action is
+forbidden.
+
+Law 9 — Original Integration
+----------------------------
+Mandate:
+OmniCOVAS builds its own core. It integrates compliantly, natively where
+possible, and without making optional external tools required.
+
+v5.0 update:
+- Native-first voice is the current direction.
+- EDDI is cut from current UI scope.
+- VoiceAttack is optional adapter only.
+- VoiceAttack is never required, never bundled, never the brain, and never a
+  source of truth.
+- OmniCOVAS is the brain.
+- Future Commander-Confirmed Input Assist is compliance-gated only.
+
+Requirements:
+- Optional tools may support user convenience but cannot be critical to core
+  operation.
+- Integrations must preserve Law 1, Law 2, Law 5, Law 7, and Law 8.
+
+Delegated details:
+- Voice/Input UI posture: UI Blueprint.
+- Voice/Input backend boundaries: Backend Blueprint.
+- External tool compliance: Compliance Matrix.
+
+Hard stop:
+Do not reintroduce EDDI as a required dependency, make VoiceAttack required, or
+allow any adapter to bypass confirmation.
+
+Law 10 — Unified Intelligence, Independent Operation
+----------------------------------------------------
+Mandate:
+OmniCOVAS is one command deck with independent core operation. Fragmentation and
+critical external dependencies are failure states.
+
+Requirements:
+- Core functionality must operate with only OmniCOVAS and local telemetry.
+- Optional external sources enhance knowledge but must degrade gracefully.
+- Optional AI enhances synthesis but must not be required for core operation.
+- Optional voice/input adapters enhance convenience but must not be required.
+- Route, service, source, and workflow boundaries must prevent duplicated
+  sources of truth.
+
+Delegated details:
+- UI route containment: UI Blueprint.
+- Backend ownership and anti-duplication rules: Backend Blueprint.
+- Source unsupported/fallback behavior: Source Capability Routing Reference.
+
+Hard stop:
+Do not create parallel StateManagers, dashboards-as-workflow-boards, operations
+as fact encyclopedias, or external-tool dependencies for core functionality.
+
+
+================================================================================
+6. THE TEN ARCHITECTURAL PRINCIPLES
+================================================================================
+
+Principle 1 — Accessibility
+---------------------------
+OmniCOVAS must be usable by commanders with diverse abilities, input devices,
+visual needs, and screen-reader workflows. Accessibility is a design
+requirement, not a polish task.
+
+Delegated details:
+- UI implementation and route design: UI Blueprint.
+- Accessibility smoke-test detail: NVDA smoke-test document.
+
+Principle 2 — Sustainability
+----------------------------
+The project must remain maintainable by a zero-budget volunteer project. Avoid
+unnecessary dependencies, recurring costs, cloud lock-in, and overbuilt systems.
+
+Principle 3 — Evolutionary Design
+---------------------------------
+The project must adapt to Elite Dangerous updates, community feedback, provider
+changes, and source availability without rewriting the core.
+
+Principle 4 — Attribution
+-------------------------
+Every data source, dependency, contributor, external tool, and licensed asset
+must be credited appropriately. Original OmniCOVAS UI art must not copy Frontier
+assets.
+
+Delegated details:
+- Attribution/legal detail: Compliance Matrix.
+- About route presentation: UI Blueprint.
+
+Principle 5 — Graceful Failure
+------------------------------
+Every external dependency must fail safely. A missing source, disabled provider,
+stale cache, failed AI provider, or unavailable adapter must produce clear
+fallback wording and keep the app stable.
+
+Principle 6 — Knowledge Base Stewardship
+----------------------------------------
+The Knowledge Base is project infrastructure. Entries must be source-backed,
+versioned, reviewable, and compatible with the zero-hallucination doctrine.
+
+Delegated details:
+- Backend KB loader and validation: Backend Blueprint.
+- Domain values and mechanics must not be invented by AI or executors.
+
+Principle 7 — Privacy-by-Default
+--------------------------------
+The default posture is the most privacy-protective posture. Outbound data,
+external authentication, provider lookups, sync, analytics, and sharing are off
+unless explicitly enabled.
+
+Principle 8 — Defensive Update
+------------------------------
+Game updates, dependency updates, schema changes, provider changes, and source
+changes must be validated before being trusted. Assumptions must be testable and
+failure must be visible.
+
+Principle 9 — Explainability
+----------------------------
+Recommendations must be explainable. The commander must be able to see why a
+claim or recommendation exists, what source supports it, and what caveat applies.
+
+Principle 10 — Resource Efficiency
+----------------------------------
+CPU, memory, disk, network, queue depth, cache size, and UI rendering overhead
+must be bounded and visible. OmniCOVAS must support play, not compete with it.
+
+
+================================================================================
+7. PROJECT ARCHITECTURE SUMMARY
+================================================================================
+
+7.1 High-level layers
+---------------------
+OmniCOVAS is organized as:
+
+1. UI layer
+   - Tauri desktop shell, overlay, route surfaces, settings, Activity Log, and
+     command/AI input surface.
+   - Detailed authority: UI Blueprint v1.0.
+
+2. Bridge layer
+   - FastAPI HTTP and WebSocket bridge between the Python backend and Tauri UI.
+   - Dynamic bridge/port discovery is required; hard-coded localhost ports are
+     forbidden.
+   - Detailed authority: Backend Blueprint v1.0.
+
+3. Core backend layer
+   - Journal watcher, Status.json reader, companion JSON readers, parser,
+     dispatcher, StateManager, broadcaster, domain services, Knowledge Base,
+     AIProvider abstraction, Confirmation Gate, Activity Log, vault, resource
+     monitor, diagnostics.
+   - Detailed authority: Backend Blueprint v1.0.
+
+4. Source routing layer
+   - SourceRegistry, SourceRouter, WorkflowSourcePlan, ExternalRequestBundle,
+     ExternalRequestQueue, cache, provenance, fallback wording.
+   - Detailed authority: Backend Blueprint v1.0 plus Source Capability Routing
+     Reference v1.
+
+5. Compliance envelope
+   - Legal, ToS, privacy, attribution, external service terms, licensing, CLA,
+     SBOM, responsible disclosure.
+   - Detailed authority: Compliance Matrix v4.1 and root support docs.
+
+7.2 Activity Log as proof layer
+-------------------------------
+The Activity Log is the proof layer for OmniCOVAS. It records meaningful state
+changes, source lookups, external requests, gate decisions, blocked requests,
+settings changes, privacy actions, exports/deletes, AI drafts, and diagnostic
+warnings. It does not own every route’s workflow, but every route must be able
+to link to proof.
+
+7.3 Confirmation Gate as action boundary
+----------------------------------------
+The Confirmation Gate is the action boundary. AI, voice, slash commands, route
+activation, workflow recommendations, and external write-style operations cannot
+bypass it.
+
+7.4 No detailed tables here
+---------------------------
+The Master must not duplicate service registries, endpoint families, state
+models, event taxonomies, route layouts, provider tables, or rate-budget tables.
+Those belong in the companion documents.
+
+
+================================================================================
+8. DATA AND SOURCE PHILOSOPHY
+================================================================================
+
+8.1 Local-first truth
+---------------------
+Local Journal, Status.json, local companion JSON files, and OmniCOVAS state/cache
+are checked before external providers. Local telemetry defines the commander’s
+current session reality.
+
+8.2 Field-level provenance
+--------------------------
+Every displayed fact must be capable of carrying:
+- source;
+- timestamp;
+- freshness;
+- truth class;
+- caveat;
+- Activity Log reference where meaningful.
+
+8.3 Truth classes
+-----------------
+At a high level, OmniCOVAS distinguishes:
+- live local telemetry;
+- local snapshot;
+- cached external data;
+- authenticated snapshot;
+- community-known data;
+- commander-entered notes;
+- inferred values;
+- AI drafts;
+- unknown / not loaded / disabled / stale / requires authorization / unsupported
+  / no verified source.
+
+Detailed truth-class values belong to the Backend Blueprint and Source
+Capability Routing Reference.
+
+8.4 Unknown remains unknown
+---------------------------
+If no verified source supports a fact, OmniCOVAS must not guess. The UI must
+say Unknown, No Verified Source, Unsupported, Not Loaded, Disabled, Stale, or
+Requires Authorization as appropriate.
+
+8.5 Cache, batch, and respectful budgets
+----------------------------------------
+External calls must be cached, batched, queued, budgeted, and consent-gated.
+Provider hard limits are not usage targets. Actual provider capability and
+budget details belong to the Source Capability Routing Reference.
+
+8.6 Source capability boundaries
+--------------------------------
+External sources are not interchangeable. EDSM, Ardent, CAPI, EDAstro,
+EliteBGS, Spansh, Inara, EDDN, EDSY/Coriolis, and local files each have specific
+roles. The Master does not redefine those roles; it delegates them to the Source
+Capability Routing Reference.
+
+
+================================================================================
+9. AI DOCTRINE
+================================================================================
+
+9.1 AI provider agnosticism
+---------------------------
+OmniCOVAS may support Gemini, paid cloud providers, local LLMs, and NullProvider,
+but no provider may become a core dependency. Provider implementation detail
+belongs to the Backend Blueprint. Provider settings and user controls belong to
+the UI Blueprint.
+
+9.2 NullProvider and AI-off operation
+-------------------------------------
+NullProvider/no-AI mode must preserve core functionality. Telemetry, state,
+settings, Activity Log, deterministic calculations, route surfaces, and source
+routing cannot collapse when AI is disabled.
+
+9.3 AI is not a source of facts
+-------------------------------
+AI may classify intent, summarize source-backed facts, compare options, draft a
+WorkflowSourcePlan, write user-facing prose, or explain why a recommendation
+exists. AI must not invent telemetry, prices, station inventory, BGS state,
+route quality, hotspot quality, provider capability, commander data, or API
+facts.
+
+9.4 AI cannot call APIs directly
+--------------------------------
+AI may draft a request plan, but source routing and backend services decide what
+facts can be requested. ExternalRequestBundles are queued by backend services,
+not by the LLM.
+
+9.5 AI cannot bypass the Confirmation Gate
+------------------------------------------
+AI output that proposes meaningful action must pass through the Confirmation
+Gate before execution. This includes voice-adapter proposals, route activation,
+external write-style actions, and commander-affecting local changes.
+
+9.6 Grounding and explainability
+--------------------------------
+AI output must be grounded in telemetry, Knowledge Base entries, source-backed
+facts, or commander-entered context. Where the AI synthesizes or recommends, the
+output must remain explainable through source links, Why affordances, or
+Activity Log entries.
+
+
+================================================================================
+10. VOICE AND INPUT DOCTRINE
+================================================================================
+
+10.1 Current direction
+----------------------
+The current voice direction is native-first. OmniCOVAS is the brain. Voice and
+input systems are user interfaces or adapters, not independent decision-makers.
+
+10.2 EDDI
+---------
+EDDI is cut from current UI scope. Master v4.2 wording that treats EDDI as a
+required voice dependency is superseded by this v5.0 doctrine after adoption.
+EDDI may remain historical context or future optional interop only if later
+compliance and architecture review explicitly reintroduce it.
+
+10.3 VoiceAttack
+----------------
+VoiceAttack is optional adapter only. It is never required, never bundled, never
+the brain, never a source of truth, and never a Confirmation Gate bypass.
+
+10.4 Commander-Confirmed Input Assist
+-------------------------------------
+Future input assist is compliance-gated and must remain:
+- commander-requested;
+- scoped to a short action;
+- confirmed by the commander;
+- auditable;
+- safe;
+- non-botting;
+- non-unattended;
+- compliant with Frontier and external-tool boundaries.
+
+10.5 No unattended automation
+-----------------------------
+OmniCOVAS must not provide autopilot, auto-combat, auto-trading, auto-mining,
+background route execution, anti-cheat bypass, process injection, or any direct
+AI in-game action.
+
+
+================================================================================
+11. PRIVACY, SECURITY, AND COMPLIANCE DOCTRINE
+================================================================================
+
+11.1 Local by default
+---------------------
+Commander data, journals, settings, source caches, logs, and local state remain
+on the commander’s machine unless the commander explicitly enables an outbound
+flow.
+
+11.2 Outbound opt-in
+--------------------
+Outbound data defaults off. CAPI, Inara, EDDN submission, commander profile
+lookups, squadron sync, source provider authentication, and privacy-sensitive
+external flows require explicit commander control.
+
+11.3 Secret handling
+--------------------
+Secrets belong in the DPAPI-backed vault. API keys, OAuth tokens, credentials,
+and raw sensitive config must not be logged. Redaction is mandatory before write.
+
+11.4 No telemetry to maintainers
+--------------------------------
+OmniCOVAS must not send telemetry, analytics, crash data, or commander data to
+project maintainers by default.
+
+11.5 External flow auditability
+-------------------------------
+Every external request, blocked request, consent change, auth state change,
+export/delete, and meaningful data-flow event must be visible through the
+Activity Log or the Settings/Sources surfaces as appropriate.
+
+11.6 Compliance Matrix ownership
+--------------------------------
+The Compliance Matrix owns legal, ToS, privacy law, license, attribution,
+external service, and red-flag detail. The Master only states the doctrine.
+
+11.7 SECURITY.md ownership
+--------------------------
+SECURITY.md owns vulnerability reporting, response timeline, recognition, and
+security-reporting scope. The Master does not duplicate that process.
+
+
+================================================================================
+12. UI / PRODUCT FRAMEWORK SUMMARY
+================================================================================
+
+The UI Blueprint v1.0 owns the complete frontend/product/user-surface model.
+The Master only preserves the route philosophy and points to the UI authority.
+
+Locked route meanings:
+- Dashboard: what matters right now / Live Command Surface.
+- Intel: what is known / Known Information Console.
+- Navigation: where and how to move / Route and Movement Console.
+- Operations: what I am doing / Session Operations Console.
+- Activity Log: how we know and what happened / Data Audit Console.
+- Settings: how the app behaves / Configuration Console.
+- About: what the project is / compact project reference.
+- Squadrons: group coordination, active Phase 7+.
+- Engineering: progression planning, active Phase 8+.
+- Carriers: fleet carrier command, reserved for FC Full Command Center.
+
+The Master must not duplicate:
+- route layout;
+- dashboard structure;
+- settings categories;
+- About structure;
+- overlay behavior;
+- route ownership details;
+- feature placement details;
+- route promotion tests;
+- cross-route link tables.
+
+Those belong to the UI Blueprint.
+
+
+================================================================================
+13. BACKEND / SERVICE FRAMEWORK SUMMARY
+================================================================================
+
+The Backend Blueprint v1.0 owns backend service, state, event, workflow, source
+execution, provenance, privacy-enforcement, and API/bridge decisions.
+
+The Master preserves only the high-level backend posture:
+- one canonical StateManager;
+- one event dispatcher/broadcaster model;
+- one Activity Log proof layer;
+- one Confirmation Gate boundary;
+- one AIProvider abstraction with NullProvider;
+- local Journal, Status.json, and companion files as local truth inputs;
+- source routing through WorkflowSourcePlans and ExternalRequestBundles;
+- cache/queue/provenance before external facts are displayed;
+- FastAPI bridge and WebSocket event stream to the Tauri UI;
+- DPAPI vault and redaction for secrets;
+- diagnostics and resource monitoring.
+
+The Master must not duplicate:
+- service registries;
+- route-to-service matrices;
+- endpoint families;
+- state model registries;
+- event taxonomies;
+- source request schemas;
+- workflow models;
+- bridge contracts;
+- per-phase backend implementation matrices.
+
+Those belong to the Backend Blueprint.
+
+
+================================================================================
+14. PILLAR FRAMEWORK
+================================================================================
+
+The Seven Pillars remain the domain structure of OmniCOVAS. v5.0 keeps their
+identity, phase, high-level purpose, route/backend/source/compliance caveats,
+and ownership references. Detailed feature lists belong in companion documents,
+phase guides, and the future Development Roadmap.
+
+Pillar 1 — Ship Telemetry
+-------------------------
+Phase: Phase 2 complete / integrated baseline.
+Purpose: Live ship state, hull, shields, heat, fuel, cargo, modules, pips,
+loadout, rebuy, and critical event broadcasting.
+Route ownership summary: Dashboard shows the live safety glance; Intel owns
+source-backed personal/ship facts; Activity Log owns proof; Settings owns
+behavior; Operations may link to telemetry during active workflows.
+Backend/service summary: existing local telemetry, StateManager, event handlers,
+broadcaster, bridge, Activity Log, and Hull/Shields safety model.
+Source/compliance caveat: live values come from local telemetry, not external
+APIs. Unknown remains unknown.
+Details live in: Backend Blueprint, UI Blueprint, Phase 1-3 release notes, and
+future Development Roadmap.
+
+Pillar 2 — Tactical & Combat
+----------------------------
+Phase: Phase 4 active / beginning implementation planning.
+Purpose: Combat session support, target context, interdiction/escape support,
+PvP encounter risk, combat rewards, munitions, combat-zone support, and AX/on-foot
+support where source-backed and phase-scoped.
+Route ownership summary: Operations owns active Combat workflows; Dashboard and
+Overlay show restrained, time-sensitive summaries; Intel owns facts; Navigation
+owns routes; Activity Log owns proof.
+Backend/service summary: Phase 4 extends existing state/event/workflow systems;
+it must not create duplicate StateManagers, broadcasters, Activity Logs, or
+Confirmation Gates.
+Source/compliance caveat: no known-ganker or guaranteed threat claims without a
+verified source. No automated game action.
+Details live in: UI Blueprint, Backend Blueprint, Source Capability Routing
+Reference, Compliance Matrix, and revised Phase 4 guide.
+
+Pillar 3 — Exploration & Navigation
+-----------------------------------
+Phase: Phase 5 planned.
+Purpose: Route planning, system/body context, exploration scanning context,
+exobiology workflows, route libraries, bookmarks, and movement tools.
+Route ownership summary: Navigation owns routes and movement; Intel owns system,
+body, POI, and personal discovery facts; Operations owns active exploration
+objectives; Activity Log owns proof.
+Backend/service summary: Navigation and Intel service groups mature; source
+routing and provenance become central.
+Source/compliance caveat: Spansh is link-out until API/terms/rate details are
+verified. EDSM/EDAstro/other sources are capability-bounded.
+Details live in: UI Blueprint, Backend Blueprint, Source Capability Routing
+Reference, future Development Roadmap.
+
+Pillar 4 — Powerplay 2.0 & BGS
+------------------------------
+Phase: Phase 9 planned.
+Purpose: Powerplay and BGS context, faction/influence/state/history, campaign
+objectives, tick context, and squadron-aware coordination where applicable.
+Route ownership summary: No BGS or Powerplay primary route in v1.0. Intel owns
+facts; Operations owns active campaign workflows; Navigation owns circuits and
+movement; Squadrons owns group coordination after Phase 7 activation.
+Backend/service summary: EliteBGS and EDSM context feed source-backed facts;
+operations workflows and BGS/Powerplay events remain auditable.
+Source/compliance caveat: community data must not be presented as official or
+final truth. Outbound tally/export actions require consent and gate review.
+Details live in: UI Blueprint, Backend Blueprint, Source Capability Routing
+Reference, Compliance Matrix, future Development Roadmap.
+
+Pillar 5 — Trading, Mining & Colonization
+-----------------------------------------
+Phase: Phase 6 planned.
+Purpose: Trade candidates, market context, cargo objectives, mining candidate
+review, sell/buy support, colonization logistics, and carrier-related handoffs
+where appropriate.
+Route ownership summary: Intel owns market/local/system facts; Navigation owns
+trade/mining routes and loops; Operations owns active trade/mining/colonization
+objectives; Carriers remains reserved for future FC Full Command Center scope.
+Backend/service summary: source routing, market/source cache, provenance, and
+workflow engine mature.
+Source/compliance caveat: “best hotspot near me” and “best in galaxy” claims
+are forbidden without a complete verified source. Ardent is the candidate source
+for commodity buy/sell and station service discovery where supported. Mining
+hotspot/ring candidates currently have no complete verified direct source.
+Details live in: UI Blueprint, Backend Blueprint, Source Capability Routing
+Reference, Compliance Matrix, future Development Roadmap.
+
+Pillar 6 — Engineering & Materials
+----------------------------------
+Phase: Phase 8 planned.
+Purpose: Materials, blueprint goals, engineer unlocks, Guardian tech, build
+planning, suit engineering, acquisition planning, and progression readiness.
+Route ownership summary: Engineering becomes an active primary route in Phase 8.
+Before activation, Operations owns a thin Engineering handoff; Intel owns raw
+facts; Navigation owns acquisition routes.
+Backend/service summary: Engineering service group activates in Phase 8 and
+consumes Intel facts and Navigation routes.
+Source/compliance caveat: EDSY/Coriolis are planned-build/link/import references,
+not telemetry truth. Exact material inventory must come from local/CAPI-supported
+facts or commander-entered data.
+Details live in: UI Blueprint, Backend Blueprint, Source Capability Routing
+Reference, future Development Roadmap.
+
+Pillar 7 — Squadron & Social
+----------------------------
+Phase: Phase 7 planned.
+Purpose: Group coordination, secure sharing, peer state, shared operations,
+shared navigation, roles, emergency/security posture, and squadron logs.
+Route ownership summary: Squadrons becomes an active primary route in Phase 7.
+Before activation, Operations may carry a thin squadron handoff only.
+Backend/service summary: future Squadrons service group owns peer state,
+telemetry sync, invite/role/security/log state, and integrations.
+Source/compliance caveat: explicit share scope, privacy controls, security
+doctrine, and consent are mandatory. Top Secret/Burn-style features require
+future security doctrine before implementation.
+Details live in: UI Blueprint, Backend Blueprint, Compliance Matrix, future
+Development Roadmap.
+
+
+================================================================================
+15. PHASE FRAMEWORK AND STATUS
+================================================================================
+
+Completed phases are baseline, not backlog. Future documents must not recreate
+features already implemented under completed phases.
+
+Compact phase status table:
+
+Phase        Name / Primary Domain                  Status
+-----        ---------------------                  ------
+Phase 1      The Core                               Complete / integrated
+Phase 2      Ship Telemetry / Pillar 1              Complete / integrated
+Phase 2.5    Deferred Pillar 1 reconciliation       Complete / integrated
+Phase 3      UI Shell                               Complete / integrated
+Phase 4      Tactical & Combat / Pillar 2           Active / beginning implementation planning
+Phase 5      Exploration & Navigation / Pillar 3    Planned
+Phase 6      Trading, Mining & Colonization         Planned
+Phase 7      Squadron & Social / Pillar 7           Planned
+Phase 8      Engineering & Materials / Pillar 6     Planned
+Phase 9      Powerplay 2.0 & BGS / Pillar 4         Planned
+Final        Pre-v1.0 polish / integration          Planned
+
+15.1 Phase 2.5 reconciliation
+-----------------------------
+Phase 2.5 deferred-work references in older documents must be reconciled against
+current implementation. Everything prior to Phase 4 is complete/integrated.
+Shield Intelligence now lives under the Hull/Shields safety model and must not
+be recreated as a route, card, setting, service, or Phase 4 feature.
+
+15.2 Phase 4 posture
+--------------------
+Phase 4 is active roadmap / beginning implementation planning. It should be
+implemented through updated playbooks only after the Master v5.0, UI Blueprint,
+Backend Blueprint, Source Capability Routing Reference, Compliance Matrix, Index,
+and Phase 4 guide are reconciled.
+
+
+================================================================================
+16. RELEASE STRATEGY
+================================================================================
+
+The Master defines release philosophy only. Exact implementation sequence belongs
+to the future Development Roadmap and active phase guides.
+
+v1.0 — Core Intelligence
+------------------------
+Goal: useful daily command deck with stable core telemetry, UI, Activity Log,
+privacy/settings, combat core, exploration/navigation core, trade/mining core,
+and basic squadron coordination where phase scope allows.
+
+v1.1 — Expansion
+----------------
+Goal: broaden pillar depth after the core is stable. Add expansion features
+without violating route ownership, source truth, or privacy defaults.
+
+v1.2 — Deep Features
+--------------------
+Goal: deeper workflow support, larger domain packages, richer explanation,
+advanced route/source workflows, and more complete pillar integrations.
+
+v1.5 — Polish
+--------------
+Goal: performance, accessibility, UX refinement, diagnostics, release hardening,
+trust, documentation, and quality-of-life improvements.
+
+v2.0 — Vision Complete
+----------------------
+Goal: mature command deck with all planned pillar domains implemented within
+compliance, source, privacy, and performance constraints.
+
+
+================================================================================
+17. DEPENDENCY AND BLOCKER FRAMEWORK
+================================================================================
+
+The Master keeps dependency classes, not detailed task lists.
+
+External approvals
+------------------
+Some source or integration workflows may require Frontier, Inara, or other
+provider approval, whitelisting, or relationship management. Exact details belong
+to the Compliance Matrix, Source Capability Routing Reference, and approval
+application documents.
+
+Source/provider relationships
+-----------------------------
+Provider hard limits are not usage targets. Provider communication, request
+budget posture, and source capability verification must be maintained before
+shipping workflows that depend on those sources.
+
+Privacy/compliance gates
+------------------------
+CAPI, Inara, commander profile lookups, outbound submissions, sync, and
+privacy-sensitive flows require explicit settings, auditability, auth handling,
+and consent.
+
+Code signing/trust
+------------------
+Release trust, signing, SBOM, dependency attribution, security posture, and
+public distribution hardening remain release blockers as v1.0 approaches.
+
+Rate/source capability verification
+-----------------------------------
+Provider capabilities, request shapes, and terms must be verified before use.
+Candidate provider support does not equal an approved dependency.
+
+Future voice/input assist compliance
+------------------------------------
+Commander-Confirmed Input Assist remains future and compliance-gated. No
+unattended automation or botting is permitted.
+
+Squadron security doctrine
+--------------------------
+Phase 7+ shared-state features require explicit privacy, security, encryption,
+share-scope, emergency-action, and audit doctrine before implementation.
+
+
+================================================================================
+18. DOCUMENTATION SYSTEM
+================================================================================
+
+18.1 Master Blueprint v5.0 Human + AI
+-------------------------------------
+Owns constitutional umbrella, laws, principles, doctrine, phase/pillar/release
+framework, authority model, and reconciliation notes.
+
+18.2 UI Blueprint v1.0 Human + AI
+---------------------------------
+Owns frontend route structure, product model, route ownership, feature
+containment, Dashboard/Intel/Navigation/Operations/Activity Log/Settings/About,
+future route activation, overlay role, AI/voice UI posture, and route wording.
+
+18.3 Backend Blueprint v1.0 Human + AI
+--------------------------------------
+Owns backend service boundaries, state, events, workflows, API/bridge,
+source-routing execution, cache/queue/provenance, Activity Log backend,
+Confirmation Gate backend, privacy enforcement, and service ownership.
+
+18.4 Source Capability Routing Reference v1
+-------------------------------------------
+Owns provider capability, call-type routing, unsupported facts, fallback wording,
+request-budget posture, provider contacts, and source relationship boundaries.
+
+18.5 Compliance Matrix v4.1
+---------------------------
+Owns legal, privacy, ToS, external service compliance, license, attribution,
+SBOM, CLA, maintainer contacts, and red flags.
+
+18.6 Index
+----------
+Owns file map and topic router. It should be updated after v5.0 adoption to
+route topics to the new authority family.
+
+18.7 README / SECURITY / CONTRIBUTING / CLA
+-------------------------------------------
+Own public-facing status, reporting, contribution process, and contributor legal
+terms.
+
+18.8 ADRs
+---------
+Own accepted technical decisions. ADR 0002 covers Tauri plugins. ADR 0003 covers
+UI safe rendering. Numbering collisions must be fixed rather than reused.
+
+18.9 Phase guides and future Development Roadmap
+------------------------------------------------
+Own implementation sequence, playbook inputs, task breakdowns, gates, and future
+roadmap detail. They must follow the Master, UI Blueprint, Backend Blueprint,
+Source Capability Routing Reference, and Compliance Matrix.
+
+
+================================================================================
+19. STATUS DASHBOARD
+================================================================================
+
+Current phase:
+- Phase 4 Tactical & Combat is active roadmap / beginning implementation
+  planning.
+
+Completed baselines:
+- Phase 1 complete / integrated.
+- Phase 2 complete / integrated.
+- Phase 2.5 complete / integrated.
+- Phase 3 complete / integrated.
+
+Active authority docs:
+- Master Blueprint v5.0 Human + AI: candidate new constitutional umbrella.
+- UI Blueprint v1.0 Human + AI: locked frontend/product authority.
+- Backend Blueprint v1.0 Human + AI: locked backend/service authority.
+- Source Capability Routing Reference v1: provider/source authority, with title
+  and status normalization still needed.
+- Compliance Matrix v4.1: compliance authority.
+- Index: lookup router, needs update after v5.0 adoption.
+
+Active drift items:
+- Master v4.2 phase-status drift.
+- EDDI/VoiceAttack voice dependency drift.
+- Source Capability filename/status drift.
+- Phase 4 guide predates UI/Backend v1.0.
+- ADR 0003 numbering collision.
+- README/SECURITY/CONTRIBUTING references still point at older paths/versions.
+- Rate Limit Registry ownership belongs at law level in Master but numerical
+  budget ownership belongs to Source Capability Routing Reference.
+
+Next planned docs:
+- Development Roadmap v1.0.
+- Updated Index.
+- Updated README / SECURITY / CONTRIBUTING references.
+- Revised Phase 4 Development Guide aligned to UI/Backend/Source v1.0.
+
+
+================================================================================
+20. RECONCILIATION NOTES FROM v4.2 TO v5.0
+================================================================================
+
+1. UI route ownership delegated to UI Blueprint v1.0.
+2. Dashboard structure delegated to UI Blueprint v1.0.
+3. Settings categories delegated to UI Blueprint v1.0.
+4. About route replaces older Legal/Credits route assumptions and is delegated
+   to UI Blueprint v1.0.
+5. Overlay behavior delegated to UI Blueprint v1.0 and safe-rendering ADR 0003.
+6. Backend service ownership delegated to Backend Blueprint v1.0.
+7. State models, endpoint families, event taxonomy, workflow engine, source
+   execution, cache, queue, provenance, bridge contracts, and privacy enforcement
+   delegated to Backend Blueprint v1.0.
+8. Provider capabilities, provider limits, request budgets, unsupported facts,
+   fallback wording, and provider relationship/contact posture delegated to
+   Source Capability Routing Reference v1.
+9. Legal, ToS, license, attribution, privacy, and external-service compliance
+   delegated to Compliance Matrix v4.1.
+10. EDDI dependency removed from current scope.
+11. Native-first voice direction locked.
+12. VoiceAttack remains optional adapter only.
+13. Phase 1, 2, 2.5, and 3 status updated to complete/integrated.
+14. Phase 4 updated to active roadmap / beginning implementation planning.
+15. Phase 2.5 deferred work reconciled; Shield Intelligence must not be
+    recreated.
+16. ADR 0003 collision warning retained: do not reuse 0003 for Phase 4 combat
+    scope ADR.
+17. Old Roadmap v4.1 remains historical/archive context; detailed sequence now
+    belongs in future Development Roadmap v1.0.
+18. README, CONTRIBUTING, SECURITY, and other root docs need future cleanup for
+    current blueprint versions and voice direction.
+19. Source Capability filename/status drift must be normalized.
+20. Master Rate Limit Registry should become a law-level statement only; detailed
+    budgets belong to Source Capability Routing Reference.
+
+
+================================================================================
+21. GLOSSARY
+================================================================================
+
+Activity Log
+Canonical proof layer for meaningful events, source chains, external requests,
+AI/gate records, confirmations, blocked requests, settings/privacy actions, and
+diagnostics.
+
+AI Draft
+AI-produced text, comparison, plan, or recommendation that has not become a
+source-backed fact.
+
+AIProvider
+Backend abstraction for LLM providers. NullProvider is the no-AI implementation.
+
+Ardent
+Candidate source for commodity buy/sell candidates and station service discovery
+where supported by the Source Capability Routing Reference.
+
+Backend Blueprint
+Companion authority for services, state, events, workflows, API/bridge,
+provenance, source execution, cache/queue, and backend privacy enforcement.
+
+CAPI
+Frontier Companion API. Authenticated, privacy-gated, not a public galaxy lookup.
+
+Commander
+The OmniCOVAS user. Commander sovereignty is a core doctrine.
+
+Commander-Confirmed Input Assist
+Future, compliance-gated input assistance where the commander requests, scopes,
+confirms, and audits any protected action.
+
+Confirmation Gate
+Non-bypassable boundary between suggestion/proposal and protected action.
+
+EDDN
+Elite Dangerous Data Network. Strategic relay/future cache source, not a query
+database.
+
+EDSM
+Source for system, station, body, context, and spatial candidates where supported;
+not a broad global market search engine.
+
+ExternalRequestBundle
+Backend request unit generated after a WorkflowSourcePlan, queued and audited by
+backend source execution.
+
+Field-level provenance
+Requirement that each displayed fact retain source, timestamp, freshness, truth
+class, and caveat.
+
+Index
+Lookup router for where topics live. Not final authority by itself.
+
+Intel
+UI route/domain for what is known. Owns source-backed facts.
+
+Local-first
+Rule that local telemetry and local files are checked before external providers.
+
+NullProvider
+AIProvider implementation that performs no LLM calls and preserves core behavior.
+
+Operations
+UI route/domain for what the commander is doing. Owns active goals, workflows,
+blockers, next actions, and debriefs; not raw facts or routes.
+
+Source Capability Routing Reference
+Companion authority for source/provider capability, request budgets, unsupported
+facts, fallback wording, and source relationships.
+
+Telemetry truth
+Doctrine that local game telemetry defines live commander reality.
+
+UI Blueprint
+Companion authority for product, frontend route ownership, dashboard, overlay,
+settings, About, route containment, and UI feature placement.
+
+Unknown remains unknown
+Rule that unsupported, missing, stale, unauthenticated, or unavailable facts are
+labeled honestly instead of guessed.
+
+VoiceAttack
+Optional adapter only. Never required, never bundled, never the brain, never a
+source of truth, and never a gate bypass.
+
+WorkflowSourcePlan
+Backend plan-level contract required before external request bundles are queued
+or executed.
+
+
+================================================================================
+22. OPEN ITEMS / FUTURE DOCUMENT WORK
+================================================================================
+
+1. Create Development Roadmap v1.0 after Master v5.0 is adopted.
+2. Update the Index to route topics to Master v5.0, UI v1.0, Backend v1.0,
+   Source Capability v1, and Compliance Matrix v4.1.
+3. Update README status, voice language, blueprint references, test counts, and
+   route/project descriptions.
+4. Update SECURITY.md references from old Master versions to the current
+   authority family.
+5. Update CONTRIBUTING.md references from old Master/Roadmap paths to current
+   docs and local AI workflow paths.
+6. Update Phase 4 Development Guide to match UI/Backend v1.0 and the source
+   capability doctrine.
+7. Correct ADR numbering collision: do not reuse ADR 0003.
+8. Resolved: Source Capability Routing Reference v1.0 is normalized and active.
+9. Resolved for current posture: Compliance Matrix v4.1 supports native-first
+   voice, EDDI historical/not required, and VoiceAttack optional adapter only.
+10. Resolved: old roadmap references were reviewed for v5.0 adoption; future
+    roadmap changes should follow future authority-document changes.
+
+
+END OF DOCUMENT
+OmniCOVAS Master Blueprint v5.0 — Human Reference
+Status: FINAL_REPOSITORY_ADOPTION_REFERENCE
+Date: 2026-05-06

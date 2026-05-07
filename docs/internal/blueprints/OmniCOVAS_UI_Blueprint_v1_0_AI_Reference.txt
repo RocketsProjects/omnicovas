@@ -1,6 +1,15 @@
 OmniCOVAS UI Blueprint v1.0 — AI Reference
 ==========================================
 
+REPOSITORY_ADOPTION_REVISION_NOTE:
+  package: OmniCOVAS_v5_0_documentation_adoption
+  index_status: active_router_v2_0
+  human_index: OmniCOVAS_Index.md
+  ai_index: OmniCOVAS_Index_AI_Reference.md
+  rule: Any earlier wording that described the Index as deferred, stale, or awaiting final reconciliation is superseded by this package.
+  authority_limit: The Index is a router only and does not override owning authority documents.
+
+
 STATUS: FINAL_UI_PRODUCT_REFERENCE
 DATE: 2026-05-06
 AUDIENCE: AI architect assistants, playbook authors, executor-planning models, implementation auditors.
@@ -14,7 +23,7 @@ DO_NOT_USE_THIS_DOCUMENT_TO:
 - override project laws;
 - override privacy/compliance/source-routing constraints;
 - invent Elite Dangerous facts or provider capabilities;
-- create implementation playbooks without the Backend Blueprint and current phase authority;
+- create implementation playbooks without the Backend Blueprint v1.0, Roadmap v1.0, Phase 4 Guide v1.0, and current phase authority;
 - treat AI as a fact source;
 - restore EDDI as a current UI dependency.
 

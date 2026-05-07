@@ -1,0 +1,2165 @@
+OmniCOVAS Development Roadmap v1.0 — AI Reference
+=================================================
+
+REPOSITORY_ADOPTION_REVISION_NOTE:
+  package: OmniCOVAS_v5_0_documentation_adoption
+  index_status: active_router_v2_0
+  human_index: OmniCOVAS_Index.md
+  ai_index: OmniCOVAS_Index_AI_Reference.md
+  rule: Any earlier wording that described the Index as deferred, stale, or awaiting final reconciliation is superseded by this package.
+  authority_limit: The Index is a router only and does not override owning authority documents.
+
+
+STATUS: CANDIDATE_ROADMAP_AI_REFERENCE_FOR_REPOSITORY_ADOPTION
+DATE: 2026-05-06
+VERSION: 1.0
+COMPANION: OmniCOVAS_Development_Roadmap_v1_0.txt
+AUDIENCE: AI architect assistants, roadmap planners, phase-guide authors,
+          playbook authors, implementation auditors, cross-document
+          reconciliation sessions.
+PATH_TARGET: docs/internal/roadmaps/OmniCOVAS_Development_Roadmap_v1_0_AI_Reference.txt
+SCOPE: Phase 4 through Phase 10 only.
+
+PURPOSE
+-------
+Provide a structured, machine-usable roadmap registry that translates the
+OmniCOVAS authority family into phase-by-phase development reality.
+
+This document is the AI companion to the human-readable Development Roadmap
+v1.0. It is designed to help future ChatGPT, Claude, Gemini, and local Soldier
+sessions determine:
+  - which phase owns a feature;
+  - which UI route must contain it;
+  - which backend service family must support it;
+  - which source/provider constraints apply;
+  - what must be proven before phase playbooks are written;
+  - what must not be recreated from completed phases;
+  - what belongs in roadmap sequencing versus blueprint authority;
+  - what phase gates must be satisfied before a phase becomes baseline.
+
+DO_NOT_USE_THIS_DOCUMENT_TO:
+  - override_master_blueprint_v5_0
+  - override_compliance_matrix_v4_1
+  - override_ui_blueprint_v1_0
+  - override_backend_blueprint_v1_0
+  - override_source_capability_routing_reference_v1
+  - invent_elite_dangerous_mechanics
+  - invent_provider_capabilities
+  - invent_rate_limit_numbers
+  - invent_route_layout
+  - invent_backend_service_contracts
+  - create_implementation_code
+  - create_executor_playbooks_without_phase_guide_alignment
+  - treat_phase_1_phase_2_phase_2_5_or_phase_3_as_backlog
+  - recreate_shield_intelligence_as_separate_feature
+  - reintroduce_eddi_as_required_dependency
+  - require_voiceattack
+  - treat_ai_as_source_of_facts
+  - bypass_source_routing
+  - bypass_confirmation_gate
+  - create_primary_routes_not_authorized_by_ui_blueprint_v1_0
+  - update_index_before_other_relevant_docs_are_reconciled
+
+INDEX
+-----
+A. Header and purpose
+B. Authority posture
+C. Global invariants
+D. Companion document ownership matrix
+E. Conflict-resolution matrix
+F. Roadmap role and boundaries
+G. Completed baseline lock registry
+H. Phase sequence registry
+I. Phase registry
+J. Frontend/backend bridge registry
+K. Phase-gate registry
+L. Route activation matrix
+M. Backend activation matrix
+N. Source/compliance activation matrix
+O. AI / NullProvider / voice doctrine registry
+P. Activity Log and Confirmation Gate requirements
+Q. Documentation sequencing registry
+R. Drift and reconciliation registry
+S. Forbidden patterns
+T. Phase-guide generation schema
+U. Playbook-readiness checklist
+V. Future AI session checklist
+W. Open items
+
+================================================================================
+B. AUTHORITY POSTURE
+================================================================================
+
+AUTHORITY_RANK:
+  1: compliance_matrix_v4_1
+     owns: [legal, tos, privacy, licenses, attribution, external_service_rules,
+            red_flags, compliance_schedule]
+     note: "Compliance boundaries are hard stops."
+
+  2: master_blueprint_v5_0
+     owns: [constitution, project_identity, laws, principles, high_level_phase_framework,
+            high_level_pillar_framework, ai_doctrine, privacy_doctrine,
+            companion_authority_model, release_philosophy]
+     note: "Master is the constitutional umbrella, not the detailed UI/backend/source registry."
+
+  3: ui_blueprint_v1_0
+     owns: [route_existence, route_identity, route_order, route_ownership,
+            feature_containment, dashboard_role, intel_role, navigation_role,
+            operations_role, activity_log_role, settings_role, about_role,
+            overlay_role, future_route_activation]
+     note: "UI route ownership must be checked before assigning any feature."
+
+  4: backend_blueprint_v1_0
+     owns: [backend_service_boundaries, state_ownership, event_taxonomy,
+            workflow_engine, api_bridge_contracts, source_execution,
+            provenance_registry, cache_queue_behavior, privacy_enforcement_at_service_layer]
+     note: "Backend decides what feeds a UI surface, not where that surface lives."
+
+  5: source_capability_routing_reference_v1
+     owns: [provider_capability, allowed_call_types, unsupported_facts,
+            fallback_wording, request_budget_policy, cache_batch_queue_posture,
+            source_relationship_routes]
+     note: "Source Capability controls source truth and provider boundaries."
+
+  6: development_roadmap_v1_0_human
+     owns: [human_readable_phase_sequence, phase_purpose, phase_bridge_description,
+            phase_acceptance_criteria, cross_phase_development_rules]
+     note: "Human roadmap is readable strategic guide. This file is structured AI registry."
+
+  7: development_roadmap_v1_0_ai
+     owns: [machine_usable_phase_registry, bridge_registry, phase_gate_registry,
+            playbook_readiness_checklist, phase_guide_generation_schema]
+     note: "This document translates, but does not override, higher authorities."
+
+  8: future_phase_guides
+     owns: [phase_specific_execution_breakdown, weekly_or_chunked_task_groups,
+            phase_specific_acceptance_checklists]
+     note: "Phase guides must derive from this roadmap and higher authorities."
+
+  9: future_playbooks
+     owns: [executor_specific_tasks, file_targets, tests, verification_commands]
+     note: "Playbooks are not authority. They are assignments."
+
+  10: session_conversation
+      owns: [immediate_user_intent]
+      note: "Session intent cannot override authority docs."
+
+ROADMAP_AUTHORITY_STATEMENT:
+  this_document_owns:
+    - phase_sequence_from_phase_4_to_phase_10
+    - AI_readable_phase_bridge_requirements
+    - phase_gate_expectations
+    - phase_to_route_to_backend_to_source_mapping_at_planning_level
+    - rules_for_turning_roadmap_into_phase_guides
+    - rules_for_deciding_playbook_readiness
+  this_document_does_not_own:
+    - constitutional_laws_or_principles
+    - UI_layout_or_route_design_detail
+    - backend_service_contract_detail
+    - provider_capability_or_budget_numbers
+    - legal_or_privacy_compliance_detail
+    - endpoint_family_tables
+    - state_model_registry
+    - event_taxonomy_registry
+    - implementation_tasks
+    - code
+
+================================================================================
+C. GLOBAL INVARIANTS
+================================================================================
+
+GLOBAL_INVARIANTS:
+  local_first: true
+  event_driven: true
+  async_first: true
+  source_backed: true
+  auditable: true
+  privacy_protective: true
+  ai_provider_agnostic: true
+  nullprovider_required: true
+  ai_fact_source: false
+  performance_first: true
+  commander_sovereignty: true
+  unknown_remains_unknown: true
+  field_level_provenance_required: true
+  cache_and_batch_before_external_calls: true
+  consent_and_authentication_are_source_gates: true
+  no_scraping_by_default: true
+  route_activation_requires_commander_action: true
+  confirmation_gate_non_bypassable: true
+  direct_ai_game_action: forbidden
+  unattended_automation: forbidden
+  botting: forbidden
+  eddi_current_scope: cut
+  voiceattack_status: optional_adapter_only
+  voiceattack_required: false
+  index_update_order: last_after_relevant_docs_revised
+
+PHASE_BASELINE_INVARIANTS:
+  completed_phases_are_baseline_not_backlog: true
+  completed_phases:
+    - phase_1
+    - phase_2
+    - phase_2_5
+    - phase_3
+  active_starting_phase: phase_4
+  completion_phase: phase_10
+  shield_intelligence_status: implemented_under_hull_shields_safety_model
+  shield_intelligence_recreation: forbidden
+
+FALLBACK_WORDING_REQUIRED:
+  - Unknown
+  - Not Loaded
+  - Disabled
+  - Stale
+  - Requires Authorization
+  - Unsupported
+  - No Verified Source
+
+PHASE_DEVELOPMENT_PATTERN:
+  pass_1:
+    name: authority_reconciliation
+    output: phase_alignment_note
+    code_allowed: false
+  pass_2:
+    name: backend_capability_foundation
+    output: backend_ready_capability
+    code_allowed: future_phase_guides_only
+  pass_3:
+    name: ui_containment_and_surface_wiring
+    output: commander_facing_surface_consuming_backend_truth
+    code_allowed: future_phase_guides_only
+  pass_4:
+    name: source_provenance_privacy_audit_hardening
+    output: trustable_feature_behavior
+    code_allowed: future_phase_guides_only
+  pass_5:
+    name: integration_gate_and_phase_closeout
+    output: integrated_baseline_decision
+    code_allowed: verification_and_repair_only_when_guided
+
+================================================================================
+D. COMPANION DOCUMENT OWNERSHIP MATRIX
+================================================================================
+
+DOCUMENT_AUTHORITY:
+  document: OmniCOVAS_Master_Blueprint_v5_0_Human_Reference.txt
+  paired_with: OmniCOVAS_Master_Blueprint_v5_0_AI_Reference.txt
+  owns:
+    - constitution
+    - project_identity
+    - core_philosophy
+    - ten_laws
+    - ten_architectural_principles
+    - high_level_architecture_summary
+    - high_level_phase_framework
+    - high_level_pillar_framework
+    - ai_doctrine
+    - privacy_security_compliance_doctrine
+    - companion_document_authority_model
+  does_not_own:
+    - detailed_ui_route_layout
+    - backend_service_registry
+    - provider_capability_tables
+    - implementation_sequence_detail
+    - executor_tasks
+  roadmap_use:
+    - confirm_phase_scope
+    - confirm_pillar_identity
+    - confirm_laws_and_hard_stops
+
+DOCUMENT_AUTHORITY:
+  document: OmniCOVAS_UI_Blueprint_v1_0_Human_Reference.txt
+  paired_with: OmniCOVAS_UI_Blueprint_v1_0_AI_Reference.txt
+  owns:
+    - route_ownership
+    - feature_containment
+    - route_boundaries
+    - dashboard_structure_and_role
+    - intel_route_role
+    - navigation_route_role
+    - operations_route_role
+    - activity_log_route_role
+    - settings_categories
+    - about_route_role
+    - overlay_role
+    - future_route_activation
+    - UI_wording_posture
+  does_not_own:
+    - backend_state_models
+    - backend_event_taxonomy
+    - provider_capabilities
+    - compliance_detail
+    - implementation_code
+  roadmap_use:
+    - determine_primary_ui_surface
+    - determine_secondary_surfaces
+    - determine_suppressed_surfaces
+    - prevent_route_sprawl
+
+DOCUMENT_AUTHORITY:
+  document: OmniCOVAS_Backend_Blueprint_v1_0_Human_Reference.txt
+  paired_with: OmniCOVAS_Backend_Blueprint_v1_0_AI_Reference.txt
+  owns:
+    - backend_service_ownership
+    - state_ownership
+    - event_taxonomy
+    - workflow_engine_contract
+    - source_execution_contract
+    - bridge_api_contracts
+    - cache_queue_behavior
+    - provenance_contract
+    - activity_log_backend
+    - confirmation_gate_backend
+    - privacy_enforcement_at_service_layer
+  does_not_own:
+    - UI_route_existence
+    - legal_compliance_detail
+    - provider_capability_truth
+    - phase_sequence
+  roadmap_use:
+    - determine_backend_owner
+    - determine_bridge_need
+    - determine_workflow_need
+    - prevent_parallel_services
+
+DOCUMENT_AUTHORITY:
+  document: OmniCOVAS_Source_Capability_Routing_Reference_v1.txt
+  owns:
+    - source_routing_rules
+    - provider_capability_cards
+    - exact_call_type_router
+    - provider_priority_map
+    - unsupported_claims
+    - fallback_wording
+    - request_design_contract
+    - respectful_budget_policy
+    - contact_relationship_routes
+  does_not_own:
+    - laws_and_principles
+    - UI_layout
+    - backend_service_implementation
+    - phase_sequence
+  roadmap_use:
+    - verify_source_fact_support
+    - prevent_provider_overreach
+    - determine_unknown_unsupported_wording
+    - determine_external_request_safety
+
+DOCUMENT_AUTHORITY:
+  document: OmniCOVAS_Compliance_Matrix_v4_1.txt
+  owns:
+    - legal_compliance
+    - Frontier_ToS_posture
+    - external_service_terms
+    - privacy_law_posture
+    - API_key_handling_requirements
+    - license_obligations
+    - attribution_requirements
+    - compliance_red_flags
+  does_not_own:
+    - route_layout
+    - backend_service_shape
+    - phase_sequence_except_compliance_gates
+  roadmap_use:
+    - hard_stop_unsafe_phase_scope
+    - determine_external_approval_dependencies
+    - determine_privacy_or_license_gates
+
+DOCUMENT_AUTHORITY:
+  document: OmniCOVAS_Development_Roadmap_v1_0.txt
+  paired_with: OmniCOVAS_Development_Roadmap_v1_0_AI_Reference.txt
+  owns:
+    - human_readable_phase_sequence
+    - phase_purpose
+    - what_needs_to_be_done
+    - how_it_should_be_done_at_description_level
+    - acceptance_criteria
+    - cross_phase_rules
+  does_not_own:
+    - detailed_implementation_tasks
+    - code
+    - playbooks
+  roadmap_use:
+    - strategic_phase_planning
+
+DOCUMENT_AUTHORITY:
+  document: OmniCOVAS_Index.md
+  owns:
+    - lookup_router
+    - topic_manifest
+    - document_map
+    - phase_quick_find
+    - decision_ownership_index
+  does_not_own:
+    - authority_truth_by_itself
+    - phase_scope
+    - route_ownership
+    - backend_contracts
+    - source_capabilities
+  roadmap_use:
+    - lookup_after_final_reconciliation
+    - update_last
+
+================================================================================
+E. CONFLICT-RESOLUTION MATRIX
+================================================================================
+
+CONFLICT_RULE:
+  conflict: roadmap_vs_master
+  winner: master_blueprint_v5_0
+  applies_to: [laws, principles, phase_pillar_framework, project_identity, doctrine]
+  action: report_conflict_and_defer_to_master
+
+CONFLICT_RULE:
+  conflict: roadmap_vs_compliance
+  winner: compliance_matrix_v4_1
+  applies_to: [legal, privacy, ToS, external_service_terms, license, attribution, red_flags]
+  action: block_or_redesign_phase_scope_until_compliant
+
+CONFLICT_RULE:
+  conflict: roadmap_vs_ui_blueprint
+  winner: ui_blueprint_v1_0
+  applies_to: [route_existence, route_ownership, route_containment, overlay_role, settings_categories]
+  action: assign_feature_to_UI_owner_from_UI_blueprint
+
+CONFLICT_RULE:
+  conflict: roadmap_vs_backend_blueprint
+  winner: backend_blueprint_v1_0
+  applies_to: [service_ownership, state, events, bridge, workflow_engine, provenance, cache_queue, Activity_Log, Confirmation_Gate]
+  action: assign_backend_work_to_existing_or_forward_declared_backend_owner
+
+CONFLICT_RULE:
+  conflict: roadmap_vs_source_capability
+  winner: source_capability_routing_reference_v1
+  applies_to: [provider_capability, request_budget, fallback_wording, unsupported_facts, source_priority]
+  action: use_source_capability_or_mark_unknown_unsupported
+
+CONFLICT_RULE:
+  conflict: roadmap_vs_phase_guide
+  winner: roadmap_plus_higher_authority
+  applies_to: [phase_scope, route_placement, bridge_model]
+  action: revise_phase_guide_before_playbooks
+
+CONFLICT_RULE:
+  conflict: roadmap_vs_playbook
+  winner: roadmap_plus_higher_authority
+  applies_to: [all_scope_and_authority_questions]
+  action: stop_executor_and_return_to_architect
+
+================================================================================
+F. ROADMAP ROLE AND BOUNDARIES
+================================================================================
+
+ROADMAP_ROLE:
+  name: development_translation_layer
+  start_phase: phase_4
+  end_phase: phase_10
+  primary_question: "How do we turn the locked OmniCOVAS architecture into a real integrated application?"
+  owns:
+    - phase_sequence
+    - phase_bridge_intent
+    - phase_acceptance_criteria
+    - development_order_at_description_level
+    - future_phase_guide_inputs
+    - cross_phase_integration_rules
+  avoids:
+    - code
+    - endpoint_tables
+    - state_field_registries
+    - event_taxonomy_tables
+    - provider_budget_numbers
+    - legal_text
+    - UI_layout_detail
+    - executor_tasks
+
+FEATURE_REALITY_TEST:
+  a_feature_is_real_when:
+    - correct_route_owner_confirmed
+    - correct_backend_service_owner_confirmed
+    - source_provenance_behavior_defined
+    - fallback_wording_defined
+    - meaningful_activity_log_events_defined
+    - privacy_consent_auth_gates_defined
+    - confirmation_gate_need_defined
+    - nullprovider_behavior_defined
+    - unsupported_external_provider_dependency_absent
+    - verification_strategy_defined
+
+PHASE_GUIDE_PREREQUISITE:
+  before_writing_phase_guide:
+    - confirm_phase_scope_in_master
+    - confirm_route_placement_in_UI_blueprint
+    - confirm_backend_ownership_in_backend_blueprint
+    - confirm_source_capability_rules
+    - confirm_compliance_gates
+    - confirm_completed_baseline_not_duplicated
+    - reconcile_old_phase_guide_drift
+    - write_phase_alignment_note
+
+================================================================================
+G. COMPLETED BASELINE LOCK REGISTRY
+================================================================================
+
+BASELINE_LOCK:
+  id: phase_1_core
+  status: complete_integrated
+  owns_existing:
+    - python_fastapi_foundation
+    - tauri_skeleton
+    - journal_watcher
+    - status_json_reader
+    - dispatcher
+    - state_manager
+    - broadcaster
+    - ai_provider_interface
+    - nullprovider
+    - knowledge_base_loader
+    - confirmation_gate
+    - activity_log_baseline
+    - dynamic_fastapi_bridge
+    - websocket_event_stream
+    - dpapi_vault
+    - resource_monitor
+  duplicate_forbidden:
+    - second_state_manager
+    - second_dispatcher
+    - second_broadcaster
+    - second_confirmation_gate
+    - second_activity_log
+    - second_fastapi_bridge
+    - second_vault
+    - second_ai_provider_abstraction
+
+BASELINE_LOCK:
+  id: phase_2_ship_telemetry
+  status: complete_integrated
+  owns_existing:
+    - pillar_1_ship_telemetry
+    - hull
+    - shields
+    - fuel
+    - heat
+    - pips
+    - cargo
+    - loadout
+    - module_health
+    - rebuy
+    - critical_event_broadcasting
+  duplicate_forbidden:
+    - separate_ship_state_system
+    - duplicate_live_telemetry_truth
+    - external_api_live_ship_values
+
+BASELINE_LOCK:
+  id: phase_2_5_deferred_reconciliation
+  status: complete_integrated
+  owns_existing:
+    - shield_intelligence_under_hull_shields_safety_model
+    - repaired_deferred_pillar_1_items_as_integrated_baseline
+  duplicate_forbidden:
+    - shield_intelligence_as_new_phase_4_feature
+    - shield_intelligence_as_dashboard_card
+    - shield_intelligence_as_settings_category
+    - shield_intelligence_as_separate_route
+
+BASELINE_LOCK:
+  id: phase_3_ui_shell
+  status: complete_integrated
+  owns_existing:
+    - tauri_shell
+    - dashboard_shell
+    - overlay_baseline
+    - settings_ui
+    - privacy_ui
+    - onboarding
+    - activity_log_ui
+    - bridge_ready_patterns
+    - safe_rendering_hotfix_baseline
+    - accessibility_baseline
+  duplicate_forbidden:
+    - second_shell
+    - second_overlay_system
+    - hard_coded_localhost_8000_fetches
+    - unsafe_dynamic_innerHTML
+    - separate_activity_log_ui_truth
+
+================================================================================
+H. PHASE SEQUENCE REGISTRY
+================================================================================
+
+PHASE_SEQUENCE:
+  - phase: phase_4
+    name: Tactical & Combat / First Operations Bridge
+    pillar: pillar_2_tactical_combat
+    status: active_roadmap_beginning_implementation_planning
+    primary_outcome: prove_operations_workflow_model
+
+  - phase: phase_5
+    name: Exploration, Navigation, Intel, and Source Infrastructure
+    pillar: pillar_3_exploration_navigation_plus_cross_cutting_source_infra
+    status: planned
+    primary_outcome: mature_intel_navigation_source_routing_provenance
+
+  - phase: phase_6
+    name: Trading, Mining, Colonization, and Market Candidate Workflows
+    pillar: pillar_5_trading_mining_colonization
+    status: planned
+    primary_outcome: apply_source_routing_to_economic_candidate_workflows
+
+  - phase: phase_7
+    name: Squadrons, Group Coordination, and Secure Sharing
+    pillar: pillar_7_squadron_social
+    status: planned
+    primary_outcome: activate_squadrons_route_and_consent_scoped_sharing
+
+  - phase: phase_8
+    name: Engineering, Materials, Builds, and Progression Planning
+    pillar: pillar_6_engineering_materials
+    status: planned
+    primary_outcome: activate_engineering_route_and_persistent_progression_planning
+
+  - phase: phase_9
+    name: Powerplay 2.0, BGS, and Campaign Intelligence
+    pillar: pillar_4_powerplay_bgs
+    status: planned
+    primary_outcome: source_backed_campaign_intelligence_without_route_sprawl
+
+  - phase: phase_10
+    name: Completion, Release Hardening, Documentation, and v1.0 Readiness
+    pillar: cross_cutting_completion
+    status: planned
+    primary_outcome: release_ready_integrated_application_and_final_doc_reconciliation
+
+================================================================================
+I. PHASE REGISTRY
+================================================================================
+
+PHASE:
+  id: phase_4
+  name: Tactical & Combat / First Operations Bridge
+  status: active_roadmap_beginning_implementation_planning
+  primary_pillar: Pillar 2 — Tactical & Combat
+  purpose: >
+    Turn OmniCOVAS from a telemetry dashboard into an operations assistant by
+    proving Operations -> Combat as the first active workflow package after the
+    UI/backend/source authority split.
+  primary_ui_routes:
+    - operations:combat
+  secondary_ui_routes:
+    - dashboard:compact_combat_session_safety_summaries_only
+    - overlay:urgent_combat_glance_interruption_alerts_only
+    - intel:source_backed_combat_facts_and_risk_context
+    - navigation:escape_movement_destination_context
+    - activity_log:proof_decisions_source_chains_gate_records
+    - settings:behavior_mute_sensitivity_source_privacy_controls
+  forbidden_primary_routes:
+    - combat
+  backend_service_groups:
+    - operations_service_group
+    - workflow_engine_narrow_combat_package
+    - state_manager_extensions_existing_only
+    - dispatcher_existing_only
+    - broadcaster_existing_only
+    - activity_log_service_existing_only
+    - confirmation_gate_existing_only
+    - api_bridge_existing_only
+    - ai_workflow_planner_narrow_advisory_only
+  frontend_backend_bridge_goal: >
+    Prove that an Operations workflow can consume backend telemetry/events,
+    link to Intel and Navigation, publish compact Dashboard/Overlay summaries,
+    record Activity Log proof, and preserve Confirmation Gate boundaries.
+  source_dependencies:
+    - local_journal_for_combat_events_where_exposed
+    - status_json_for_live_ship_state_where_available
+    - local_state_cache_for_session_context
+    - verified_external_sources_only_if_source_capability_supports_exact_fact
+  compliance_gates:
+    - no_automatic_game_action
+    - no_unattended_automation
+    - no_known_ganker_or_guaranteed_threat_claim_without_verified_source
+    - no_voiceattack_requirement
+    - no_eddi_requirement
+    - protected_actions_through_confirmation_gate
+  required_reconciliation_before_playbooks:
+    - update_phase_4_guide_language_from_combat_dashboard_cards_to_operations_combat
+    - rename_pvp_gank_database_to_pvp_encounter_log_and_risk_intel
+    - resolve_adr_0003_collision_before_new_ADR
+    - confirm_shield_intelligence_not_recreated
+  recommended_phase_guide_chunks:
+    - phase_4_alignment_and_guide_correction
+    - operations_combat_shell_and_backend_operation_object
+    - combat_event_ingestion_and_state_extensions
+    - combat_activity_log_and_provenance_labels
+    - dashboard_overlay_compact_alert_lanes
+    - interdiction_escape_workflow
+    - target_threat_context_workflow
+    - pvp_encounter_log_and_risk_intel_workflow
+    - rewards_rank_munitions_loadout_readiness_workflow
+    - combat_zone_ax_on_foot_constrained_surfaces
+    - debrief_and_phase_integration_gate
+  completion_definition:
+    - operations_combat_is_primary_combat_workspace
+    - no_combat_primary_route_exists
+    - no_duplicate_state_manager_dispatcher_broadcaster_bridge_activity_log_or_gate
+    - recommendations_are_source_backed_or_labeled
+    - unsupported_facts_use_fallback_wording
+    - dashboard_overlay_are_compact_and_route_linked
+    - activity_log_records_meaningful_combat_workflow_events
+    - nullprovider_mode_preserves_core_usefulness
+    - phase_4_guide_and_playbooks_reconciled
+    - verification_gates_pass
+  must_not_duplicate:
+    - shield_intelligence
+    - dashboard_workflow_board
+    - intel_fact_views_inside_operations
+    - navigation_route_views_inside_operations
+    - activity_log_tables_inside_operations
+  unlocks:
+    - operations_workflow_template_for_future_phases
+    - first_real_workflow_bridge_pattern
+
+PHASE:
+  id: phase_5
+  name: Exploration, Navigation, Intel, and Source Infrastructure
+  status: planned
+  primary_pillar: Pillar 3 — Exploration & Navigation plus cross-cutting source infrastructure
+  purpose: >
+    Mature Intel and Navigation as real route families and make source routing,
+    provenance, cache/queue behavior, and external request planning practical for
+    all later source-heavy phases.
+  primary_ui_routes:
+    - intel
+    - navigation
+    - operations:exploration_exobiology
+  secondary_ui_routes:
+    - dashboard:compact_route_context_pins
+    - overlay:time_sensitive_route_safety_notices
+    - activity_log:source_chains_blocked_lookups_route_events
+    - settings:sources_data_flow_and_privacy_controls
+  backend_service_groups:
+    - intel_service_group
+    - navigation_service_group
+    - source_registry
+    - source_router
+    - external_request_queue
+    - cache_layer
+    - provenance_registry
+    - workflow_engine_generalization
+    - activity_log_service_extensions
+    - api_bridge_route_families
+  frontend_backend_bridge_goal: >
+    Prove the central split: Intel owns facts, Navigation owns movement/routes,
+    Operations owns active exploration/exobiology objectives, and Activity Log
+    owns proof; all fed by a reusable source-routing backbone.
+  source_dependencies:
+    - local_journal_for_commander_observed_exploration_facts
+    - companion_json_files_including_navroute_json
+    - EDSM_for_system_body_context_where_supported
+    - EDAstro_for_exploration_cartographic_POI_context_where_supported
+    - Spansh_link_out_currently
+    - Spansh_API_only_after_endpoint_rate_terms_verification
+    - CAPI_only_for_authenticated_commander_facts_if_enabled
+  compliance_gates:
+    - no_scraping_by_default
+    - outbound_route_or_profile_flows_opt_in_only
+    - source_budgeting_from_source_capability_reference
+    - route_activation_commander_triggered
+  recommended_phase_guide_chunks:
+    - intel_information_architecture_and_knownfact_path
+    - navigation_active_route_and_navroute_json_proof
+    - source_registry_and_source_router_minimum_viable_foundation
+    - cache_freshness_provenance_activity_log_source_chains
+    - spansh_linkout_route_flow
+    - EDSM_EDAstro_constrained_lookups
+    - exploration_scan_context_and_exobiology_objectives
+    - bookmarks_and_route_library_foundation
+    - dashboard_pins_and_cross_route_links
+    - phase_5_integration_gate
+  completion_definition:
+    - intel_has_galaxy_system_local_ship_personal_fact_surfaces
+    - navigation_has_active_route_planner_library_bookmarks_sources_foundations
+    - source_registry_source_router_workflowsourceplan_externalrequestbundle_are_real_enough_for_future_phases
+    - field_level_provenance_visible_or_inspectable
+    - activity_log_shows_source_chains_and_blocked_unsupported_lookups
+    - exploration_exobiology_use_intel_navigation_operations_correctly
+    - unsupported_facts_remain_unknown_or_unsupported
+    - route_activation_requires_commander_action
+    - nullprovider_mode_preserves_usefulness
+    - verification_gates_pass
+  must_not_duplicate:
+    - intel_facts_inside_navigation
+    - route_planning_inside_intel
+    - operations_as_fact_database
+    - source_budget_tables_outside_source_capability
+  unlocks:
+    - source_backed_foundation_for_trade_mining_engineering_bgs
+    - reusable_provenance_and_cache_queue_pattern
+
+PHASE:
+  id: phase_6
+  name: Trading, Mining, Colonization, and Market Candidate Workflows
+  status: planned
+  primary_pillar: Pillar 5 — Trading, Mining & Colonization
+  purpose: >
+    Apply Phase 5 source-routing infrastructure to market, commodity, station
+    service, mining candidate, hauling, carrier logistics, and colonization
+    support workflows without overclaiming incomplete external data.
+  primary_ui_routes:
+    - operations:trade_mining
+    - operations:carrier_logistics_until_carriers_active
+    - intel:market_station_local_system_facts
+    - navigation:trade_mining_hauling_carrier_routes
+  reserved_routes:
+    - carriers:reserved_for_fleet_carrier_full_command_center
+  backend_service_groups:
+    - intel_service_group_market_station_local_facts
+    - navigation_service_group_trade_mining_routes
+    - operations_service_group_trade_mining_carrier_logistics
+    - source_router
+    - external_request_queue
+    - cache_layer
+    - provenance_registry
+    - activity_log_service_extensions
+  frontend_backend_bridge_goal: >
+    Prove that economic workflows can combine local snapshots, external
+    candidate data, freshness labels, route candidates, active objectives,
+    source-chain proof, and commander confirmation.
+  source_dependencies:
+    - local_market_json_outfitting_json_shipyard_json_cargo_json
+    - local_journal_cargo_market_station_events_where_exposed
+    - Ardent_for_commodity_buy_sell_candidates_and_station_service_discovery_where_supported
+    - EDSM_for_system_station_body_context_and_known_station_market_context_where_supported
+    - CAPI_authenticated_privacy_gated_only_when_enabled
+    - future_EDDN_backed_local_cache_not_direct_EDDN_relay_queries
+  compliance_gates:
+    - no_best_hotspot_near_me_claim_without_complete_verified_source
+    - no_best_in_galaxy_claim_without_complete_verified_coverage
+    - no_nearest_guaranteed_module_claim_from_service_presence_only
+    - no_Inara_universal_lookup_assumption
+    - external_calls_cached_batched_queued
+  recommended_phase_guide_chunks:
+    - market_and_commodity_source_capability_audit
+    - intel_market_local_station_fact_surfaces
+    - constrained_Ardent_EDSM_local_CAPI_workflows
+    - trade_hauling_operations_package
+    - navigation_route_loop_candidate_surfaces
+    - mining_candidate_workflow_with_unsupported_fact_handling
+    - cargo_sell_buy_debrief
+    - colonization_support_as_logistics_workflow
+    - carrier_logistics_pressure_review
+    - phase_6_integration_gate
+  completion_definition:
+    - trade_mining_workflows_are_useful_and_honestly_labeled
+    - intel_owns_market_station_local_facts_with_provenance
+    - navigation_owns_loops_routes_candidates
+    - operations_owns_active_trade_mining_hauling_objectives
+    - mining_workflow_does_not_overclaim_hotspot_certainty
+    - activity_log_records_source_requests_stale_data_blocked_requests_decisions
+    - external_calls_respect_source_budget_policy
+    - carrier_colonization_scope_contained_or_formally_deferred
+    - nullprovider_mode_preserves_usefulness
+    - verification_gates_pass
+  must_not_duplicate:
+    - market_truth_inside_operations
+    - route_loop_planner_inside_intel
+    - carriers_route_before_activation_trigger
+    - unsupported_hotspot_intelligence
+  unlocks:
+    - source_backed_candidate_review_habit
+    - market_workflow_pattern_for_carrier_and_colonization_future
+
+PHASE:
+  id: phase_7
+  name: Squadrons, Group Coordination, and Secure Sharing
+  status: planned
+  primary_pillar: Pillar 7 — Squadron & Social
+  purpose: >
+    Activate the Squadrons route and introduce consent-scoped group coordination,
+    shared operations, shared routes/bookmarks, secure telemetry sharing posture,
+    and auditable group state.
+  primary_ui_routes:
+    - squadrons
+  secondary_ui_routes:
+    - intel:shared_source_backed_information_and_context
+    - navigation:shared_routes_bookmarks_and_route_to_peer
+    - operations:shared_objectives_and_group_missions_campaigns
+    - settings:privacy_sharing_identity_source_permissions
+    - activity_log:proof_shared_state_audit
+    - dashboard:compact_group_status_pins_only
+  backend_service_groups:
+    - squadrons_service_group
+    - peer_state
+    - telemetry_sync_state
+    - invite_and_role_authority
+    - shared_operation_links
+    - shared_navigation_links
+    - emergency_security_state
+    - activity_log_service_extensions
+    - privacy_settings_integration
+  frontend_backend_bridge_goal: >
+    Prove that multi-commander coordination can work without violating local-first
+    sovereignty: sharing is explicit, scoped, revocable, auditable, and linked
+    to owning Intel/Navigation/Operations surfaces.
+  source_dependencies:
+    - local_commander_telemetry
+    - commander_entered_group_context
+    - future_P2P_or_relay_fallback_only_after_security_and_compliance_review
+    - external_integrations_only_after_source_compliance_review
+  compliance_gates:
+    - explicit_consent_for_every_shared_data_path
+    - identity_privacy_controls_required
+    - revocation_required
+    - no_silent_outbound_sync
+    - no_unapproved_cloud_or_relay_dependency
+    - squadron_security_doctrine_required_for_sensitive_modes
+  recommended_phase_guide_chunks:
+    - squadrons_route_activation_and_owner_statement
+    - consent_scoped_sharing_model
+    - roster_invite_role_authority_surfaces
+    - shared_operations_links
+    - shared_routes_and_bookmarks_links
+    - telemetry_sync_minimum_safe_model
+    - privacy_and_revocation_controls
+    - emergency_security_and_audit_events
+    - failure_modes_and_offline_behavior
+    - phase_7_integration_gate
+  completion_definition:
+    - squadrons_is_active_primary_route
+    - sharing_is_explicit_scoped_revocable_and_auditable
+    - shared_operations_routes_bookmarks_link_to_owning_routes
+    - settings_owns_sharing_defaults_and_privacy_controls
+    - activity_log_records_invite_sync_role_revocation_emergency_events
+    - no_shared_data_leaves_machine_without_commander_control
+    - failure_modes_are_safe_visible_and_logged
+    - verification_gates_pass
+  must_not_duplicate:
+    - intel_fact_ownership
+    - navigation_route_ownership
+    - operations_workflow_ownership
+    - settings_privacy_controls
+    - activity_log_audit_detail
+  unlocks:
+    - group_coordination_foundation
+    - squadron_aware_campaigns_for_phase_9
+
+PHASE:
+  id: phase_8
+  name: Engineering, Materials, Builds, and Progression Planning
+  status: planned
+  primary_pillar: Pillar 6 — Engineering & Materials
+  purpose: >
+    Activate the Engineering route and make persistent progression planning,
+    material gaps, blueprint goals, unlock readiness, build references, and
+    acquisition handoffs coherent and source-backed.
+  primary_ui_routes:
+    - engineering
+  secondary_ui_routes:
+    - intel:raw_material_inventory_loadout_commander_facts
+    - navigation:acquisition_routes
+    - operations:active_engineering_session_tasks
+    - settings:imports_exports_source_configuration
+    - activity_log:proof_goal_plan_import_source_chains
+  backend_service_groups:
+    - engineering_service_group
+    - intel_service_group_materials_loadout_personal_facts
+    - navigation_service_group_acquisition_routes
+    - operations_service_group_active_engineering_task_handoff
+    - import_export_services_where_authorized
+    - provenance_registry
+    - activity_log_service_extensions
+  frontend_backend_bridge_goal: >
+    Prove that a persistent planning route can coexist with Operations: Engineering
+    owns the long-lived plan, Operations owns the active task, Intel owns facts,
+    and Navigation owns movement.
+  source_dependencies:
+    - local_journal_material_engineering_events_where_exposed
+    - local_loadout_modulesinfo_current_ship_truth
+    - CAPI_profile_if_material_fields_verified_enabled_and_consented
+    - commander_entered_goals
+    - EDSY_Coriolis_link_import_export_formats_after_format_verification_only
+  compliance_gates:
+    - build_tools_not_telemetry_truth
+    - imports_exports_traceable_and_consent_safe
+    - no_invented_material_inventory
+    - no_hidden_mechanic_claims_without_source
+  recommended_phase_guide_chunks:
+    - engineering_route_activation_and_containment_review
+    - material_inventory_source_audit
+    - engineering_goal_model_and_route_surface
+    - material_gap_planning
+    - blueprint_unlock_guardian_tech_broker_planning
+    - build_plan_references_and_EDSY_Coriolis_link_import_posture
+    - navigation_acquisition_route_handoff
+    - operations_active_goal_handoff
+    - activity_log_goal_plan_import_records
+    - phase_8_integration_gate
+  completion_definition:
+    - engineering_is_active_primary_route
+    - material_inventory_and_current_ship_facts_are_source_backed
+    - build_blueprint_goals_are_separated_from_telemetry_truth
+    - acquisition_routes_handoff_to_navigation
+    - active_tasks_handoff_to_operations
+    - imports_exports_are_traceable_and_not_live_truth
+    - activity_log_records_goal_changes_plan_changes_imports_source_chains
+    - nullprovider_mode_preserves_usefulness
+    - verification_gates_pass
+  must_not_duplicate:
+    - material_fact_ownership_inside_engineering_without_intel_reference
+    - route_planner_inside_engineering
+    - operations_active_task_board_inside_engineering
+    - build_tool_as_source_of_current_truth
+  unlocks:
+    - progression_planning_foundation
+    - engineering_material_acquisition_workflows
+
+PHASE:
+  id: phase_9
+  name: Powerplay 2.0, BGS, and Campaign Intelligence
+  status: planned
+  primary_pillar: Pillar 4 — Powerplay 2.0 & BGS
+  purpose: >
+    Add strategic campaign intelligence without creating BGS or Powerplay primary
+    routes. Intel owns facts, Operations owns campaigns, Navigation owns circuits,
+    Squadrons owns group coordination where relevant.
+  primary_ui_routes:
+    - intel:bgs_powerplay_facts
+    - operations:bgs_powerplay_campaigns
+    - navigation:bgs_powerplay_circuits
+    - squadrons:group_campaign_coordination_where_enabled
+  forbidden_primary_routes:
+    - bgs
+    - powerplay
+  secondary_ui_routes:
+    - activity_log:source_workflow_recommendation_decision_chains
+    - settings:source_provider_configuration
+    - dashboard:compact_campaign_pins_only
+  backend_service_groups:
+    - intel_service_group_bgs_powerplay_facts
+    - operations_service_group_campaign_workflows
+    - navigation_service_group_campaign_circuits
+    - squadrons_service_group_coordination_if_active
+    - source_router
+    - external_request_queue
+    - provenance_registry
+    - activity_log_service_extensions
+  frontend_backend_bridge_goal: >
+    Prove multi-route strategic workflows: Intel explains what is known,
+    Operations explains what campaign is active, Navigation explains where to
+    move, Squadrons explains who is coordinating, and Activity Log proves it.
+  source_dependencies:
+    - EliteBGS_for_BGS_faction_influence_state_history_tick_candidate_data
+    - EDSM_for_secondary_faction_system_context_where_supported
+    - local_journal_for_commander_observed_mission_faction_effects_where_exposed
+    - commander_entered_objectives
+  compliance_gates:
+    - community_data_not_official_final_truth
+    - no_hidden_BGS_or_powerplay_mechanic_invention
+    - recommendations_sourced_and_caveated
+    - outbound_tally_export_actions_consent_and_gate_review
+  recommended_phase_guide_chunks:
+    - bgs_powerplay_source_capability_review
+    - intel_bgs_powerplay_fact_model_and_freshness_labels
+    - EliteBGS_EDSM_local_journal_routing_where_permitted
+    - operations_campaign_package
+    - navigation_campaign_circuit_support
+    - squadron_shared_campaign_support_where_enabled
+    - recommendation_debrief_model_with_explainability
+    - activity_log_proof_source_chain_hardening
+    - phase_9_integration_gate
+  completion_definition:
+    - bgs_powerplay_facts_live_in_intel
+    - campaign_workflows_live_in_operations
+    - campaign_movement_lives_in_navigation
+    - group_coordination_lives_in_squadrons_where_relevant
+    - recommendations_are_explainable_caveated_and_source_backed
+    - stale_unknown_unsupported_data_is_visible
+    - activity_log_proves_source_workflow_recommendation_decision_chains
+    - no_bgs_or_powerplay_primary_route_created
+    - verification_gates_pass
+  must_not_duplicate:
+    - bgs_route
+    - powerplay_route
+    - campaign_facts_inside_operations_without_intel_reference
+    - route_circuits_inside_operations_without_navigation_reference
+  unlocks:
+    - strategic_campaign_intelligence
+    - squadron_aware_group_operations
+
+PHASE:
+  id: phase_10
+  name: Completion, Release Hardening, Documentation, and v1.0 Readiness
+  status: planned
+  primary_pillar: cross_cutting_completion
+  purpose: >
+    Convert a feature-complete pre-v1.0 project into a coherent, stable,
+    trustworthy, documented, packaged, and releasable application.
+  phase_type: completion_not_feature_expansion
+  primary_ui_routes:
+    - all_active_routes
+  backend_service_groups:
+    - all_active_backend_services
+  frontend_backend_bridge_goal: >
+    Test the application as a commander uses it end-to-end: setup, telemetry,
+    Dashboard, Intel, Navigation, Operations, Activity Log, Settings, About,
+    missing sources, NullProvider/no-AI, provider failures, restart, packaging.
+  source_dependencies:
+    - no_new_provider_claims
+    - verify_existing_claims_against_source_capability
+  compliance_gates:
+    - full_compliance_privacy_security_audit
+    - external_flows_opt_in_logged_source_budgeted
+    - secrets_redacted_and_vaulted
+    - no_telemetry_to_maintainers
+    - no_core_external_dependency
+  recommended_phase_guide_chunks:
+    - scope_freeze_and_release_definition
+    - full_authority_document_drift_audit
+    - cross_route_ownership_audit
+    - backend_service_and_source_routing_audit
+    - compliance_privacy_security_audit
+    - accessibility_and_safe_rendering_audit
+    - performance_and_resource_budget_audit
+    - full_user_flow_testing
+    - documentation_updates
+    - index_update_last
+    - packaging_release_candidate
+    - public_readiness_decision
+  completion_definition:
+    - v1_0_feature_scope_frozen
+    - all_route_ownership_audits_pass
+    - all_backend_ownership_audits_pass
+    - source_capability_and_compliance_posture_reconciled
+    - README_SECURITY_CONTRIBUTING_CLA_references_current
+    - phase_guides_and_playbooks_reconciled_or_archived
+    - index_updated_last
+    - safe_rendering_and_accessibility_checks_pass
+    - security_privacy_checks_pass
+    - nullprovider_no_ai_mode_works
+    - no_critical_external_dependency_required_for_core_functionality
+    - release_notes_and_public_docs_ready
+    - packaging_release_candidate_passes_verification
+    - commander_decides_v1_beta_or_not_ready_based_on_evidence
+  must_not_duplicate:
+    - new_feature_scope_expansion
+    - late_new_primary_routes
+    - unverified_new_provider_claims
+    - documentation_index_before_docs_are_stable
+  unlocks:
+    - v1_0_release_or_public_beta_or_evidence_based_not_ready_decision
+
+================================================================================
+J. FRONTEND/BACKEND BRIDGE REGISTRY
+================================================================================
+
+BRIDGE_REQUIREMENT:
+  id: bridge_universal_feature_reality
+  applies_to: all_phases
+  frontend_need:
+    - primary_surface
+    - secondary_surfaces
+    - suppressed_surfaces
+    - density_level
+    - source_provenance_display
+    - link_to_activity_log
+  backend_need:
+    - service_owner
+    - state_or_workflow_owner
+    - event_or_snapshot_output
+    - bridge_or_ws_delivery_path
+    - activity_log_write
+  source_need:
+    - local_first_evaluation
+    - allowed_sources_per_source_capability
+    - fallback_wording
+    - cache_batch_queue_plan_for_external_facts
+  activity_log_need:
+    - meaningful_event_records
+    - source_chain_records_where_applicable
+    - blocked_unsupported_stale_records
+  confirmation_gate_need:
+    - required_for_protected_actions
+    - not_required_for_passive_view_only_data
+  success_condition:
+    - feature_is_visible_in_correct_route
+    - backend_truth_feeds_surface
+    - source_status_is_honest
+    - proof_is_available
+    - no_duplicate_owner_created
+
+BRIDGE_REQUIREMENT:
+  id: operations_workflow_bridge
+  applies_to: [phase_4, phase_6, phase_8, phase_9]
+  frontend_need:
+    - operations_workspace_for_active_goal
+    - linked_intel_summary_not_full_fact_view
+    - linked_navigation_summary_not_full_route_view
+    - blockers_unknowns_next_actions
+    - debrief
+  backend_need:
+    - operation_object
+    - workflow_state
+    - workflow_recommendations
+    - linked_intel_refs
+    - linked_route_refs
+    - activity_log_refs
+  source_need:
+    - WorkflowSourcePlan_before_external_request
+    - AI_draft_not_fact
+  success_condition:
+    - operations_drives_session_without_owning_facts_or_routes
+
+BRIDGE_REQUIREMENT:
+  id: intel_fact_bridge
+  applies_to: [phase_5, phase_6, phase_8, phase_9]
+  frontend_need:
+    - source_backed_fact_surface
+    - source_chip
+    - freshness_label
+    - truth_class_or_caveat_visible
+    - view_activity_link
+  backend_need:
+    - KnownFact
+    - EntityRef
+    - FieldProvenance
+    - IntelSnapshot
+    - provenance_registry
+  source_need:
+    - provider_allowed_for_field
+    - fallback_wording_if_unknown
+  success_condition:
+    - every_displayed_fact_can_answer_how_do_we_know
+
+BRIDGE_REQUIREMENT:
+  id: navigation_movement_bridge
+  applies_to: [phase_5, phase_6, phase_8, phase_9]
+  frontend_need:
+    - active_route
+    - planner_or_candidate_review
+    - route_library_or_bookmark_when_needed
+    - route_source_status
+  backend_need:
+    - ActiveRouteState
+    - RouteIntent
+    - RouteCandidate
+    - RouteJob
+    - SavedRoute_or_Bookmark_where_needed
+  source_need:
+    - NavRoute_json_proof_when_present
+    - Spansh_link_out_current_pattern
+    - Spansh_API_only_after_terms_rate_endpoint_verification
+  confirmation_gate_need:
+    - required_for_route_activation_or_game_affecting_action
+  success_condition:
+    - movement_workflow_is_commander_triggered_and_source_labeled
+
+BRIDGE_REQUIREMENT:
+  id: dashboard_overlay_summary_bridge
+  applies_to: all_phases
+  frontend_need:
+    - compact_summary_only
+    - route_link_to_owner
+    - overlay_for_urgent_interruptions_only
+    - no_duplicate_workspace
+  backend_need:
+    - projection_from_owning_services
+    - event_subscription
+    - source_and_freshness_in_payload_when_source_bearing
+  source_need:
+    - do_not_present_cached_or_external_data_as_live
+  success_condition:
+    - dashboard_overlay_help_without_stealing_route_ownership
+
+BRIDGE_REQUIREMENT:
+  id: settings_source_privacy_bridge
+  applies_to: [phase_5, phase_6, phase_7, phase_8, phase_9, phase_10]
+  frontend_need:
+    - settings_sources_data_flow
+    - privacy_data_controls
+    - source_health_badges
+    - diagnostics
+  backend_need:
+    - source_registry_state
+    - vault_integration
+    - consent_auth_state
+    - diagnostics_health
+  source_need:
+    - no_external_request_without_enabled_consent_auth_when_required
+  success_condition:
+    - commander_can_understand_and_control_outbound_data
+
+================================================================================
+K. PHASE-GATE REGISTRY
+================================================================================
+
+ROADMAP_GATE:
+  id: gate_authority_reconciliation
+  applies_to_phase: all_phases
+  requirement: phase_scope_checked_against_master_UI_backend_source_compliance
+  pass_condition: alignment_note_exists_and_no_unresolved_higher_authority_conflict
+  fail_condition: phase_guide_or_playbook_contains_unreconciled_route_backend_source_or_compliance_drift
+
+ROADMAP_GATE:
+  id: gate_no_completed_baseline_recreation
+  applies_to_phase: all_phases
+  requirement: phase_does_not_recreate_phase_1_to_phase_3_or_phase_2_5_baseline
+  pass_condition: no_duplicate_StateManager_dispatcher_broadcaster_bridge_activity_log_gate_vault_AIProvider_or_shield_intelligence
+  fail_condition: new_parallel_baseline_system_or_reintroduced_deferred_item
+
+ROADMAP_GATE:
+  id: gate_route_ownership
+  applies_to_phase: all_phases
+  requirement: every_feature_has_correct_primary_secondary_suppressed_surfaces
+  pass_condition: feature_containment_matches_UI_blueprint
+  fail_condition: route_sprawl_or_nonowning_route_duplicates_full_owner_surface
+
+ROADMAP_GATE:
+  id: gate_backend_ownership
+  applies_to_phase: all_phases
+  requirement: every_feature_has_existing_or_authorized_backend_service_owner
+  pass_condition: backend_extension_uses_backend_blueprint_owner_or_forward_declared_service
+  fail_condition: pillar_named_parallel_state_or_bridge_or_cache_or_unowned_workflow
+
+ROADMAP_GATE:
+  id: gate_source_provenance
+  applies_to_phase: all_source_bearing_phases
+  requirement: every_fact_has_source_freshness_truth_class_caveat_or_fallback
+  pass_condition: field_level_provenance_available_or_fact_labeled_unknown_unsupported
+  fail_condition: source_overclaim_AI_fact_or_unproven_provider_capability
+
+ROADMAP_GATE:
+  id: gate_activity_log
+  applies_to_phase: all_phases
+  requirement: meaningful_mutations_external_requests_gate_decisions_settings_changes_and_workflows_are_auditable
+  pass_condition: Activity_Log_records_are_defined_and_visible
+  fail_condition: silent_action_or_untraceable_source_chain
+
+ROADMAP_GATE:
+  id: gate_confirmation_gate
+  applies_to_phase: all_phases
+  requirement: protected_actions_are_commander_requested_scoped_confirmed_auditable_safe
+  pass_condition: no_AI_voice_slash_route_or_backend_path_bypasses_gate
+  fail_condition: automatic_game_action_unconfirmed_route_activation_or_input_assist
+
+ROADMAP_GATE:
+  id: gate_nullprovider
+  applies_to_phase: all_phases
+  requirement: core_feature_remains_useful_with_AI_off
+  pass_condition: NullProvider_mode_preserves_core_workflow_or_degrades_gracefully
+  fail_condition: feature_requires_LLM_for_basic_operation
+
+ROADMAP_GATE:
+  id: gate_privacy_security_compliance
+  applies_to_phase: all_phases
+  requirement: outbound_data_opt_in_secrets_vaulted_logs_redacted_terms_respected
+  pass_condition: compliance_and_privacy_review_clear_or_blockers_documented
+  fail_condition: silent_outbound_data_secret_leak_terms_violation_or_unapproved_integration
+
+ROADMAP_GATE:
+  id: gate_accessibility_safe_rendering
+  applies_to_phase: all_UI_touching_phases
+  requirement: UI_changes_follow_accessibility_and_ADR_0003_safe_rendering
+  pass_condition: keyboard_screenreader_focus_reduced_motion_and_safe_DOM_checks_pass_as_relevant
+  fail_condition: unsafe_dynamic_innerHTML_or_accessibility_regression
+
+ROADMAP_GATE:
+  id: gate_performance_reliability
+  applies_to_phase: all_phases
+  requirement: no_hot_path_blocking_no_runaway_queues_no_focus_theft_no_unbounded_external_calls
+  pass_condition: performance_and_resource_checks_pass_as_relevant
+  fail_condition: event_loop_blocking_reconnect_loop_unbounded_request_pattern_or_overlay_focus_theft
+
+ROADMAP_GATE:
+  id: gate_documentation
+  applies_to_phase: all_phases
+  requirement: phase_docs_release_notes_and_drift_records_updated_appropriately
+  pass_condition: docs_updated_or_intentionally_deferred_with_reason
+  fail_condition: implementation_reality_diverges_without_doc_record
+
+ROADMAP_GATE:
+  id: gate_phase_closeout
+  applies_to_phase: all_phases
+  requirement: phase_is_integrated_source_backed_auditable_correctly_routed_compliance_safe_understandable
+  pass_condition: phase_acceptance_criteria_met_and_commander_can_mark_integrated_baseline
+  fail_condition: code_exists_but_cross_route_backend_source_or_trust_behavior_not_integrated
+
+ROADMAP_GATE:
+  id: gate_index_last
+  applies_to_phase: phase_10_and_documentation_reconciliation
+  requirement: Index_v2_0_active_router_after_authority_doc_revisions
+  pass_condition: Index_updated_after_Master_UI_Backend_Source_Compliance_Roadmap_support_docs_phase_guides_stable
+  fail_condition: Index_used_as_authority_or_updated_before_owning_authority_changes_are_stable
+
+================================================================================
+L. ROUTE ACTIVATION MATRIX
+================================================================================
+
+ROUTE_ACTIVATION:
+  route: dashboard
+  status: active_baseline
+  phases_used: [phase_4, phase_5, phase_6, phase_7, phase_8, phase_9, phase_10]
+  allowed_phase_role: compact_live_summary_pins_status_links
+  forbidden_phase_role: workflow_board_fact_database_route_planner_audit_console_settings_panel
+
+ROUTE_ACTIVATION:
+  route: intel
+  status: active_baseline_matures_phase_5
+  phases_used: [phase_5, phase_6, phase_8, phase_9, phase_10]
+  allowed_phase_role: known_information_console_source_backed_facts
+  forbidden_phase_role: route_planning_active_workflow_execution_settings_audit_detail
+
+ROUTE_ACTIVATION:
+  route: navigation
+  status: active_baseline_matures_phase_5
+  phases_used: [phase_5, phase_6, phase_8, phase_9, phase_10]
+  allowed_phase_role: route_and_movement_console
+  forbidden_phase_role: raw_fact_authority_active_workflow_board_settings_audit_detail
+
+ROUTE_ACTIVATION:
+  route: operations
+  status: active_baseline_first_major_package_phase_4
+  phases_used: [phase_4, phase_5, phase_6, phase_8, phase_9, phase_10]
+  allowed_phase_role: active_intent_goals_workflows_blockers_next_actions_debriefs
+  forbidden_phase_role: known_fact_owner_route_planner_bookmark_manager_audit_console_settings_panel
+
+ROUTE_ACTIVATION:
+  route: activity_log
+  status: active_baseline_extends_every_phase
+  phases_used: [all_phases]
+  allowed_phase_role: proof_source_chains_external_requests_gate_records_event_history
+  forbidden_phase_role: workflow_execution_fact_authoring_route_planning_settings
+
+ROUTE_ACTIVATION:
+  route: settings
+  status: active_baseline_extends_every_phase
+  phases_used: [all_phases]
+  allowed_phase_role: preferences_permissions_privacy_sources_AI_voice_overlay_diagnostics_import_export_defaults
+  forbidden_phase_role: facts_routes_workflows_audit_history_project_identity
+
+ROUTE_ACTIVATION:
+  route: about
+  status: active_baseline_extends_as_docs_mature
+  phases_used: [phase_10]
+  allowed_phase_role: project_reference_links_license_security_contributing_CLA_SBOM_acknowledgments_reporting
+  forbidden_phase_role: privacy_controls_source_setup_AI_config_voice_setup_full_legal_docs_activity_log_diagnostics
+
+ROUTE_ACTIVATION:
+  route: squadrons
+  status: activates_phase_7
+  phases_used: [phase_7, phase_9, phase_10]
+  allowed_phase_role: group_coordination_secure_sharing_roles_shared_operations_routes_bookmarks
+  forbidden_phase_role: raw_fact_owner_route_owner_workflow_owner_settings_owner_audit_owner
+
+ROUTE_ACTIVATION:
+  route: engineering
+  status: activates_phase_8
+  phases_used: [phase_8, phase_10]
+  allowed_phase_role: progression_planning_material_gaps_blueprints_unlocks_build_readiness
+  forbidden_phase_role: raw_fact_owner_route_planner_active_operations_board_current_telemetry_truth
+
+ROUTE_ACTIVATION:
+  route: carriers
+  status: reserved_future_route
+  activation_trigger:
+    - fleet_carrier_full_command_center_scope_begins
+    - carrier_ownership_tritium_market_storage_jump_logistics_services_colonization_support_overloads_operations
+  phases_used: [reserved]
+  allowed_phase_role_until_activation: operations_carrier_logistics_plus_intel_personal_fleet_carrier_summary
+  forbidden_phase_role: premature_primary_route
+
+PRIMARY_ROUTE_FORBIDDEN:
+  - combat
+  - exploration
+  - exobiology
+  - trade
+  - mining
+  - passenger
+  - missions
+  - bgs
+  - powerplay
+  - legal
+  - credits
+  - sbom
+  - security
+  - performance
+  - release
+  - polish
+
+================================================================================
+M. BACKEND ACTIVATION MATRIX
+================================================================================
+
+BACKEND_ACTIVATION:
+  service_group: operations_service_group
+  active_from: phase_4
+  primary_phase_roles:
+    phase_4: combat_workflow_package
+    phase_5: exploration_exobiology_active_objectives
+    phase_6: trade_mining_carrier_logistics_colonization_objectives
+    phase_8: active_engineering_task_handoff
+    phase_9: bgs_powerplay_campaign_objectives
+  rule: operations_owns_active_workflows_not_facts_or_routes
+
+BACKEND_ACTIVATION:
+  service_group: intel_service_group
+  active_from: phase_5
+  primary_phase_roles:
+    phase_5: galaxy_system_local_ship_personal_fact_surfaces
+    phase_6: market_station_service_commodity_facts
+    phase_8: material_inventory_loadout_personal_facts
+    phase_9: bgs_powerplay_facts
+  rule: every_fact_has_provenance_or_fallback
+
+BACKEND_ACTIVATION:
+  service_group: navigation_service_group
+  active_from: phase_5
+  primary_phase_roles:
+    phase_5: active_route_planner_library_bookmarks_route_sources
+    phase_6: trade_mining_hauling_carrier_route_candidates
+    phase_8: engineering_material_acquisition_routes
+    phase_9: campaign_circuits
+  rule: navigation_owns_movement_not_facts_or_operations
+
+BACKEND_ACTIVATION:
+  service_group: source_registry_router_queue_cache_provenance
+  active_from: phase_5
+  primary_phase_roles:
+    phase_5: foundation
+    phase_6: market_candidate_workflows
+    phase_8: engineering_inventory_build_import_context
+    phase_9: BGS_powerplay_source_workflows
+  rule: WorkflowSourcePlan_required_before_ExternalRequestBundle
+
+BACKEND_ACTIVATION:
+  service_group: squadrons_service_group
+  active_from: phase_7
+  primary_phase_roles:
+    phase_7: sharing_coordination
+    phase_9: campaign_coordination_support
+  rule: sharing_is_consent_scoped_revocable_auditable
+
+BACKEND_ACTIVATION:
+  service_group: engineering_service_group
+  active_from: phase_8
+  primary_phase_roles:
+    phase_8: persistent_progression_plans_material_gaps_build_readiness
+  rule: engineering_owns_plans_not_raw_facts_or_routes
+
+BACKEND_ACTIVATION:
+  service_group: carriers_service_group
+  active_from: reserved
+  activation_trigger: fleet_carrier_full_command_center_scope
+  rule: carrier_logistics_stays_operations_until_route_promotion_trigger_passes
+
+BACKEND_ALWAYS_EXISTING:
+  - state_manager
+  - dispatcher
+  - broadcaster
+  - activity_log_service
+  - confirmation_gate
+  - api_bridge
+  - websocket_event_stream
+  - vault
+  - resource_monitor
+  - ai_provider_factory
+  - nullprovider
+  - knowledge_base_loader
+
+BACKEND_DUPLICATE_FORBIDDEN:
+  - CombatStateManager
+  - ExplorationStateManager
+  - TradeStateManager
+  - BGSStateManager
+  - second_bridge
+  - second_activity_log
+  - second_confirmation_gate
+  - second_source_router_parallel_to_backend_blueprint
+
+================================================================================
+N. SOURCE / COMPLIANCE ACTIVATION MATRIX
+================================================================================
+
+SOURCE_PHASE_USE:
+  phase: phase_4
+  primary_sources:
+    - local_journal
+    - status_json
+    - omnicovas_state_cache
+  external_source_posture: conservative_verified_only
+  source_hard_stops:
+    - no_known_ganker_claim_without_verified_source
+    - no_external_api_live_combat_truth
+    - no_game_action_automation
+
+SOURCE_PHASE_USE:
+  phase: phase_5
+  primary_sources:
+    - local_journal
+    - status_json
+    - companion_json_files
+    - NavRoute_json
+    - EDSM_where_supported
+    - EDAstro_where_supported
+    - Spansh_link_out
+    - CAPI_if_enabled_for_authenticated_commander_facts
+  external_source_posture: source_infrastructure_foundation
+  source_hard_stops:
+    - Spansh_API_requires_endpoint_rate_terms_verification
+    - CAPI_not_public_galaxy_lookup
+    - EDSM_not_route_engine_by_itself
+
+SOURCE_PHASE_USE:
+  phase: phase_6
+  primary_sources:
+    - local_market_outfitting_shipyard_cargo_json
+    - local_journal
+    - Ardent_where_supported
+    - EDSM_where_supported
+    - CAPI_if_enabled
+  external_source_posture: economic_candidate_review_with_strict_caveats
+  source_hard_stops:
+    - mining_hotspot_complete_direct_source_absent
+    - no_best_hotspot_near_me_claim
+    - Inara_not_universal_lookup_API
+    - EDDN_relay_not_query_database
+
+SOURCE_PHASE_USE:
+  phase: phase_7
+  primary_sources:
+    - local_commander_data
+    - commander_entered_sharing_scope
+    - future_peer_or_relay_only_after_review
+  external_source_posture: privacy_security_first
+  source_hard_stops:
+    - no_silent_outbound_sharing
+    - no_unapproved_relay_or_cloud_dependency
+    - consent_revocation_required
+
+SOURCE_PHASE_USE:
+  phase: phase_8
+  primary_sources:
+    - local_journal
+    - local_loadout_modulesinfo
+    - CAPI_if_material_fields_verified_enabled_consented
+    - commander_entered_goals
+    - EDSY_Coriolis_format_interop_after_verification
+  external_source_posture: current_truth_vs_planned_build_separation
+  source_hard_stops:
+    - EDSY_Coriolis_not_telemetry_truth
+    - no_invented_material_inventory
+
+SOURCE_PHASE_USE:
+  phase: phase_9
+  primary_sources:
+    - EliteBGS
+    - EDSM_where_supported
+    - local_journal_observed_effects
+    - commander_entered_objectives
+  external_source_posture: community_data_caveated
+  source_hard_stops:
+    - community_data_not_official_final_truth
+    - no_hidden_BGS_mechanics_as_fact
+    - no_uncaveated_campaign_recommendations
+
+SOURCE_PHASE_USE:
+  phase: phase_10
+  primary_sources:
+    - existing_enabled_sources_only
+  external_source_posture: verification_not_expansion
+  source_hard_stops:
+    - no_new_provider_claims
+    - no_unreconciled_source_or_compliance_drift
+
+================================================================================
+O. AI / NULLPROVIDER / VOICE DOCTRINE REGISTRY
+================================================================================
+
+AI_DOCTRINE:
+  applies_to: all_phases
+  provider_agnostic: true
+  nullprovider_required: true
+  ai_off_core_functionality_required: true
+  ai_may:
+    - classify_commander_intent
+    - summarize_source_backed_facts
+    - explain_known_caveats
+    - compare_source_backed_candidates
+    - draft_workflow_source_plans
+    - draft_recommendations
+    - draft_debriefs
+  ai_must_not:
+    - create_facts
+    - call_external_APIs_directly
+    - bypass_source_router
+    - bypass_confirmation_gate
+    - perform_game_actions
+    - hide_uncertainty
+    - replace_provenance
+    - require_specific_provider_for_core_feature
+
+VOICE_INPUT_DOCTRINE:
+  applies_to: all_phases
+  native_first_voice_direction: true
+  eddi_current_scope: cut
+  voiceattack_optional_adapter_only: true
+  voiceattack_required: false
+  voiceattack_brain: false
+  omnicovas_brain: true
+  commander_confirmed_input_assist:
+    status: future_compliance_gated
+    rules:
+      - commander_requested
+      - scoped
+      - confirmed
+      - auditable
+      - safe
+      - no_unattended_automation
+      - no_botting
+      - no_direct_AI_in_game_action
+
+NULLPROVIDER_PHASE_REQUIREMENT:
+  phase_4: combat_workflows_remain_deterministic_or_source_backed_without_AI_explanations
+  phase_5: intel_navigation_source_infrastructure_works_without_AI
+  phase_6: trade_mining_candidates_work_without_AI_summaries
+  phase_7: sharing_permissions_and_group_state_work_without_AI
+  phase_8: material_gap_plans_have_non_AI_core_logic
+  phase_9: campaign_facts_and_caveats_visible_without_AI_synthesis
+  phase_10: full_app_no_AI_smoke_test_required
+
+================================================================================
+P. ACTIVITY LOG AND CONFIRMATION GATE REQUIREMENTS
+================================================================================
+
+ACTIVITY_LOG_REQUIRED_FOR:
+  all_phases:
+    - state_mutations_with_commander_relevance
+    - external_request_queued
+    - external_response_received
+    - external_request_blocked
+    - source_rate_limited
+    - cache_hit_or_stale_use_where_commander_relevant
+    - source_chain_resolution
+    - workflow_started
+    - workflow_step_changed
+    - workflow_blocker_recorded
+    - recommendation_proposed
+    - recommendation_accepted_or_rejected
+    - confirmation_gate_proposed
+    - confirmation_gate_confirmed_cancelled_blocked
+    - settings_changed
+    - privacy_consent_granted_revoked
+    - export_delete_actions
+    - diagnostics_health_warnings
+    - unsupported_unknown_stale_records_when_displayed
+
+CONFIRMATION_GATE_REQUIRED_FOR:
+  protected_actions:
+    - route_activation_or_game_affecting_route_actions
+    - source_submission_or_outbound_data_flow
+    - privacy_sensitive_sharing
+    - deletion_or_export_actions
+    - any_input_assist_or_voiceattack_adapter_action
+    - high_impact_settings_reset
+    - external_account_or_token_changes_where_risky
+    - squadron_emergency_or_role_authority_changes
+  not_required_for:
+    - passive_display_of_local_telemetry
+    - passive_display_of_already_cached_non_sensitive_facts
+    - purely_local_read_only_route_navigation_inside_UI
+
+================================================================================
+Q. DOCUMENTATION SEQUENCING REGISTRY
+================================================================================
+
+DOCUMENTATION_SEQUENCE:
+  current_task_family: post_master_v5_authority_family_reconciliation
+  index_policy: update_last
+  recommended_order:
+    1: master_blueprint_v5_0_human_ai
+    2: ui_blueprint_v1_0_human_ai
+    3: backend_blueprint_v1_0_human_ai
+    4: source_capability_routing_reference_v1_normalization
+    5: compliance_matrix_review_for_voice_source_drift
+    6: development_roadmap_v1_0_human_ai
+    7: phase_4_development_guide_revision
+    8: README_update
+    9: SECURITY_update
+    10: CONTRIBUTING_update
+    11: CLA_reference_review
+    12: ADR_numbering_reconciliation
+    13: index_update_last
+
+DOCUMENTATION_UPDATE_RULE:
+  when_reality_changes:
+    - confirm_against_authority
+    - update_owning_document
+    - update_derived_roadmap_or_phase_guide
+    - update_support_docs
+    - update_index_last
+
+================================================================================
+R. DRIFT AND RECONCILIATION REGISTRY
+================================================================================
+
+DRIFT_ITEM:
+  id: old_roadmap_v4_1_outdated_status
+  source: OmniCOVAS_Roadmap_v4_1.txt
+  issue: old_roadmap_marks_phase_2_active_and_phase_3_planned
+  v1_resolution: roadmap_v1_starts_at_phase_4_and_treats_phase_1_2_2_5_3_as_complete_integrated_baselines
+  delegated_to: development_roadmap_v1_0_and_future_index_update
+  future_action: archive_or_mark_v4_1_superseded_after_adoption
+
+DRIFT_ITEM:
+  id: eddi_voice_dependency_drift
+  source: old_master_roadmap_readme_support_docs
+  issue: older_docs_reference_EDDI_as_voice_requirement_or_integration_path
+  v1_resolution: native_first_voice_direction_EDDI_cut_from_current_UI_scope_VoiceAttack_optional_adapter_only
+  delegated_to: master_v5_UI_v1_backend_v1_roadmap_v1
+  future_action: update_README_SECURITY_CONTRIBUTING_Compliance_Matrix_as_needed
+
+DRIFT_ITEM:
+  id: phase_4_guide_predates_ui_backend_v1
+  source: docs/internal/dev-guides/OmniCOVAS_Phase4_Development_Guide.txt_or_package
+  issue: guide_language_uses_combat_dashboard_cards_PvP_Gank_Database_and_ADR_0003_collision
+  v1_resolution: phase_4_must_use_operations_combat_PvP_Encounter_Log_Risk_Intel_and_new_ADR_number
+  delegated_to: revised_phase_4_development_guide
+  future_action: revise_before_phase_4_playbooks
+
+DRIFT_ITEM:
+  id: source_capability_title_status_drift
+  source: OmniCOVAS_Source_Capability_Routing_Reference_v1.txt
+  issue: filename_says_v1_body_may_say_v0_6_candidate
+  v1_resolution: roadmap_cites_filename_authority_but_flags_normalization
+  delegated_to: source_capability_document_update
+  future_action: normalize_status_title_version
+
+DRIFT_ITEM:
+  id: compliance_matrix_voice_source_review
+  source: OmniCOVAS_Compliance_Matrix_v4_1.txt
+  issue: may_contain_old_EDDI_VoiceAttack_or_provider_language
+  v1_resolution: roadmap_flags_review_not_rewrite
+  delegated_to: compliance_matrix_future_revision
+  future_action: review_after_source_and_voice_authority_stabilizes
+
+DRIFT_ITEM:
+  id: root_docs_legacy_references
+  source: README_SECURITY_CONTRIBUTING_CLA
+  issue: root_docs_reference_old_master_roadmap_voice_status_or_paths
+  v1_resolution: roadmap_phase_10_and_open_items_require_updates
+  delegated_to: root_doc_sweep
+  future_action: update_before_index_finalization
+
+DRIFT_ITEM:
+  id: index_v2_0_adopted_as_router
+  source: OmniCOVAS_Index.md
+  issue: Index_still_maps_old_authority_family
+  v1_resolution: hold_index_until_other_relevant_files_updated_or_revised
+  delegated_to: final_index_update
+  future_action: update_last
+
+DRIFT_ITEM:
+  id: phase_2_5_deferred_work_collision
+  source: old_roadmap_old_master_phase_2_5_references
+  issue: completed_phase_items_may_look_like_backlog
+  v1_resolution: completed_phases_are_baseline; shield_intelligence_lives_under_hull_shields_safety_model
+  delegated_to: roadmap_and_future_phase_guides
+  future_action: audit_old_playbooks_before_execution
+
+================================================================================
+S. FORBIDDEN PATTERNS
+================================================================================
+
+FORBIDDEN_PATTERN:
+  name: create_primary_combat_route
+  reason: Combat belongs under Operations -> Combat, with summaries elsewhere.
+  authority: UI_Blueprint_v1_0
+  action: place_active_combat_workflow_in_operations
+
+FORBIDDEN_PATTERN:
+  name: recreate_shield_intelligence
+  reason: Shield Intelligence is already integrated under Hull/Shields safety model.
+  authority: completed_baseline_lock
+  action: reference_existing_hull_shields_model
+
+FORBIDDEN_PATTERN:
+  name: operations_owns_facts
+  reason: Intel owns known facts; Operations owns active workflows.
+  authority: UI_Blueprint_v1_0_and_Backend_Blueprint_v1_0
+  action: link_operations_to_intel_fact_refs
+
+FORBIDDEN_PATTERN:
+  name: operations_owns_routes
+  reason: Navigation owns routes and movement.
+  authority: UI_Blueprint_v1_0_and_Backend_Blueprint_v1_0
+  action: link_operations_to_navigation_route_refs
+
+FORBIDDEN_PATTERN:
+  name: dashboard_becomes_workflow_board
+  reason: Dashboard is live command surface and compact summary layer only.
+  authority: UI_Blueprint_v1_0
+  action: route_workflows_to_operations
+
+FORBIDDEN_PATTERN:
+  name: duplicate_backend_baseline_service
+  reason: Core infrastructure already exists.
+  authority: Backend_Blueprint_v1_0
+  action: extend_existing_service_or_escalate
+
+FORBIDDEN_PATTERN:
+  name: AI_creates_fact
+  reason: AI is not a source of facts.
+  authority: Master_v5_Source_Capability_Backend_Blueprint
+  action: require_source_or_use_unknown_fallback
+
+FORBIDDEN_PATTERN:
+  name: AI_calls_API_directly
+  reason: External requests must go through source routing and queue contracts.
+  authority: Backend_Blueprint_v1_0_Source_Capability_Routing_Reference_v1
+  action: draft_WorkflowSourcePlan_then_backend_source_router
+
+FORBIDDEN_PATTERN:
+  name: bypass_confirmation_gate
+  reason: Protected actions require commander confirmation and audit.
+  authority: Master_v5_Backend_Blueprint
+  action: route_through_Confirmation_Gate
+
+FORBIDDEN_PATTERN:
+  name: best_hotspot_near_me
+  reason: No complete verified direct mining hotspot candidate source currently exists.
+  authority: Source_Capability_Routing_Reference_v1
+  action: use_mining_candidate_workflow_with_No_Verified_Source_or_caveated_body_ring_data
+
+FORBIDDEN_PATTERN:
+  name: known_ganker_claim_without_verified_source
+  reason: PvP risk must not overclaim unsupported external/community facts.
+  authority: Source_Capability_Routing_Reference_v1_and_Compliance_Matrix
+  action: use_PvP_Encounter_Log_and_Risk_Intel_with_source_caveats
+
+FORBIDDEN_PATTERN:
+  name: inara_universal_lookup_api
+  reason: Inara is not a universal lookup API.
+  authority: Source_Capability_Routing_Reference_v1
+  action: use_only_supported_Inara_calls_or_other_verified_sources
+
+FORBIDDEN_PATTERN:
+  name: spansh_api_without_verification
+  reason: Spansh is link-out until endpoint/rate/terms are verified.
+  authority: Source_Capability_Routing_Reference_v1
+  action: use_link_out_or_verify_before_API_design
+
+FORBIDDEN_PATTERN:
+  name: hard_coded_localhost_port
+  reason: Bridge uses dynamic port discovery.
+  authority: Backend_Blueprint_v1_0_Phase_3_baseline
+  action: use_bridge_ready_httpBase_or_event_discovery_pattern
+
+FORBIDDEN_PATTERN:
+  name: unsafe_dynamic_innerHTML
+  reason: ADR 0003 safe rendering forbids raw non-literal dynamic HTML.
+  authority: ADR_0003_UI_Safe_Rendering
+  action: use_createElement_textContent_or_approved_safe_DOM_helper
+
+FORBIDDEN_PATTERN:
+  name: update_index_mid_reconciliation
+  reason: Index should be final router after documents stabilize.
+  authority: Commander_instruction_and_documentation_sequence
+  action: use_Index_v2_0_as_router_and_update_after_future_authority_changes
+
+================================================================================
+T. PHASE-GUIDE GENERATION SCHEMA
+================================================================================
+
+PHASE_GUIDE_SCHEMA:
+  required_front_matter:
+    - phase_id
+    - phase_name
+    - status
+    - authority_documents_used
+    - supersedes_or_revises
+    - completed_baseline_locks_checked
+    - source_compliance_review_required
+  required_sections:
+    1: phase_identity
+    2: authority_alignment
+    3: completed_baseline_do_not_duplicate
+    4: UI_route_containment
+    5: backend_service_ownership
+    6: source_capability_and_compliance_gates
+    7: frontend_backend_bridge_plan
+    8: phase_chunks_or_weeks
+    9: acceptance_criteria
+    10: verification_gates
+    11: drift_items_resolved_or_deferred
+    12: playbook_generation_rules
+
+PHASE_CHUNK_SCHEMA:
+  fields:
+    - chunk_id
+    - chunk_name
+    - commander_outcome
+    - primary_UI_surface
+    - secondary_UI_surfaces
+    - suppressed_UI_surfaces
+    - backend_owner
+    - state_event_workflow_need
+    - bridge_or_event_stream_need
+    - source_facts_needed
+    - source_capability_reference
+    - fallback_wording
+    - activity_log_events
+    - confirmation_gate_requirement
+    - privacy_consent_auth_gates
+    - nullprovider_behavior
+    - accessibility_safe_rendering_concerns
+    - acceptance_criteria
+    - stop_escalation_conditions
+
+PHASE_GUIDE_NEVER:
+  - invent_new_route
+  - invent_new_provider_capability
+  - define_budget_numbers_outside_source_capability_reference
+  - include_implementation_code
+  - assign_executor_to_broad_architecture_choice
+  - use_old_phase_status_without_current_baseline_check
+  - recreate_completed_baseline_work
+
+================================================================================
+U. PLAYBOOK-READINESS CHECKLIST
+================================================================================
+
+PLAYBOOK_READY_WHEN:
+  - phase_alignment_note_exists
+  - phase_guide_is_updated_to_current_authority_family
+  - target_feature_has_primary_UI_surface
+  - secondary_and_suppressed_surfaces_are_defined
+  - backend_owner_is_identified
+  - source_facts_are_listed
+  - source_capability_support_is_verified_or_fallback_defined
+  - compliance_privacy_gates_are_identified
+  - activity_log_events_are_defined
+  - confirmation_gate_requirement_is_decided
+  - nullprovider_behavior_is_defined
+  - safe_rendering_accessibility_concerns_are_flagged_if_UI_touched
+  - target_files_can_be_named
+  - tests_or_verification_commands_can_be_named
+  - stop_conditions_are_clear
+
+PLAYBOOK_NOT_READY_IF:
+  - route_owner_unclear
+  - backend_owner_unclear
+  - source_support_unverified
+  - compliance_gate_unclear
+  - phase_scope_conflicts_with_authority
+  - completed_baseline_overlap_detected
+  - feature_requires_new_provider_or_dependency_without_review
+  - feature_requires_invented_Elite_mechanics_or_fixture_data
+  - acceptance_criteria_are_vague
+
+EXECUTOR_CONTEXT_RULE:
+  include:
+    - executor_alignment_file
+    - one_approved_playbook
+    - target_files
+    - related_tests
+    - small_authority_excerpts_or_section_refs
+  avoid:
+    - full_master_blueprint_unless_directly_needed
+    - full_compliance_matrix_unless_directly_needed
+    - full_UI_backend_source_docs_when_section_refs_suffice
+    - multiple_phase_scope_in_one_executor_run
+
+================================================================================
+V. FUTURE AI SESSION CHECKLIST
+================================================================================
+
+FUTURE_AI_SESSION_CHECKLIST:
+  before_answering_or_planning:
+    - identify_task_type
+    - confirm_whether_Index_should_be_used_for_lookup_only_not_updated
+    - identify_owning_authority_document
+    - check_phase_status
+    - check_completed_baseline_locks
+    - check_UI_route_owner
+    - check_backend_service_owner
+    - check_source_capability_need
+    - check_compliance_privacy_gate
+    - check_AI_and_confirmation_gate_boundary
+    - check_whether_user_requested_documentation_architecture_not_code
+
+  when_creating_phase_guide:
+    - start_from_this_AI_roadmap_phase_registry
+    - use_human_roadmap_for_readable_intent
+    - use_UI_AI_reference_for_route_placement
+    - use_Backend_AI_reference_for backend ownership
+    - use_Source_Capability for provider facts
+    - use_Compliance_Matrix for legal/privacy limits
+    - avoid_code
+    - produce_chunked_playbook_inputs_only_after_phase_guide_alignment
+
+  when_creating_playbook:
+    - ensure_phase_guide_exists_and_is_current
+    - keep_scope_narrow
+    - name_files_to_change
+    - name_files_not_to_change
+    - include tests_checks
+    - include stop_conditions
+    - forbid_architecture_decisions_by_executor
+
+  when_a_conflict_is_found:
+    - report_conflict
+    - obey_higher_authority
+    - do_not_smooth_over
+    - record_drift_item_if_needed
+
+  when_unsure_about_source_fact:
+    - do_not_guess
+    - consult_source_capability_reference
+    - mark_unknown_or_unsupported_if_no_verified_source
+
+================================================================================
+W. OPEN ITEMS
+================================================================================
+
+OPEN_ITEM:
+  id: adopt_roadmap_human_ai_pair
+  owner: documentation_architect
+  action: place_human_and_AI_roadmap_files_under_docs/internal/roadmaps_or_confirm_blueprints_location
+  blocking: true_for_future_phase_guide_generation
+
+OPEN_ITEM:
+  id: revise_phase_4_development_guide
+  owner: phase_4_architect
+  action: align_Phase_4_guide_to_Master_v5_UI_v1_Backend_v1_Source_Capability_and_this_Roadmap
+  blocking: true_for_phase_4_executor_playbooks
+
+OPEN_ITEM:
+  id: source_capability_status_normalization
+  owner: source_docs_maintainer
+  action: normalize_title_status_version_of_Source_Capability_Routing_Reference_v1
+  blocking: false_but_should_precede_Index_update
+
+OPEN_ITEM:
+  id: compliance_matrix_review
+  owner: compliance_docs_maintainer
+  action: review_Compliance_Matrix_for_native_first_voice_EDDI_cut_VoiceAttack_optional_and_current_provider_posture
+  blocking: before_final_public_release
+
+OPEN_ITEM:
+  id: root_docs_sweep
+  owner: public_docs_maintainer
+  action: update_README_SECURITY_CONTRIBUTING_CLA_references_after_authority_family_stabilizes
+  blocking: before_phase_10_release_readiness
+
+OPEN_ITEM:
+  id: ADR_numbering_correction
+  owner: architecture_docs_maintainer
+  action: ensure_no_new_Phase_4_ADR_reuses_0003
+  blocking: before_revised_Phase_4_guide_acceptance
+
+OPEN_ITEM:
+  id: index_update_last
+  owner: index_maintainer
+  action: update_OmniCOVAS_Index_after_all_relevant_docs_updated_or_revised
+  blocking: final_documentation_reconciliation_only
+
+END_OF_DOCUMENT

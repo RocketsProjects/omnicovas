@@ -1,0 +1,52 @@
+OmniCOVAS — CLA Review Notes v1.0
+=================================
+
+Status: REVIEW_NOTES_ONLY
+Date: 2026-05-06
+Reviewed file: CLA.md
+Recommendation: keep CLA.md legally stable unless the maintainer intentionally requests legal-term changes.
+
+Purpose
+-------
+
+This note records the documentation-architecture review of CLA.md during the v5.0 support-document reconciliation pass.
+
+The README, SECURITY.md, CONTRIBUTING.md, Source Capability Reference, roadmap, and blueprint family required current-authority updates because they contained old v4.x references, outdated voice/dependency assumptions, or stale source/status wording.
+
+CLA.md is different. It is a legal agreement. It should not be casually rewritten for style or alignment unless the maintainer intends to change the legal terms.
+
+Current CLA assessment
+----------------------
+
+The current CLA.md is self-contained and covers:
+
+1. Definitions.
+2. Copyright license grant.
+3. Patent license grant.
+4. Contributor representations.
+5. Moral rights and attribution.
+6. No warranty.
+7. No compensation.
+8. Future contributions.
+9. Acceptance.
+
+No obvious old Master Blueprint, Roadmap, EDDI, VoiceAttack, provider, phase, or Index reference was found in the CLA text.
+
+Recommended action
+------------------
+
+Keep CLA.md as-is for now.
+
+If the maintainer wants a future CLA revision, handle it as a separate legal/document-governance task and consider external legal review before changing any license grant, patent grant, relicensing language, waiver, representation, or acceptance clause.
+
+Safe non-legal updates that may be considered later
+---------------------------------------------------
+
+Only if desired, the following cosmetic additions could be made without changing legal meaning:
+
+- Add a short top note: "For contribution workflow, see CONTRIBUTING.md."
+- Add repository path metadata.
+- Add a version/date field if not already sufficient.
+- Normalize Markdown heading style.
+
+Do not change the legal substance as part of the current support-doc cleanup.

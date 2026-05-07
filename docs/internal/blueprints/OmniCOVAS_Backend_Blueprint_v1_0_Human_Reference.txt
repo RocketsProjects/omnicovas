@@ -1,6 +1,11 @@
 OmniCOVAS Backend Blueprint v1.0 — Human Reference
 ==================================================
 
+Repository Adoption Revision Note
+---------------------------------
+This file is part of the OmniCOVAS v5.0 documentation adoption package created after OmniCOVAS_Index.md v2.0 and OmniCOVAS_Index_AI_Reference.md were added as the active document routers. Any earlier wording in this file or related drafts that described the Index as deferred, stale, or awaiting final reconciliation is superseded by this adoption package. The Index remains a router only; it does not override the owning authority documents.
+
+
 Status
 ------
 Final backend authority for the current OmniCOVAS vision.
@@ -88,7 +93,7 @@ Supersedes:  no prior backend blueprint existed; this is the first.
 
 The Backend Blueprint is one of three companion authority documents along with
 the UI Blueprint and the Source Capability Routing Reference. Together they
-implement the architecture defined by the Master Blueprint and constrained by
+implement the architecture defined by Master Blueprint v5.0 and constrained by
 the Compliance Matrix.
 
 ================================================================================
@@ -201,8 +206,8 @@ own health through diagnostics rather than burying performance regressions.
 ================================================================================
 
 Layer responsibilities:
-- Master Blueprint v4.2 — laws, principles, pillars, phases, dependencies,
-  release strategy.
+- Master Blueprint v5.0 — constitutional umbrella, laws, principles, pillars, phases,
+  release philosophy, authority model, and high-level doctrine.
 - Compliance Matrix v4.1 — legal, ToS, privacy, licenses, external services,
   attributions, red flags.
 - UI Blueprint v1.0 — frontend route ownership, route layout, user-surface
@@ -227,7 +232,7 @@ Conflict handling:
 - Source Capability Routing Reference beats Backend Blueprint on which provider
   may answer which fact, at what budget, and with what fallback wording.
 - Backend Blueprint beats lower-priority documents (CLAUDE.md, CLAUDE_CODE.md,
-  Soldier.md, individual playbooks) on backend service ownership, but is bound
+  GEMINI.md, individual playbooks) on backend service ownership, but is bound
   by all higher-priority documents above.
 
 If a real conflict exists between two authorities, the conflict must be reported
@@ -1772,10 +1777,10 @@ a. Index needs Backend Blueprint entries.
    entries belong under Index Section 2.2 (internal authority docs) and Index
    Section 3 (section maps).
 
-b. Source Capability Routing Reference filename/title drift.
-   The companion file is named `OmniCOVAS_Source_Capability_Routing_Reference_v1.txt`
-   but its first lines read "v0.6 Candidate". This Backend Blueprint cites the
-   filename version. Index Section 30 already noted this as a drift item.
+b. Source Capability Routing Reference v1.0 adoption resolved.
+   `OmniCOVAS_Source_Capability_Routing_Reference_v1.txt` is now the active
+   source/provider routing reference. Prior candidate wording is superseded
+   history only.
 
 c. Phase 4 Development Guide pre-dates UI Blueprint v1.0.
    Phase 4 Dev Guide language refers to "combat dashboard cards" and to
@@ -1790,7 +1795,7 @@ d. ADR 0003 collision.
    ADR must not reuse 0003.
 
 e. Master Blueprint phase-status drift.
-   Master v4.2 Status Dashboard predates Phase 3 close-out and Phase 4 start.
+   Historical Master v4.2 status dashboard predates Phase 3 close-out and Phase 4 start; Master v5.0 now owns current phase status.
    UI Blueprint v1.0 already flagged this; Backend Blueprint repeats for
    visibility.
 
@@ -1798,8 +1803,8 @@ f. Master §13 Rate Limit Registry vs Source Capability Routing Reference Sectio
    Two places define rate posture. Recommendation: Master §13 declares the
    law-level requirement that buckets exist; Source Capability Routing Reference
    Section 6 is the source of bucket numbers. Backend Blueprint binds the
-   SourceRegistry to those numbers; future Master rewrite should point to the
-   Source Routing Reference for the table of values.
+   SourceRegistry to those numbers. Master v5.0 now keeps the law-level
+   requirement and delegates provider budgets to the Source Capability Routing Reference.
 
 g. AI provider operational state vs NullProvider law.
    The current code defaults to GeminiProvider while Master Law 4 and §7
@@ -1807,19 +1812,20 @@ g. AI provider operational state vs NullProvider law.
    the AI-off contract (Section 18). No code change in this document.
 
 h. EDDI / VoiceAttack drift.
-   Master §8 and CONTRIBUTING.md still mention EDDI as an integration. UI
-   Blueprint v1.0 cuts EDDI from current UI scope and treats VoiceAttack as
-   optional adapter only. Backend Blueprint reflects the UI Blueprint posture;
-   future Master rewrite should reconcile.
+   Resolved by the v5 documentation family. Master v5.0, UI Blueprint v1.0,
+   Roadmap v1.0, README, CONTRIBUTING, SECURITY, and the AI alignment files now
+   use the native-first voice posture: EDDI is cut from current scope and
+   VoiceAttack is optional adapter only.
 
-i. CONTRIBUTING.md and other root docs reference legacy paths.
-   `CONTRIBUTING.md` references `OmniCOVAS_Master_Blueprint_v4_0.txt` and
-   `CLAUDE.MD` (legacy uppercase). Master is now v4.2. CLAUDE.md authoritative
-   path is `docs/internal/ai-workflow/CLAUDE.md`. Root docs need a sweep.
+i. CONTRIBUTING.md and root-doc legacy path drift.
+   Resolved by the v5 support-doc rewrite. CONTRIBUTING.md now points to the
+   v5 authority family. CLAUDE.MD is the Architect / Commander Staff alignment
+   file, CLAUDE_CODE.md is the Senior Implementation Officer alignment file,
+   and GEMINI.md is the Strict Soldier alignment file. Alignment files do not
+   override authority documents.
 
 j. Phase count normalization.
-   Some older docs use the pre-revision phase order (Pillar 4 vs Pillar 7
-   sequencing). v4.2 adopted the revised order; ensure new authority docs
-   continue to use it.
+   Resolved by Master v5.0, Development Roadmap v1.0, Phase 4 Development Guide
+   v1.0, and Index v2.0. Historical documents remain historical only.
 
 End of Human Reference.

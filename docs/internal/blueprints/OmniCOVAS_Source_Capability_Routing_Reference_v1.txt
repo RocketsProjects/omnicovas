@@ -1,33 +1,79 @@
-OmniCOVAS Source Capability Routing Reference v0.6 Candidate
-================================================================
+OmniCOVAS Source Capability Routing Reference v1.0
+=================================================
 
-Status: Candidate project artifact for review
-Created: 2026-05-05
-Purpose: Provide a concise, implementation-ready, AI-readable source routing reference for OmniCOVAS.
-Supersedes: OmniCOVAS_Source_Call_Routing_Matrix_v0_5_candidate.txt as the working rewrite.
+Repository Adoption Revision Note
+---------------------------------
+This file is part of the OmniCOVAS v5.0 documentation adoption package created after OmniCOVAS_Index.md v2.0 and OmniCOVAS_Index_AI_Reference.md were added as the active document routers. Any earlier wording in this file or related drafts that described the Index as deferred, stale, or awaiting final reconciliation is superseded by this adoption package. The Index remains a router only; it does not override the owning authority documents.
 
-Authority Context
+
+Status: ACTIVE_SOURCE_ROUTING_REFERENCE_CANDIDATE_FOR_REPOSITORY_ADOPTION
+Version: 1.0
+Date: 2026-05-06
+Filename target: docs/internal/blueprints/OmniCOVAS_Source_Capability_Routing_Reference_v1.txt
+Audience: human architects, AI architect assistants, roadmap planners, phase-guide authors, playbook authors, implementation reviewers.
+
+Purpose
+-------
+
+This document is the authoritative OmniCOVAS source/provider routing reference.
+
+Use it to decide:
+
+1. Which source may answer a specific fact or workflow.
+2. Which sources must not be used for that fact or workflow.
+3. Whether consent, authentication, cache, queueing, rate budget, or fallback wording is required.
+4. Whether a workflow is unsupported until a verified source exists.
+5. What wording the UI must use when facts are missing, disabled, stale, unsupported, unverified, or unauthorized.
+
+This document is intentionally source-bound. It does not invent provider capabilities, does not treat community tools as interchangeable, and does not let AI become a source of facts.
+
+Supersedes
+----------
+
+- `OmniCOVAS_Source_Call_Routing_Matrix_v0_5_candidate.txt`
+- prior `v0.6 Candidate` title/status wording in this file
+
+Authority context
 -----------------
-This document supports the OmniCOVAS Master Blueprint and Source Capability Registry. It does not replace project laws, privacy rules, compliance review, or provider terms.
 
-Use this document to decide:
-  1. Which source should answer a specific fact or workflow.
-  2. Which sources must not be used for that fact.
-  3. Whether consent, authentication, cache, queueing, or fallback wording is required.
-  4. Whether a workflow is unsupported until a verified source exists.
+This document supports and constrains the OmniCOVAS document family:
 
-Sorting Principle
+- Master Blueprint v5.0 owns laws, principles, phase/pillar framework, high-level doctrine, and companion-document authority.
+- UI Blueprint v1.0 owns route placement, UI wording placement, feature containment, and commander-facing surfaces.
+- Backend Blueprint v1.0 owns source-routing execution, WorkflowSourcePlan handling, ExternalRequestBundle handling, cache/queue/provenance implementation, Activity Log records, and service-layer privacy enforcement.
+- Compliance Matrix v4.1 owns legal, privacy, ToS, license, attribution, and external-service compliance detail.
+- Development Roadmap v1.0 owns phase sequencing from Phase 4 through Phase 10.
+
+This document owns provider capability, source-routing rules, unsupported facts, fallback wording, request-budget posture, no-scraping posture, and source relationship boundaries.
+
+Conflict rules
+--------------
+
+- Compliance Matrix beats this document on legal, privacy, license, ToS, attribution, and external relationship obligations.
+- Master Blueprint beats this document on laws, principles, phase/pillar identity, and constitutional doctrine.
+- Backend Blueprint implements this document but does not override provider capability or fallback wording.
+- UI Blueprint displays this document's truth but does not override provider capability.
+- Session prompts, AI output, playbooks, and implementation convenience never override this document.
+
+Sorting principle
 -----------------
-The document is sorted by practical usefulness for AI and implementation work:
-  1. Highest-priority routing rules.
-  2. Exact call-type router.
-  3. Provider priority map.
-  4. Provider capability cards.
-  5. Unsupported claims and required UI wording.
-  6. External request design contract.
-  7. Contact and relationship routes.
-  8. Source anchors.
-  9. Quick reference summary.
+
+This document is sorted for practical implementation and AI use:
+
+1. Highest-priority routing rules.
+2. Exact call-type router.
+3. Provider priority map.
+4. Provider capability cards.
+5. Unsupported claims and required UI wording.
+6. External request design contract.
+7. Contact and relationship routes.
+8. Source anchors.
+9. Quick reference summary.
+
+Adoption note
+-------------
+
+The substantive provider/call-type routing content below preserves the established v0.6 Candidate routing decisions while normalizing the document as v1.0 for the v5.0 documentation family. Provider facts should only be changed after verification against provider documentation, terms, direct maintainer guidance, or a deliberately recorded source-capability audit.
 
 ================================================================================
 SECTION 1 — HIGHEST-PRIORITY ROUTING RULES
@@ -1082,10 +1128,16 @@ SECTION 9 — SOURCE ANCHORS
 ================================================================================
 
 Project anchors:
-  - OmniCOVAS_Master_Blueprint_v4_2.txt
-  - OmniCOVAS_Source_Capability_Registry_v0_1.txt
-  - OmniCOVAS_Source_Call_Routing_Matrix_v0_5_candidate.txt
-  - Pasted Source Capability Architect prompt
+  - OmniCOVAS_Master_Blueprint_v5_0_Human_Reference.txt
+  - OmniCOVAS_Master_Blueprint_v5_0_AI_Reference.txt
+  - OmniCOVAS_UI_Blueprint_v1_0_Human_Reference.txt
+  - OmniCOVAS_UI_Blueprint_v1_0_AI_Reference.txt
+  - OmniCOVAS_Backend_Blueprint_v1_0_Human_Reference.txt
+  - OmniCOVAS_Backend_Blueprint_v1_0_AI_Reference.txt
+  - OmniCOVAS_Source_Capability_Routing_Reference_v1.txt
+  - OmniCOVAS_Compliance_Matrix_v4_1.txt
+  - OmniCOVAS_Development_Roadmap_v1_0.txt
+  - OmniCOVAS_Development_Roadmap_v1_0_AI_Reference.txt
   - README.md
   - CLAUDE.MD
 

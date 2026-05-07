@@ -1,0 +1,1551 @@
+OmniCOVAS — Phase 4 Development Guide v1.0 — AI Reference
+=============================================================
+
+STATUS: CANDIDATE_PHASE4_AI_REFERENCE_FOR_REPOSITORY_ADOPTION
+DATE: 2026-05-06
+VERSION: 1.0
+COMPANION: OmniCOVAS_Phase4_Development_Guide_v1_0_Human_Reference.txt
+AUDIENCE: AI architect assistants, roadmap/guide auditors, future playbook authors, Claude Code officer handoff authors, Gemini soldier handoff authors.
+SCOPE: Phase 4 only — Tactical & Combat / First Operations Bridge.
+
+DO_NOT_USE_THIS_DOCUMENT_TO:
+  - create_implementation_code
+  - create_playbooks_before_index_reconciliation
+  - update_index
+  - override_master_v5
+  - override_compliance_matrix
+  - override_ui_blueprint_v1_0
+  - override_backend_blueprint_v1_0
+  - override_source_capability_reference_v1
+  - invent_provider_capability
+  - invent_elite_dangerous_mechanics
+  - create_combat_route
+  - recreate_completed_baseline_systems
+  - treat_ai_as_fact_source
+  - bypass_confirmation_gate
+  - reintroduce_eddi_as_current_dependency
+  - require_voiceattack
+
+INDEX
+-----
+A. Header
+B. Authority Posture
+C. Global Invariants
+D. Phase 4 Identity
+E. Completed Baseline Lock
+F. Route Ownership Registry
+G. Backend Ownership Registry
+H. Source / Provenance Registry
+I. Workstream Registry
+J. Bridge Requirement Registry
+K. Phase Gate Registry
+L. Feature Placement Registry
+M. Activity Log Registry
+N. Confirmation Gate Registry
+O. AI / Voice / Input Registry
+P. UI Safety / Accessibility / Performance Registry
+Q. Forbidden Pattern Registry
+R. Drift Resolution Registry
+S. Future Playbook Derivation Schema
+T. Recommended AI Configuration Registry
+U. Checklist for Future AI Sessions
+V. Open Items
+
+================================================================================
+B. AUTHORITY POSTURE
+================================================================================
+
+DOCUMENT_ROLE:
+  name: OmniCOVAS_Phase4_Development_Guide_v1_0_AI_Reference
+  rank: phase_guide_ai_reference
+  owns:
+    - phase_4_development_path
+    - phase_4_workstream_registry
+    - phase_4_bridge_requirements
+    - phase_4_gate_requirements
+    - phase_4_playbook_input_schema
+  does_not_own:
+    - constitutional_laws
+    - compliance_truth
+    - ui_route_authority
+    - backend_service_authority
+    - source_provider_capability
+    - detailed_implementation_tasks
+    - executor_playbooks
+    - index_reconciliation
+
+AUTHORITY_CHAIN:
+  1: commander_explicit_request
+  2: master_blueprint_v5_0_human_reference
+  3: master_blueprint_v5_0_ai_reference
+  4: compliance_matrix_v4_1
+  5: ui_blueprint_v1_0_human_reference
+  6: ui_blueprint_v1_0_ai_reference
+  7: backend_blueprint_v1_0_human_reference
+  8: backend_blueprint_v1_0_ai_reference
+  9: source_capability_routing_reference_v1
+  10: development_roadmap_v1_0_human_reference
+  11: development_roadmap_v1_0_ai_reference
+  12: phase4_development_guide_v1_0_human_reference
+  13: this_document
+  14: future_phase4_playbooks
+  15: session_messages
+
+CONFLICT_RULES:
+  master_beats_phase4_guide_on:
+    - laws
+    - principles
+    - phase_status
+    - pillars
+    - ai_doctrine
+    - voice_doctrine
+    - release_framework
+  compliance_beats_phase4_guide_on:
+    - legal
+    - frontier_tos
+    - privacy
+    - license
+    - attribution
+    - external_service_terms
+    - public_or_shared_pvp_claims
+  ui_beats_phase4_guide_on:
+    - route_ownership
+    - operations_combat_package_structure
+    - dashboard_role
+    - overlay_role
+    - settings_categories
+    - about_role
+    - feature_containment
+  backend_beats_phase4_guide_on:
+    - state_ownership
+    - event_taxonomy
+    - service_boundaries
+    - workflow_engine_contract
+    - bridge_api_contracts
+    - activity_log_contract
+    - confirmation_gate_contract
+  source_capability_beats_phase4_guide_on:
+    - provider_capability
+    - unsupported_facts
+    - fallback_wording
+    - source_request_budgets
+    - consent_auth_requirements
+    - no_scraping_rules
+  roadmap_beats_phase4_guide_on:
+    - phase_4_to_phase_10_sequence
+    - phase_4_bridge_position
+    - phase_gate_template
+  report_conflict: true
+  obey_higher_authority: true
+
+INDEX_STATUS:
+  use_as: locator_only_until_reconciled
+  update_now: false
+  playbooks_before_index_reconciliation: false
+
+================================================================================
+C. GLOBAL INVARIANTS
+================================================================================
+
+INVARIANT:
+  name: phase_4_is_operations_combat
+  value: true
+  mandate: Combat lives under Operations -> Combat.
+
+INVARIANT:
+  name: combat_primary_route
+  value: forbidden
+  mandate: Do not create a Combat primary route.
+
+INVARIANT:
+  name: completed_baselines_are_not_backlog
+  value: true
+  mandate: Phases 1, 2, 2.5, and 3 are complete/integrated baselines.
+
+INVARIANT:
+  name: shield_intelligence_recreation
+  value: forbidden
+  mandate: Shield Intelligence lives under Hull/Shields safety model; do not recreate in Phase 4.
+
+INVARIANT:
+  name: ai_fact_source
+  value: false
+  mandate: AI may draft/plan/summarize; AI must not create facts.
+
+INVARIANT:
+  name: nullprovider_required
+  value: true
+  mandate: Phase 4 must preserve useful no-AI operation.
+
+INVARIANT:
+  name: local_first
+  value: true
+  mandate: Local Journal, Status.json, companion JSON, and StateManager/cache before external providers.
+
+INVARIANT:
+  name: unknown_remains_unknown
+  value: true
+  mandate: Unsupported facts must use fallback wording.
+
+INVARIANT:
+  name: field_level_provenance_required
+  value: true
+  mandate: Meaningful displayed facts require source/timestamp/freshness/truth/caveat/activity log linkage.
+
+INVARIANT:
+  name: confirmation_gate_non_bypassable
+  value: true
+  mandate: Protected actions pass Confirmation Gate; no AI/voice/slash/adapter bypass.
+
+INVARIANT:
+  name: unattended_automation
+  value: forbidden
+  mandate: No botting, no background game action, no direct AI in-game action.
+
+INVARIANT:
+  name: eddi_current_dependency
+  value: false
+  mandate: EDDI is cut from current UI scope.
+
+INVARIANT:
+  name: voiceattack_required
+  value: false
+  mandate: VoiceAttack is optional adapter only.
+
+INVARIANT:
+  name: activity_log_proof_layer
+  value: true
+  mandate: Activity Log owns proof, source chains, gate records, external requests, and debrief grounding.
+
+INVARIANT:
+  name: adr_0003_safe_rendering_required
+  value: true
+  mandate: New UI must prefer createElement + textContent for dynamic values.
+
+================================================================================
+D. PHASE 4 IDENTITY
+================================================================================
+
+PHASE:
+  id: phase_4
+  name: Tactical & Combat / First Operations Bridge
+  status: active_roadmap_beginning_implementation_planning
+  primary_pillar: Pillar 2 Tactical & Combat
+  primary_route: operations:combat
+  new_primary_route: false
+  purpose:
+    - make_combat_useful
+    - prove_operations_workflow_model
+    - prove_frontend_backend_bridge
+    - prove_activity_log_and_confirmation_gate_in_real_domain
+    - prove_source_fallback_discipline
+  success_definition:
+    - operations_combat_workspace_exists
+    - backend_combat_capability_extends_existing_systems
+    - route_ownership_clean
+    - source_claims_honest
+    - activity_log_proof_available
+    - confirmation_gate_preserved
+    - nullprovider_mode_works
+    - overlay_sparse_and_urgent_only
+  non_goals:
+    - implementation_code_in_this_document
+    - implementation_playbooks_before_index_reconciliation
+    - combat_route
+    - broad_external_pvp_reputation_database
+    - unattended_automation
+    - voiceattack_requirement
+    - eddi_dependency
+    - duplicate_core_backend_services
+
+PACKAGE_STRUCTURE:
+  primary_surface: operations:combat
+  sections:
+    - combat_briefing_strip
+    - overview
+    - target_and_threat
+    - interdiction_escape
+    - pvp
+    - combat_zones_missions
+    - rewards_rank
+    - loadout_munitions
+    - ax
+    - odyssey_combat
+    - debrief
+    - shared_context_drawer
+    - combat_footer
+
+================================================================================
+E. COMPLETED BASELINE LOCK
+================================================================================
+
+COMPLETED_BASELINE:
+  phases: [phase_1, phase_2, phase_2_5, phase_3]
+  status: complete_integrated
+  rule: do_not_rebuild_or_reinterpret_as_missing
+  may_do:
+    - repair_regression
+    - extend_existing_service
+    - harden_existing_contract
+    - add_phase4_consumers
+  must_not_do:
+    - recreate_state_manager
+    - recreate_dispatcher
+    - recreate_broadcaster
+    - recreate_activity_log
+    - recreate_confirmation_gate
+    - recreate_dpapi_vault
+    - recreate_fastapi_bridge
+    - recreate_websocket_stream
+    - recreate_ai_provider_abstraction
+    - recreate_knowledge_base_loader
+    - recreate_dashboard_shell
+    - recreate_overlay_baseline
+    - recreate_shield_intelligence
+
+BASELINE_SYSTEM:
+  name: state_manager
+  status: existing
+  phase4_action: extend_typed_state_only
+  duplicate: forbidden
+
+BASELINE_SYSTEM:
+  name: activity_log
+  status: existing
+  phase4_action: extend_event_families_and_records
+  duplicate: forbidden
+
+BASELINE_SYSTEM:
+  name: confirmation_gate
+  status: existing
+  phase4_action: use_for_protected_actions
+  duplicate: forbidden
+
+BASELINE_SYSTEM:
+  name: fastapi_bridge_and_websocket
+  status: existing
+  phase4_action: extend_endpoint_or_event_payloads_if_needed
+  duplicate: forbidden
+  hard_coded_port: forbidden
+
+BASELINE_SYSTEM:
+  name: dashboard_overlay_settings_privacy_activity_log_shell
+  status: existing_phase3_baseline
+  phase4_action: consume_and_extend_within_route_role_only
+  duplicate: forbidden
+
+================================================================================
+F. ROUTE OWNERSHIP REGISTRY
+================================================================================
+
+ROUTE_OWNERSHIP:
+  route: operations
+  phase4_role: primary_phase4_surface
+  owns:
+    - active_combat_intent
+    - combat_objectives
+    - combat_workflow_steps
+    - blockers
+    - next_actions
+    - recommendations
+    - debriefs
+    - session_summary
+  must_link_to:
+    - intel_for_facts
+    - navigation_for_routes
+    - activity_log_for_proof
+    - settings_for_source_privacy_behavior_controls
+    - dashboard_for_optional_pins_only
+  must_not_own:
+    - known_facts
+    - route_planning
+    - bookmarks
+    - source_history
+    - settings_controls
+    - dashboard_live_safety_truth
+
+ROUTE_OWNERSHIP:
+  route: intel
+  phase4_role: fact_owner
+  owns:
+    - source_backed_known_facts
+    - system_context
+    - local_context
+    - ship_personal_facts
+    - rewards_rank_facts_where_source_backed
+    - loadout_munitions_facts
+    - pvp_encounter_notes_if_local_or_source_backed
+    - field_level_provenance
+  must_not_own:
+    - active_combat_workflow
+    - route_planning
+    - confirmation_flow
+
+ROUTE_OWNERSHIP:
+  route: navigation
+  phase4_role: movement_owner
+  owns:
+    - escape_route_candidates
+    - wake_or_follow_route_candidates
+    - mission_destination_routes
+    - route_source_status
+    - bookmarks
+    - active_route_state
+  must_not_own:
+    - combat_workflow
+    - facts
+    - audit_history
+
+ROUTE_OWNERSHIP:
+  route: dashboard
+  phase4_role: compact_live_summary_only
+  owns:
+    - hull_shields_fuel_heat_pips_truth
+    - optional_commander_selected_combat_pin
+    - compact_link_to_operations_combat
+  must_not_own:
+    - combat_workspace
+    - target_threat_detail
+    - pvp_log
+    - debrief
+    - route_planner
+
+ROUTE_OWNERSHIP:
+  route: overlay
+  phase4_role: urgent_glance_interrupt_only
+  owns:
+    - immediate_interdiction_alert
+    - critical_state_alert
+    - commander_confirmation_prompt_when_required
+  must_not_own:
+    - persistent_combat_ui
+    - activity_log_detail
+    - route_planner
+    - settings
+    - full_dashboard
+
+ROUTE_OWNERSHIP:
+  route: activity_log
+  phase4_role: proof_layer
+  owns:
+    - event_history
+    - source_chains
+    - external_request_records
+    - ai_gate_records
+    - confirmation_records
+    - blocked_requests
+    - stale_unknown_unsupported_records
+    - debrief_grounding
+  must_not_own:
+    - workflow_execution
+    - facts
+    - route_planning
+    - settings
+
+ROUTE_OWNERSHIP:
+  route: settings
+  phase4_role: configuration_owner
+  owns:
+    - source_provider_setup
+    - privacy_controls
+    - ai_settings
+    - voice_settings
+    - overlay_profile
+    - diagnostics
+    - behavior_defaults
+  must_not_own:
+    - facts
+    - workflows
+    - routes
+    - audit_history
+
+================================================================================
+G. BACKEND OWNERSHIP REGISTRY
+================================================================================
+
+BACKEND_OWNER:
+  service_group: operations_service_group
+  phase4_role: primary_workflow_owner
+  owns:
+    - operation_lifecycle
+    - combat_workflow_state
+    - objectives
+    - blockers
+    - recommendations
+    - next_actions
+    - debrief
+  does_not_own:
+    - intel_facts
+    - navigation_routes
+    - source_provider_capability
+    - activity_log_storage
+
+BACKEND_OWNER:
+  service_group: workflow_engine
+  phase4_role: narrow_phase4_workflow_execution
+  owns:
+    - step_state_machine
+    - blocker_generation
+    - recommendation_grounding
+    - next_action_proposal
+    - debrief_assembly
+  requires:
+    - activity_log_records
+    - confirmation_gate_for_protected_actions
+    - source_plan_before_external_request
+  does_not_own:
+    - facts
+    - provider_capabilities
+
+BACKEND_OWNER:
+  service_group: combat_domain_handlers_services
+  phase4_role: narrow_domain_extension
+  owns:
+    - combat_event_interpretation
+    - target_threat_context
+    - interdiction_escape_context
+    - rewards_rank_session_context
+    - readiness_interpretation
+  must_use:
+    - existing_state_manager
+    - existing_dispatcher
+    - existing_broadcaster
+    - existing_activity_log
+  must_not_create:
+    - combat_state_manager
+    - combat_event_bus
+    - combat_bridge
+
+BACKEND_OWNER:
+  service_group: intel_service_group_or_existing_fact_projection
+  phase4_role: fact_source_for_operations_combat
+  owns:
+    - known_facts
+    - provenance
+    - source_caveats
+    - truth_class
+  phase4_note:
+    - phase5_unifies_full_intel_service_group
+    - phase4_may_use_existing_fact_projection_or_minimal_preparation_without_overbuilding_phase5
+
+BACKEND_OWNER:
+  service_group: navigation_service_group_or_existing_route_projection
+  phase4_role: escape_and_destination_route_owner
+  owns:
+    - route_candidates
+    - navroute_json_proof
+    - movement_actions
+  phase4_note:
+    - phase5_is_primary_navigation_phase
+    - phase4_should_link_to_navigation_without_building_full_phase5_scope
+
+BACKEND_OWNER:
+  service_group: activity_log_service
+  phase4_role: canonical_proof_layer
+  owns:
+    - combat_activity_records
+    - source_chain_records
+    - gate_records
+    - external_request_records
+    - debrief_grounding_refs
+
+BACKEND_OWNER:
+  service_group: confirmation_gate
+  phase4_role: protected_action_boundary
+  owns:
+    - proposal_state
+    - confirm_cancel_block_records
+    - audit_id
+  bypass: forbidden
+
+BACKEND_OWNER:
+  service_group: ai_provider_factory_and_ai_workflow_planner
+  phase4_role: draft_planner_only
+  owns:
+    - intent_classification
+    - draft_workflow_source_plan
+    - draft_text
+  does_not_own:
+    - facts
+    - external_api_calls
+    - game_actions
+    - confirmation_gate_decision
+
+================================================================================
+H. SOURCE / PROVENANCE REGISTRY
+================================================================================
+
+SOURCE_RULE:
+  id: local_first
+  order:
+    - local_journal
+    - status_json
+    - companion_json_files
+    - state_manager_cache
+    - capi_authenticated_snapshot_if_enabled_and_supported
+    - verified_external_sources_per_source_capability_reference
+    - fallback_wording
+
+SOURCE_RULE:
+  id: workflow_source_plan_required
+  applies_to: workflows_needing_external_facts
+  mandate: WorkflowSourcePlan before ExternalRequestBundle is queued or executed.
+
+SOURCE_RULE:
+  id: ai_not_source
+  mandate: AI cannot provide telemetry, target facts, risk facts, bounty facts, market facts, station facts, route facts, or commander reputation facts.
+
+SOURCE_RULE:
+  id: cache_batch_before_calling
+  mandate: Do not call one provider per field/card/sentence; use cache/batch/queue posture.
+
+SOURCE_RULE:
+  id: fallback_wording
+  allowed:
+    - Unknown
+    - Not Loaded
+    - Disabled
+    - Stale
+    - Requires Authorization
+    - Unsupported
+    - No Verified Source
+    - Commander-entered note
+    - Source-backed candidate
+    - Inferred estimate
+
+SOURCE_RULE:
+  id: pvp_claims
+  allowed:
+    - prior_local_encounter
+    - commander_entered_note
+    - source_backed_system_traffic_death_risk
+    - source_backed_risk_context
+  forbidden:
+    - known_ganker_without_verified_source_and_compliance
+    - global_pvp_reputation_database_without_authority
+    - public_accusation_workflow
+
+SOURCE_RULE:
+  id: combat_difficulty
+  allowed:
+    - combat_difficulty_estimate
+    - confidence_labeled_interpretation
+    - source_backed_or_kb_grounded_reason
+  forbidden:
+    - unsupported_exact_rating
+    - hidden_game_state_claim
+
+SOURCE_RULE:
+  id: ax_odyssey
+  allowed:
+    - source_backed_context
+    - local_observed_facts
+    - operation_checklist
+    - unknown_unsupported_when_missing
+  forbidden:
+    - invented_thargoid_state
+    - invented_settlement_state
+    - unsupported_live_threat_claim
+
+PROVENANCE_REQUIREMENT:
+  applies_to: meaningful_displayed_phase4_facts
+  fields:
+    - source
+    - timestamp_or_observed_at
+    - freshness_state
+    - truth_class
+    - caveat
+    - activity_log_reference
+  display_methods:
+    - source_chip
+    - why_link
+    - source_drawer
+    - activity_log_link
+    - fallback_label
+
+================================================================================
+I. WORKSTREAM REGISTRY
+================================================================================
+
+WORKSTREAM:
+  id: P4-A
+  name: Alignment, Drift Removal, and Entry Gate
+  purpose: Prepare Phase 4 from current v5 authority, not old v4.2/Soldier-era assumptions.
+  must_do:
+    - classify_old_phase4_package_as_historical_until_replaced
+    - reconcile_feature_names
+    - confirm_completed_baseline_locks
+    - confirm_operations_combat_route_placement
+    - confirm_source_capability_boundaries
+    - confirm_adr_0003_ui_safety
+    - confirm_ai_alignment_model
+  outputs:
+    - phase4_entry_gate_note
+    - future_playbook_scope_inputs
+  completion_definition: phase4_scope_reconciled_against_current_authorities
+
+WORKSTREAM:
+  id: P4-B
+  name: Operations -> Combat Package Shell
+  purpose: Create commander-facing combat workspace without Combat route.
+  primary_route: operations:combat
+  must_do:
+    - implement_or_define_package_shell
+    - support_empty_disabled_not_loaded_unsupported_states
+    - link_to_intel_navigation_activity_log_settings
+    - preserve_nullprovider_mode
+    - avoid_dashboard_or_overlay_overload
+  completion_definition: accessible_source_aware_operations_combat_shell_exists
+
+WORKSTREAM:
+  id: P4-C
+  name: Combat State, Events, and Target / Threat Foundation
+  purpose: Create first combat backend/UI vertical slice.
+  must_do:
+    - identify_local_combat_event_inputs
+    - extend_existing_state_manager
+    - use_existing_event_taxonomy_broadcaster
+    - create_target_threat_context
+    - preserve_dashboard_live_truth
+    - log_activity_proof
+  completion_definition: target_threat_context_source_labeled_and_auditable
+
+WORKSTREAM:
+  id: P4-D
+  name: Interdiction, Escape, Critical Response, and Overlay Lane
+  purpose: Make urgent combat support useful without automation or overlay bloat.
+  must_do:
+    - contain_interdiction_workflow_in_operations_combat
+    - use_overlay_for_urgent_glance_only
+    - link_route_candidates_to_navigation
+    - use_confirmation_gate_for_protected_actions
+    - log_every_meaningful_event
+    - protect_accessibility_and_focus
+  completion_definition: operations_overlay_navigation_activity_log_flow_works_without_automation
+
+WORKSTREAM:
+  id: P4-E
+  name: PvP Encounter Log & Risk Intel
+  purpose: Provide PvP awareness without unsupported accusations.
+  must_do:
+    - use_feature_name_pvp_encounter_log_risk_intel
+    - keep_notes_local_or_source_backed
+    - forbid_known_ganker_without_source
+    - separate_intel_facts_from_operations_workflow
+    - preserve_privacy_and_compliance
+    - make_risk_explainable
+  completion_definition: local_or_source_backed_pvp_context_available_without_overclaim
+
+WORKSTREAM:
+  id: P4-F
+  name: Combat Zones, Missions, Rewards, Rank, Loadout, and Munitions
+  purpose: Make combat sessions understandable as objectives and outcomes.
+  must_do:
+    - operations_owns_active_objective
+    - intel_owns_known_mission_reward_rank_loadout_facts
+    - navigation_owns_destinations
+    - engineering_reserved_for_build_planning
+    - use_unknown_stale_unsupported_wording
+  completion_definition: session_objectives_rewards_and_readiness_summarized_with_correct_links
+
+WORKSTREAM:
+  id: P4-G
+  name: AX, Odyssey Combat, Debrief, Integration, and Hardening
+  purpose: Add bounded AX/Odyssey containment and close Phase 4.
+  must_do:
+    - contain_ax_under_operations_combat_ax
+    - contain_odyssey_under_operations_combat_odyssey
+    - link_intel_local_system_facts
+    - create_activity_log_grounded_debrief
+    - run_integration_hardening
+  completion_definition: phase4_coherent_integrated_baseline_ready_for_closeout
+
+================================================================================
+J. BRIDGE REQUIREMENT REGISTRY
+================================================================================
+
+BRIDGE_REQUIREMENT:
+  id: BR-P4-001
+  feature_area: operations_combat_shell
+  frontend_need: operations_combat_container_with_sections_and_fallback_states
+  backend_need: operations_snapshot_or_workflow_state_payload
+  source_need: source_labels_and_unknown_states
+  activity_log_need: navigation_and_state_changes_recorded
+  confirmation_gate_need: none_for_read_only_shell
+  success_condition: shell_displays_real_or_honest_empty_state_without_fake_data
+
+BRIDGE_REQUIREMENT:
+  id: BR-P4-002
+  feature_area: target_threat
+  frontend_need: target_threat_panel_with_source_chips_why_links
+  backend_need: combat_context_service_extending_existing_state_events
+  source_need: local_telemetry_kb_supported_context_fallbacks
+  activity_log_need: threat_context_changes_logged
+  confirmation_gate_need: none_for_read_only_interpretation
+  success_condition: target_threat_context_is_source_labeled_and_not_overclaimed
+
+BRIDGE_REQUIREMENT:
+  id: BR-P4-003
+  feature_area: interdiction_escape
+  frontend_need: operations_workflow_plus_sparse_overlay_alert
+  backend_need: workflow_state_and_event_records
+  source_need: local_event_state_first_navigation_for_route_candidates
+  activity_log_need: event_recommendation_and_alert_chain_logged
+  confirmation_gate_need: required_for_protected_actions
+  success_condition: commander_receives_useful_escape_support_without_automation
+
+BRIDGE_REQUIREMENT:
+  id: BR-P4-004
+  feature_area: pvp_encounter_log_risk_intel
+  frontend_need: pvp_panel_with_local_notes_and_risk_context
+  backend_need: encounter_record_storage_or_fact_projection_with_activity_refs
+  source_need: local_notes_source_backed_traffic_death_risk_when_supported
+  activity_log_need: encounter_records_and_edits_logged
+  confirmation_gate_need: required_for_any_share_export_or_protected_action
+  success_condition: pvp_context_available_without_known_ganker_overclaim
+
+BRIDGE_REQUIREMENT:
+  id: BR-P4-005
+  feature_area: rewards_rank_missions
+  frontend_need: rewards_rank_and_mission_summary_in_operations_combat
+  backend_need: local_event_handlers_and_session_summary
+  source_need: local_journal_state_first_unknown_when_missing
+  activity_log_need: reward_rank_mission_updates_logged
+  confirmation_gate_need: none_for_read_only_summary
+  success_condition: combat_outcomes_are_understandable_and_auditable
+
+BRIDGE_REQUIREMENT:
+  id: BR-P4-006
+  feature_area: loadout_munitions_readiness
+  frontend_need: readiness_panel_linking_to_intel_ship_personal
+  backend_need: readiness_interpretation_from_existing_loadout_cargo_module_state
+  source_need: local_loadout_cargo_modulesinfo_facts_unknown_when_missing
+  activity_log_need: readiness_blockers_and_changes_logged
+  confirmation_gate_need: required_for_protected_actions_only
+  success_condition: readiness_summary_exists_without_replacing_engineering_or_intel
+
+BRIDGE_REQUIREMENT:
+  id: BR-P4-007
+  feature_area: debrief
+  frontend_need: debrief_panel_or_summary
+  backend_need: operation_debrief_assembly_from_activity_log_refs
+  source_need: activity_log_grounded_facts_and_labeled_ai_draft_if_used
+  activity_log_need: debrief_finalized_event
+  confirmation_gate_need: none_for_read_only_debrief
+  success_condition: debrief_is_grounded_not_freeform_hallucinated_summary
+
+================================================================================
+K. PHASE GATE REGISTRY
+================================================================================
+
+PHASE_GATE:
+  id: P4-GATE-ENTRY
+  name: Phase 4 Entry Gate
+  applies_before: implementation_playbooks
+  pass_conditions:
+    - current_authority_documents_adopted_or_available
+    - old_phase4_package_marked_historical_or_superseded
+    - phase4_guide_human_ai_created
+    - index_reconciliation_plan_preserved_for_later
+    - source_overclaim_risks_listed
+    - no_playbooks_created_yet
+  fail_conditions:
+    - using_old_phase4_guide_as_active_authority
+    - treating_master_v4_2_as_current_top_authority
+    - creating_playbooks_before_index_reconciliation
+
+PHASE_GATE:
+  id: P4-GATE-ROUTE
+  name: Route Ownership Gate
+  pass_conditions:
+    - combat_primary_surface_is_operations_combat
+    - no_combat_route
+    - dashboard_only_compact_summary_or_pin
+    - overlay_only_urgent_glance
+    - intel_owns_facts
+    - navigation_owns_routes
+    - activity_log_owns_proof
+  fail_conditions:
+    - combat_route_created
+    - dashboard_becomes_combat_workspace
+    - operations_duplicates_intel_or_navigation
+
+PHASE_GATE:
+  id: P4-GATE-BACKEND
+  name: Backend Ownership Gate
+  pass_conditions:
+    - existing_state_manager_extended
+    - existing_dispatcher_broadcaster_used
+    - existing_activity_log_used
+    - existing_confirmation_gate_used
+    - existing_bridge_used
+    - no_duplicate_baseline_service
+  fail_conditions:
+    - combat_state_manager_created
+    - second_bridge_or_event_bus_created
+    - activity_log_or_confirmation_gate_bypassed
+
+PHASE_GATE:
+  id: P4-GATE-SOURCE
+  name: Source and Provenance Gate
+  pass_conditions:
+    - local_first
+    - unsupported_facts_labeled
+    - source_capability_checked
+    - field_level_provenance_available
+    - workflow_source_plan_before_external_request
+    - ai_not_source
+  fail_conditions:
+    - known_ganker_claim_without_source
+    - best_or_guaranteed_claim_without_source
+    - external_provider_used_outside_capability
+    - ai_fact_created
+
+PHASE_GATE:
+  id: P4-GATE-ACTION
+  name: Confirmation and Automation Gate
+  pass_conditions:
+    - no_unattended_automation
+    - protected_actions_use_confirmation_gate
+    - voiceattack_optional_adapter_only
+    - eddi_not_required
+    - nullprovider_works
+  fail_conditions:
+    - direct_ai_game_action
+    - confirmation_gate_bypass
+    - voiceattack_required
+    - eddi_dependency_reintroduced
+
+PHASE_GATE:
+  id: P4-GATE-UI-SAFETY
+  name: UI Safety and Accessibility Gate
+  pass_conditions:
+    - adr_0003_safe_rendering_followed
+    - dynamic_strings_use_textcontent_or_approved_escape
+    - accessibility_labels_focus_live_regions_preserved
+    - overlay_does_not_steal_focus
+    - no_hard_coded_bridge_port
+  fail_conditions:
+    - unsafe_dynamic_innerhtml
+    - overlay_focus_theft
+    - inaccessible_confirmation_or_alert
+    - hardcoded_localhost_port
+
+PHASE_GATE:
+  id: P4-GATE-CLOSEOUT
+  name: Phase 4 Closeout Gate
+  pass_conditions:
+    - operations_combat_integrated
+    - workstreams_a_through_g_completed_or_explicitly_deferred_with_reason
+    - tests_pass_for_implemented_slices
+    - activity_log_proof_inspected
+    - source_fallbacks_verified
+    - release_notes_inputs_prepared
+    - index_update_inputs_prepared_for_later
+  fail_conditions:
+    - route_duplication_remaining
+    - unsupported_claims_remaining
+    - missing_activity_log_for_meaningful_actions
+    - no_nullprovider_validation
+
+================================================================================
+L. FEATURE PLACEMENT REGISTRY
+================================================================================
+
+FEATURE_PLACEMENT:
+  feature: target_intelligence
+  primary_surface: operations:combat/target_and_threat
+  secondary_surfaces: [overlay_urgent_only, dashboard_optional_pin]
+  fact_owner: intel_contextual_facts
+  backend_owner: combat_domain_handlers_services
+  proof_owner: activity_log
+  notes: Source-backed or confidence-labeled only.
+
+FEATURE_PLACEMENT:
+  feature: interdiction_warning_response
+  primary_surface: operations:combat/interdiction_escape
+  secondary_surfaces: [overlay_interruptive_alert, navigation_escape_route, activity_log]
+  backend_owner: workflow_engine_and_combat_domain_handlers
+  confirmation_gate: required_for_protected_actions
+  notes: No automated game action.
+
+FEATURE_PLACEMENT:
+  feature: pvp_encounter_log_risk_intel
+  primary_surface: operations:combat/pvp
+  secondary_surfaces: [intel_personal_encounter_notes, intel_system_traffic_risk, activity_log]
+  forbidden_names: [pvp_gank_database]
+  forbidden_claims: [known_ganker_without_verified_source]
+  notes: Local/source-backed/explainable risk context only.
+
+FEATURE_PLACEMENT:
+  feature: bounty_combat_bond_tracking
+  primary_surface: operations:combat/rewards_rank
+  fact_owner: intel:personal/rewards_credits_where_source_backed
+  backend_owner: combat_domain_handlers_services
+  proof_owner: activity_log
+
+FEATURE_PLACEMENT:
+  feature: combat_zone_intelligence
+  primary_surface: operations:combat/combat_zones_missions
+  fact_owner: intel:system_bgs_faction_context_where_source_backed
+  route_owner: navigation:planner_active_route
+  proof_owner: activity_log
+
+FEATURE_PLACEMENT:
+  feature: combat_rank_tracking
+  primary_surface: operations:combat/rewards_rank
+  fact_owner: intel:personal/ranks
+  proof_owner: activity_log
+
+FEATURE_PLACEMENT:
+  feature: loadout_munitions
+  primary_surface: operations:combat/loadout_munitions
+  fact_owner: intel:personal/loadout_cargo_modules
+  future_owner_for_build_planning: engineering
+  proof_owner: activity_log
+
+FEATURE_PLACEMENT:
+  feature: hardpoint_utility_management
+  primary_surface: operations:combat/loadout_munitions
+  fact_owner: intel:personal/loadout
+  automation: forbidden
+  future_owner_for_build_planning: engineering
+
+FEATURE_PLACEMENT:
+  feature: escape_planner
+  primary_surface: operations:combat/interdiction_escape
+  route_owner: navigation:planner
+  proof_owner: activity_log
+  confirmation_gate: required_for_protected_actions
+
+FEATURE_PLACEMENT:
+  feature: thermal_attack_intelligence
+  primary_surface: operations:combat/target_and_threat
+  live_truth_owner: dashboard_fixed_heat
+  backend_owner: combat_context_interpretation
+  notes: Do not redefine heat truth.
+
+FEATURE_PLACEMENT:
+  feature: ax_operations
+  primary_surface: operations:combat/ax
+  fact_owner: intel_system_local_where_source_backed
+  route_owner: navigation_if_route_needed
+  proof_owner: activity_log
+  forbidden: invented_thargoid_state
+
+FEATURE_PLACEMENT:
+  feature: odyssey_combat_awareness
+  primary_surface: operations:combat/odyssey_combat
+  secondary_surfaces: [dashboard_optional_srv_suit_pin]
+  fact_owner: intel:local
+  proof_owner: activity_log
+  forbidden: invented_settlement_state
+
+FEATURE_PLACEMENT:
+  feature: post_combat_debrief
+  primary_surface: operations:combat/debrief
+  source_of_record: activity_log
+  ai_role: draft_only_if_grounded_and_labeled
+  proof_owner: activity_log
+
+================================================================================
+M. ACTIVITY LOG REGISTRY
+================================================================================
+
+ACTIVITY_LOG_EVENT_REQUIREMENT:
+  event_family: operation
+  examples:
+    - operation.created
+    - operation.started
+    - operation.paused
+    - operation.completed
+    - operation.aborted
+  applies_to: combat_operation_lifecycle
+
+ACTIVITY_LOG_EVENT_REQUIREMENT:
+  event_family: workflow
+  examples:
+    - workflow.step_started
+    - workflow.step_completed
+    - workflow.step_blocked
+    - workflow.recommendation_proposed
+    - workflow.recommendation_accepted
+    - workflow.recommendation_rejected
+    - workflow.debrief_finalized
+  applies_to: combat_workflows
+
+ACTIVITY_LOG_EVENT_REQUIREMENT:
+  event_family: combat
+  examples:
+    - combat.target_context_changed
+    - combat.threat_estimate_changed
+    - combat.interdiction_detected
+    - combat.escape_recommendation_proposed
+    - combat.pvp_encounter_recorded
+    - combat.reward_summary_updated
+    - combat.readiness_blocker_detected
+  applies_to: phase4_domain_events
+
+ACTIVITY_LOG_EVENT_REQUIREMENT:
+  event_family: gate
+  examples:
+    - gate.proposed
+    - gate.confirmed
+    - gate.canceled
+    - gate.blocked
+  applies_to: protected_actions
+
+ACTIVITY_LOG_EVENT_REQUIREMENT:
+  event_family: source
+  examples:
+    - source.lookup_planned
+    - source.request_queued
+    - source.response_received
+    - source.cache_hit
+    - source.cache_miss
+    - source.rate_limited
+    - source.blocked
+    - source.unsupported
+  applies_to: external_or_cached_source_facts
+
+ACTIVITY_LOG_EVENT_REQUIREMENT:
+  event_family: ai
+  examples:
+    - ai.draft_proposed
+    - ai.draft_accepted
+    - ai.draft_rejected
+    - ai.disabled
+    - ai.fallback_engaged
+  applies_to: ai_phase4_drafts_and_debriefs
+
+================================================================================
+N. CONFIRMATION GATE REGISTRY
+================================================================================
+
+CONFIRMATION_GATE_RULE:
+  id: read_only_fact_display
+  confirmation_required: false
+  examples:
+    - target_threat_readout
+    - reward_summary
+    - loadout_readiness_summary
+
+CONFIRMATION_GATE_RULE:
+  id: protected_action_proposal
+  confirmation_required: true
+  examples:
+    - copy_or_activate_external_route_candidate_if_project_policy_requires
+    - export_or_share_pvp_note
+    - future_input_assist_action
+    - destructive_or_privacy_sensitive_action
+
+CONFIRMATION_GATE_RULE:
+  id: ai_suggested_action
+  confirmation_required: true_when_action_protected
+  ai_may_execute_directly: false
+  bypass_allowed: false
+
+CONFIRMATION_GATE_RULE:
+  id: voice_or_adapter_action
+  confirmation_required: true_when_action_protected
+  voiceattack_bypass_allowed: false
+  unattended_allowed: false
+
+================================================================================
+O. AI / VOICE / INPUT REGISTRY
+================================================================================
+
+AI_DOCTRINE:
+  provider_agnostic: true
+  nullprovider_required: true
+  ai_off_core_functionality: required
+  ai_fact_source: false
+  ai_api_calls_direct: forbidden
+  ai_source_router_bypass: forbidden
+  ai_confirmation_gate_bypass: forbidden
+  ai_game_action: forbidden
+  allowed:
+    - classify_intent
+    - draft_workflow_source_plan
+    - explain_known_state
+    - summarize_debrief_from_activity_log
+    - propose_next_action
+    - identify_unknowns_blockers
+
+VOICE_INPUT_DOCTRINE:
+  native_first_voice: current_direction
+  eddi_current_scope: cut
+  voiceattack_status: optional_adapter_only
+  voiceattack_required: false
+  voiceattack_brain: false
+  commander_confirmed_input_assist: future_compliance_gated_only
+  unattended_automation: forbidden
+  botting: forbidden
+
+================================================================================
+P. UI SAFETY / ACCESSIBILITY / PERFORMANCE REGISTRY
+================================================================================
+
+UI_SAFETY_RULE:
+  id: adr_0003
+  applies_to: all_phase4_ui
+  preferred: document_createElement_plus_textContent
+  permitted_secondary: escapeHtml_plus_innerHTML_with_justification
+  forbidden:
+    - raw_dynamic_innerHTML
+    - outerHTML_with_untrusted_values
+    - insertAdjacentHTML_with_untrusted_values
+    - document_write
+    - eval
+    - new_Function
+    - string_setTimeout_or_setInterval
+  high_risk_phase4_values:
+    - commander_names
+    - pvp_notes
+    - external_source_strings
+    - log_values
+    - telemetry_values
+    - api_values
+
+ACCESSIBILITY_RULE:
+  id: phase4_accessibility
+  required:
+    - semantic_structure
+    - keyboard_navigation
+    - visible_focus
+    - labels_for_controls
+    - live_regions_for_critical_alerts
+    - no_overlay_focus_theft
+    - confirmation_dialog_accessibility
+    - no_color_only_status
+
+PERFORMANCE_RULE:
+  id: phase4_performance
+  required:
+    - no_hard_coded_bridge_port
+    - bridge_readiness_respected
+    - websocket_preferred_for_events
+    - avoid_unbounded_polling
+    - overlay_low_noise
+    - external_requests_not_in_urgent_combat_loop_unless_cached_or_queued
+    - graceful_degradation_when_sources_disabled_stale_rate_limited
+
+================================================================================
+Q. FORBIDDEN PATTERN REGISTRY
+================================================================================
+
+FORBIDDEN_PATTERN:
+  name: combat_primary_route
+  reason: UI Blueprint assigns Combat to Operations -> Combat.
+  action: Place combat under Operations package only.
+
+FORBIDDEN_PATTERN:
+  name: combat_dashboard
+  reason: Dashboard owns live command surface, not full combat workspace.
+  action: Use optional Dashboard pins only.
+
+FORBIDDEN_PATTERN:
+  name: overlay_as_workspace
+  reason: Overlay is urgent glance/interruption layer only.
+  action: Keep alerts sparse and time-sensitive.
+
+FORBIDDEN_PATTERN:
+  name: operations_fact_ownership
+  reason: Intel owns facts.
+  action: Link Operations to Intel facts.
+
+FORBIDDEN_PATTERN:
+  name: operations_route_ownership
+  reason: Navigation owns routes.
+  action: Link Operations to Navigation.
+
+FORBIDDEN_PATTERN:
+  name: duplicate_backend_baseline
+  reason: Completed baseline systems already exist.
+  action: Extend existing systems.
+
+FORBIDDEN_PATTERN:
+  name: combat_state_manager
+  reason: StateManager is canonical state owner.
+  action: Add typed extensions to existing StateManager.
+
+FORBIDDEN_PATTERN:
+  name: shield_intelligence_recreation
+  reason: Shield Intelligence is implemented under Hull/Shields safety model.
+  action: Consume existing shield state only.
+
+FORBIDDEN_PATTERN:
+  name: known_ganker_claim
+  reason: Unsupported and compliance-sensitive without verified authority.
+  action: Use PvP Encounter Log & Risk Intel with source-backed explanations.
+
+FORBIDDEN_PATTERN:
+  name: ai_fact_creation
+  reason: AI is not a source of facts.
+  action: Require local/source-backed facts or fallback wording.
+
+FORBIDDEN_PATTERN:
+  name: confirmation_gate_bypass
+  reason: Law and backend contract forbid bypass.
+  action: Use Confirmation Gate for protected actions.
+
+FORBIDDEN_PATTERN:
+  name: voiceattack_requirement
+  reason: VoiceAttack is optional adapter only.
+  action: Preserve native-first/no-adapter-required posture.
+
+FORBIDDEN_PATTERN:
+  name: eddi_reintroduction
+  reason: EDDI is cut from current UI scope.
+  action: Do not require EDDI.
+
+FORBIDDEN_PATTERN:
+  name: unsafe_dynamic_html
+  reason: ADR 0003 forbids raw dynamic HTML sinks.
+  action: Use safe DOM patterns.
+
+FORBIDDEN_PATTERN:
+  name: external_source_overcall
+  reason: Source Capability requires cache/batch/respectful budgets.
+  action: Use WorkflowSourcePlan and ExternalRequestBundle posture.
+
+================================================================================
+R. DRIFT RESOLUTION REGISTRY
+================================================================================
+
+DRIFT_ITEM:
+  id: P4-DRIFT-001
+  source: old_phase4_guide_playbooks
+  issue: Built from Master v4.2-era context and Soldier assumptions.
+  resolution: Replace with Phase 4 v1.0 Human + AI guide before playbooks.
+  future_action: Archive or mark old package historical.
+
+DRIFT_ITEM:
+  id: P4-DRIFT-002
+  source: old_route_assumptions
+  issue: Combat could be interpreted as route or dashboard workspace.
+  resolution: Combat lives under Operations -> Combat only.
+  future_action: Enforce in playbook checks.
+
+DRIFT_ITEM:
+  id: P4-DRIFT-003
+  source: old_feature_name
+  issue: PvP Gank Database overclaims and risks unsupported accusation.
+  resolution: Rename to PvP Encounter Log & Risk Intel.
+  future_action: Use only safe wording in UI/playbooks.
+
+DRIFT_ITEM:
+  id: P4-DRIFT-004
+  source: old_voice_dependency
+  issue: EDDI/VoiceAttack dependency drift.
+  resolution: EDDI cut; VoiceAttack optional adapter only.
+  future_action: Update README/SECURITY/CONTRIBUTING and stale docs in support pass.
+
+DRIFT_ITEM:
+  id: P4-DRIFT-005
+  source: phase2_5_deferred_language
+  issue: Shield Intelligence could be recreated.
+  resolution: Locked as implemented under Hull/Shields safety model.
+  future_action: Include in playbook non-goals.
+
+DRIFT_ITEM:
+  id: P4-DRIFT-006
+  source: source_capability_status_drift
+  issue: Source Capability filename/status may need normalization later.
+  resolution: Treat current Source Capability Reference as provider truth for Phase 4.
+  future_action: Normalize title/status before final Index update.
+
+DRIFT_ITEM:
+  id: P4-DRIFT-007
+  source: adr_0003_collision_warning
+  issue: UI safe-rendering must apply before Phase 4 hostile/user strings enter overlay/combat UI.
+  resolution: Safe-rendering gate required.
+  future_action: Include grep/audit in UI playbooks.
+
+================================================================================
+S. FUTURE PLAYBOOK DERIVATION SCHEMA
+================================================================================
+
+PLAYBOOK_DERIVATION_RULE:
+  create_playbooks_now: false
+  reason: Wait until Index is fully updated/reconciled after relevant docs are stable.
+  index_listing_required_for_playbooks: false
+  playbooks_are_execution_packages: true
+
+PLAYBOOK_SCHEMA:
+  required_sections:
+    - title
+    - purpose
+    - recommended_ai_execution_configuration
+    - authority_context
+    - phase4_workstream_id
+    - commander_outcome
+    - files_likely_involved
+    - strict_non_goals
+    - implementation_steps
+    - source_provenance_requirements
+    - activity_log_requirements
+    - confirmation_gate_requirements
+    - ui_safety_accessibility_requirements_if_ui_touched
+    - tests_and_verification
+    - stop_escalate_conditions
+    - final_report_format
+
+PLAYBOOK_CONFIGURATION_REQUIRED:
+  include_model_rank: true
+  include_reasoning_effort: true
+  include_thinking_mode: true
+  include_fallback_executor: true
+
+PLAYBOOK_EXECUTOR_SELECTION:
+  architect_design:
+    model: opus
+    rank: architect_commander_staff
+    effort: high_or_max
+    thinking: adaptive_on
+  officer_execution:
+    model: sonnet_claude_code
+    rank: senior_implementation_officer
+    effort: medium_or_high
+    thinking: adaptive_on
+  soldier_execution:
+    model: gemini_cli
+    rank: strict_soldier
+    effort: medium_or_high
+    thinking: tool_available_default
+    autonomy: low
+  scout:
+    model: haiku
+    rank: scout
+    effort: low_or_medium
+    use_for: scanning_summarization_low_risk_review_only
+
+================================================================================
+T. RECOMMENDED AI CONFIGURATION REGISTRY
+================================================================================
+
+AI_CONFIGURATION:
+  task: revise_or_audit_phase4_guide
+  primary_model: opus
+  role: architect_commander_staff
+  reasoning_effort: high
+  escalation_effort: max_or_xhigh_for_full_drift_audit
+  thinking_mode: adaptive_on_where_available
+  manual_extended_thinking: fallback_only
+
+AI_CONFIGURATION:
+  task: generate_future_phase4_playbook
+  primary_model: opus
+  role: architect_commander_staff
+  reasoning_effort: high
+  escalation_effort: max_or_xhigh_for_multi_workstream_or_compliance_sensitive_playbook
+  thinking_mode: adaptive_on
+  create_before_index_reconciled: false
+
+AI_CONFIGURATION:
+  task: execute_future_phase4_playbook
+  primary_model: sonnet_claude_code
+  role: senior_implementation_officer
+  reasoning_effort: medium_for_narrow_high_for_bridge_state_source_gate_work
+  thinking_mode: adaptive_on_where_available
+  autonomy: bounded_judgment_allowed
+
+AI_CONFIGURATION:
+  task: execute_strict_mechanical_phase4_playbook
+  primary_model: gemini_cli
+  role: strict_soldier_executor
+  reasoning_effort: medium_or_high
+  thinking_mode: default_or_available
+  autonomy: minimal
+  stop_on_ambiguity: true
+
+AI_CONFIGURATION:
+  task: scout_phase4_files_or_summarize_outputs
+  primary_model: haiku
+  role: scout
+  reasoning_effort: low_or_medium
+  thinking_mode: default
+  autonomy: low
+
+================================================================================
+U. CHECKLIST FOR FUTURE AI SESSIONS
+================================================================================
+
+FUTURE_AI_SESSION_CHECKLIST:
+  before_phase4_work:
+    - confirm_current_task_is_not_index_update_unless_commander_says_so
+    - confirm_no_playbooks_until_index_reconciled
+    - load_or_reference_master_v5_human_ai
+    - load_or_reference_ui_v1_human_ai
+    - load_or_reference_backend_v1_human_ai
+    - load_or_reference_source_capability_v1
+    - load_or_reference_roadmap_v1_human_ai
+    - load_or_reference_phase4_guide_human_ai
+    - remember_completed_baselines_are_not_backlog
+    - remember_combat_lives_in_operations
+    - remember_shield_intelligence_not_phase4_work
+    - remember_ai_not_fact_source
+    - remember_confirmation_gate_non_bypassable
+    - remember_voiceattack_optional_eddi_cut
+
+  before_future_playbook_creation:
+    - verify_index_reconciled
+    - pick_single_workstream_or_vertical_slice
+    - include_recommended_ai_execution_configuration
+    - include_source_provenance_requirements
+    - include_activity_log_requirements
+    - include_confirmation_gate_requirements
+    - include_safe_rendering_if_ui_touched
+    - include_tests_and_final_report_format
+
+  before_future_executor_handoff:
+    - choose_claude_code_sonnet_for_officer_work
+    - choose_gemini_only_for_strict_soldier_work
+    - choose_haiku_only_for_scouting
+    - never_let_executor_decide_architecture
+
+================================================================================
+V. OPEN ITEMS
+================================================================================
+
+OPEN_ITEM:
+  id: P4-OPEN-001
+  item: Adopt Phase 4 Human + AI guide into repository.
+  required_before: future_phase4_playbooks
+
+OPEN_ITEM:
+  id: P4-OPEN-002
+  item: Finish remaining support/public doc revisions that should precede final Index update.
+  required_before: final_index_reconciliation
+
+OPEN_ITEM:
+  id: P4-OPEN-003
+  item: Rebuild OmniCOVAS_Index.md last as stable router.
+  required_before: new_phase4_playbooks
+
+OPEN_ITEM:
+  id: P4-OPEN-004
+  item: Decide old Phase 4 package status: archive, historical note, or remove from active tracking.
+  required_before: future_phase4_playbooks
+
+OPEN_ITEM:
+  id: P4-OPEN-005
+  item: Confirm Compliance Matrix still-current details around external services, privacy, voice/input, and attribution.
+  required_before: compliance_sensitive_phase4_playbooks
+
+OPEN_ITEM:
+  id: P4-OPEN-006
+  item: Confirm ADR 0003 safe-rendering enforcement command/gate wording in future playbooks.
+  required_before: ui_phase4_playbooks
+
+OPEN_ITEM:
+  id: P4-OPEN-007
+  item: Confirm README/SECURITY/CONTRIBUTING stale v4/EDDI references in support-doc pass.
+  required_before: final_pre_playbook_document_freeze
+
+
+PHASE4_EXECUTOR_UPDATE:
+  id: codex_officer_lane_added
+  status: active
+  summary: Phase 4 playbooks may assign complex bounded implementation to ChatGPT Codex Officer using AGENTS.md, parallel to Claude Code Officer. Use Gemini only for strict narrow soldier tasks.
+  executor_selection_rule: use_Codex_or_Claude_Code_for_UI_backend_bridge_state_event_work; use_Gemini_only_for_deterministic_narrow_tasks; use_Architect_for_phase_scope_or_authority_decisions.

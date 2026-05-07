@@ -1,6 +1,11 @@
 OmniCOVAS UI Blueprint v1.0 — Human Reference
 =============================================
 
+Repository Adoption Revision Note
+---------------------------------
+This file is part of the OmniCOVAS v5.0 documentation adoption package created after OmniCOVAS_Index.md v2.0 and OmniCOVAS_Index_AI_Reference.md were added as the active document routers. Any earlier wording in this file or related drafts that described the Index as deferred, stale, or awaiting final reconciliation is superseded by this adoption package. The Index remains a router only; it does not override the owning authority documents.
+
+
 Status
 ------
 Final UI/product reference for the current OmniCOVAS vision.
@@ -75,7 +80,7 @@ No primary route is created for Combat, Exploration, Exobiology, Trade, Mining, 
 ---------------------------------------
 UI Blueprint v1.0 is the finalized product/UI vision source. It supersedes older Master Blueprint wording where the older wording describes route ownership, Settings ownership, About/Legal/Credits structure, First-Run Setup language, Dashboard layout doctrine, Overlay role, Activity Log role, AI workflow UI behavior, native-first Voice direction, EDDI removal from current UI scope, VoiceAttack optional-adapter status, and feature-to-route reconciliation.
 
-It does not supersede project laws, privacy requirements, source-routing constraints, legal/compliance requirements, safe-rendering rules, or backend implementation requirements. Those must be reconciled later into the Master Blueprint and the planned Backend Blueprint.
+It does not supersede project laws, privacy requirements, source-routing constraints, legal/compliance requirements, safe-rendering rules, or backend implementation requirements. Those are governed by Master Blueprint v5.0, Backend Blueprint v1.0, Source Capability Routing Reference v1, the Compliance Matrix, and ADR 0003 as applicable.
 
 3. Current Implementation Baseline
 ----------------------------------
